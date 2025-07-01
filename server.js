@@ -1,4 +1,6 @@
-require('dotenv').config(); // Always load .env first
+require('dotenv').config();  // Ensure this is BEFORE you use process.env.* Always load .env first
+
+console.log('DB HOST:', process.env.DB_HOST);
 
 // ENVIRONMENT CONFIG
 const env = process.env.NODE_ENV || 'development';
