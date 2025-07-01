@@ -1,5 +1,6 @@
 require('dotenv').config(); // Load environment variables FIRST
 const { Sequelize } = require('sequelize');
+const { FORCE } = require('sequelize/lib/index-hints');
 
 
 // ✅ Check for DATABASE_URL (standard in Render)
@@ -10,15 +11,17 @@ if (!process.env.DATABASE_URL) {
 
 // ✅ Initialize Sequelize with DATABASE_URL (for PostgreSQL)
 const sequelize = new Sequelize(process.env.DATABASE_URL, {
-    dialect: 'postgres',  
+    dialect: 'postgres', 
     protocol: 'postgres', 
-    logging: false, // disable logging; change to true if you want SQL logs 
-    dialectOptions: {
-      ssl: { require: true,
-        rejectUnauthorized: false,
-       }  
+   dialectOptions: {
+      ssl: { rejectUnauthorized: false }  
   },
+  logging: false, // disable logging; change to true if you want SQL logs     
 });
+
+// Sync and Authenticate Database
+sequelize.sync(); // For development, or use migrations
+
 
 // // For debugging – shows what env variables are being read
 // console.log('DB ENV:', {

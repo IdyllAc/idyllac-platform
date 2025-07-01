@@ -1,123 +1,121 @@
-require('dotenv').config(); // Always first, to load .env
+require('dotenv').config(); // Always load .env first
 
-const env = process.env.NODE_ENV;              // "development" or "production"
+// ENVIRONMENT CONFIG
+const env = process.env.NODE_ENV || 'development';
 const port = process.env.PORT || 3000;
 const baseURL = process.env.BASE_URL;
 const apiURL = process.env.API_URL;
+const renderBase = process.env.RENDER_BASE_URL;
 
 console.log('Running in:', env);
 console.log('Base URL:', baseURL);
 console.log('API URL:', apiURL);
 
-
-// Importing required modules
+// CORE MODULES
 const express = require('express');
 const path = require('path');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
-const router = express.Router();
+
+// DATABASE & SESSION
 const session = require('express-session');
-const MySQLStore = require('express-mysql-session')(session);
-const jwt = require('jsonwebtoken');
-const RefreshToken = require('./models/RefreshToken');
+const pgSession = require('connect-pg-simple')(session);
+const { Pool } = require('pg');
+const sequelize = require('./config/database'); // Sequelize (MySQL)
+
+// AUTH & FLASH
 const flash = require('express-flash');
 const methodOverride = require('method-override');
 const passport = require('passport');
-const sequelize = require('./config/database'); // MySQL connection
-const { User } = require('./models');
-const jwtMiddleware = require('./middleware/jwtMiddleware');
-const publicRoutes = require('./routes/public'); // or user.js if that’s where you added it
 const initializePassport = require('./config/passport');
 
-const PORT = process.env.PORT || 3000;
+// MODELS
+const { User } = require('./models');
+const jwtMiddleware = require('./middleware/jwtMiddleware');
 
-// Initialize Passport strategies
+// ROUTES
+const publicRoutes = require('./routes/public');
+const authRoutes = require('./routes/auth');
+const userRoutes = require('./routes/user');
+
+// INIT APP
+const app = express();
+app.set('trust proxy', 1); // Render HTTPS support
+
+// PASSPORT INIT
 initializePassport(
   passport,
   async email => await User.findOne({ where: { email } }),
   async id => await User.findByPk(id)
 );
 
-const app = express();
-
-app.set('trust proxy', 1); // ⚠️ Required if behind Render's HTTPS proxy 
-
-// ✅ MySQL session store setup
-const sessionStore = new MySQLStore({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME
-});
-
-// ✅ Use the session middleware with MySQL store
-app.use(session({
-  secret: process.env.SESSION_SECRET,
-  resave: false,
-  saveUninitialized: false,
-  store: sessionStore,
-  cookie: {
-    secure: true,       // ⬅️ Must be true in production with HTTPS
-    httpOnly: true,     // Prevents JS access to the cookie
-    sameSite: 'lax'     // Helps prevent CSRF
-  }
-}));
-
-// View Engine
-app.set('views', path.join(__dirname, '/views'));
+// VIEW ENGINE SETUP
+app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
-app.use('/', router); // assuming this is part of your view-rendering server
-app.use('/', publicRoutes); // mount routes
 
-// Middleware
+// MIDDLEWARE
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-app.use(express.static('public')); // ✅ allows /js/dashboard.js to be served
-
+app.use(express.static('public'));
 app.use(flash());
-app.use(session({
-  secret: process.env.SESSION_SECRET,
-  resave: false,
-  saveUninitialized: false,
-  store: sessionStore, // ✅ Use MySQL store here
-  cookie: { secure: false } // use `true` if behind HTTPS + proxy
-}));
-app.use(passport.initialize());
-app.use(passport.session());
 app.use(methodOverride('_method'));
 
-// JWT middleware for API
+// ✅ PostgreSQL SESSION STORE
+const pgPool = new Pool({
+  user: process.env.PGUSER || 'your_user',
+  host: process.env.PGHOST || 'localhost',
+  database: process.env.PGDATABASE || 'your_db',
+  password: process.env.PGPASSWORD || 'your_password',
+  port: process.env.PGPORT || 5432,
+});
+
+app.use(
+  session({
+    store: new pgSession({ pool: pgPool }),
+    secret: process.env.SESSION_SECRET || 'your_session_secret',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: env === 'production', // set to true in production
+      httpOnly: true,
+      sameSite: 'lax',
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+    },
+  })
+);
+
+// AUTH INIT
+app.use(passport.initialize());
+app.use(passport.session());
+
+// JWT PROTECTED API ROUTES
 app.use('/api', jwtMiddleware);
-// Auth Routes
-app.use('/', require('./routes/public'));      // register, login
-app.use('/auth', require('./routes/auth')); // register/login POST
-app.use('/user', require('./routes/user'));   // profile, settings, protected stuff
 
+// ROUTING
+app.use('/', publicRoutes);
+app.use('/auth', authRoutes);
+app.use('/user', userRoutes);
 
-// Sync and Authenticate Database
-sequelize.sync()
-  .then(() => console.log('✅ All models synced successfully.'))
-  .catch(err => console.error('❌ Error syncing models:', err));
+sequelize.sync(); // For development, or use migrations
 
-sequelize.authenticate()
-  .then(() => console.log('✅ Database connected.'))
-  .catch(err => console.error('❌ Database connection error:', err));
+// EJS PAGES
+app.get('/login', checkNotAuthenticated, (req, res) => res.render('login'));
+app.get('/register', checkNotAuthenticated, (req, res) => res.render('register'));
+app.get('/dashboard', checkAuthenticated, (req, res) => res.render('dashboard'));
+app.get('/profile', checkAuthenticated, (req, res) => res.render('profile'));
+app.get('/sittings', checkAuthenticated, (req, res) => res.render('sittings'));
+app.get('/submit/personal_info', checkAuthenticated, (req, res) => res.render('personal'));
+app.get('/submit/upload/document', checkAuthenticated, (req, res) => res.render('document'));
+app.get('/submit/upload/selfie', checkAuthenticated, (req, res) => res.render('selfie'));
+app.get('/selfie/success', checkAuthenticated, (req, res) => res.render('success'));
 
-app.get('/login', checkNotAuthenticated, (req, res) => {
-  res.render('login');
-});
-
-app.get('/register', checkNotAuthenticated, (req, res) => {
-  res.render('register');
-});
-
-// POST /register
+// REGISTER POST
 app.post('/register', checkNotAuthenticated, async (req, res) => {
   try {
     const { name, email, cemail, password } = req.body;
 
     if (email !== cemail) {
-      return res.status(400).send("Emails do not match.");
+      return res.status(400).send('Emails do not match.');
     }
 
     const existingUser = await User.findOne({ where: { email } });
@@ -139,63 +137,54 @@ app.post('/register', checkNotAuthenticated, async (req, res) => {
 
     res.redirect('/login');
   } catch (err) {
-    console.error('Registration error', err);
+    console.error('❌ Registration error:', err);
     res.redirect('/register');
   }
 });
 
-// POST /login — Use only one strategy
-app.post('/login', checkNotAuthenticated, passport.authenticate('local', {
-  successRedirect: '/dashboard',
-  failureRedirect: '/login',
-  failureFlash: true
-}));
+// LOGIN POST
+app.post(
+  '/login',
+  checkNotAuthenticated,
+  passport.authenticate('local', {
+    successRedirect: '/dashboard',
+    failureRedirect: '/login',
+    failureFlash: true,
+  })
+);
 
-// DELETE /logout
+// LOGOUT
 app.delete('/logout', (req, res, next) => {
   req.logOut(err => {
     if (err) return next(err);
-    res.redirect('/login');
     console.log('✅ Logged out');
+    res.redirect('/login');
   });
 });
 
-// Middleware helpers
+// PROTECTED ROUTE HELPERS
 function checkAuthenticated(req, res, next) {
   if (req.isAuthenticated()) return next();
   res.redirect('/login');
 }
-
-// Views & Auth Pages
-app.get('/dashboard', (req, res) => {
-  res.render('dashboard'); // assuming dashboard.ejs is in views/
-});
-app.get('/profile', (req, res) => {
-  res.render('profile'); // assuming profile.ejs is in views/
-});
-app.get('/sittings', (req, res) => {
-  res.render('sittings'); // assuming sittings.ejs is in views/
-});
-app.get('/submit/personal_info', (req, res) => {
-  res.render('personal'); // assuming personal.ejs is in views/
-});
-
-app.get('/submit/upload/document', (req, res) => {
-  res.render('document'); // assuming document.ejs is in views/
-});
-app.get('/submit/upload/selfie', (req, res) => {
-  res.render('selfie'); // assuming selfie.ejs is in views/
-});
-app.get('/selfie/success', (req, res) => {
-  res.render('success');
-});
 
 function checkNotAuthenticated(req, res, next) {
   if (req.isAuthenticated()) return res.redirect('/');
   next();
 }
 
-// Start Server on port PORT
-app.listen(PORT, () => {
+// SEQUELIZE CONNECTION
+sequelize
+  .authenticate()
+  .then(() => console.log('✅ Database connected.'))
+  .catch(err => console.error('❌ Database connection error:', err));
+
+sequelize
+  .sync()
+  .then(() => console.log('✅ All models synced successfully.'))
+  .catch(err => console.error('❌ Error syncing models:', err));
+
+// SERVER START
+app.listen(port, () => {
   console.log(`🚀 Server running at ${baseURL} on port ${port} (${env} mode)`);
 });

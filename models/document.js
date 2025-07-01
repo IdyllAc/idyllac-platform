@@ -1,7 +1,7 @@
 // models/document.js
 module.exports = (sequelize, DataTypes) => {
   const Document = sequelize.define('Document', {
-    id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    id: { type: DataTypes.INTEGER, primaryKey: true },
     userId: { type: DataTypes.INTEGER, allowNull: false },
     passport_path: { type: DataTypes.STRING(255) },
     id_card_path: { type: DataTypes.STRING(255) },

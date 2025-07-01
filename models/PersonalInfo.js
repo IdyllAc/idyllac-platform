@@ -1,7 +1,7 @@
 // models/personalInfo.js
 module.exports = (sequelize, DataTypes) => {
   const PersonalInfo = sequelize.define('PersonalInfo', {
-    id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    id: { type: DataTypes.INTEGER, primaryKey: true },
     userId: { type: DataTypes.INTEGER, allowNull: false },
     gender: { type: DataTypes.ENUM('Monsieur', 'Madame'), allowNull: false },
     name: { type: DataTypes.STRING(100) },

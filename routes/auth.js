@@ -21,7 +21,7 @@ const { Op } = require('sequelize');
 User.findOne({ where: { email: { [Op.like]: '%@domain.com' } } });
 
 // Database Connection safe database sync (no force)
-sequelize.sync() 
+sequelize.sync() // Use alter: true for development, or use migrations in production
 .then(() => console.log('Connected to MySQL database'))
 .catch(err => console.error('Unable to connect to MySQL:', err));
 

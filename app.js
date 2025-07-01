@@ -12,7 +12,7 @@ const personalRoutes = require('./routes/personal'); // /submit/personal_info
 const protectRoutes = require('./routes/protect');   // /submit/upload/document + /selfie
 const userRoutes = require('./routes/user');         // /profile, /settings
 
-const port = process.env.PORT || 4000 
+const PORT = process.env.PORT || 4000 
 
 // Initialize Express
 const app = express();
@@ -43,6 +43,6 @@ app.use((req, res) => {
 });
 
 // Start Server
-app.listen(4000, () => {
+app.listen(PORT, () => {
   console.log('API Server running on port 4000');
 });
