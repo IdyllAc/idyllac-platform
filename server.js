@@ -4,7 +4,7 @@ console.log('DB HOST:', process.env.DB_HOST);
 
 // ENVIRONMENT CONFIG
 const env = process.env.NODE_ENV || 'development';
-const port = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3000;
 const baseURL = process.env.BASE_URL;
 const apiURL = process.env.API_URL;
 const renderBase = process.env.RENDER_BASE_URL;
@@ -187,6 +187,6 @@ sequelize
   .catch(err => console.error('❌ Error syncing models:', err));
 
 // SERVER START
-app.listen(port, () => {
-  console.log(`🚀 Server running at ${baseURL} on port ${port} (${env} mode)`);
+app.listen(PORT, () => {
+  console.log(`Listening on port ${PORT}`);
 });
