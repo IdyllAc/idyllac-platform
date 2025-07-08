@@ -23,7 +23,8 @@ const crypto = require('crypto');
 const session = require('express-session');
 const pgSession = require('connect-pg-simple')(session);
 const { Pool } = require('pg');
-const sequelize = require('./config/database'); // Sequelize (MySQL)
+const { sequelize } = require('./models');
+
 
 // AUTH & FLASH
 const flash = require('express-flash');
@@ -34,11 +35,15 @@ const initializePassport = require('./config/passport');
 // MODELS
 const { User } = require('./models');
 const jwtMiddleware = require('./middleware/jwtMiddleware');
+// Load models/index.js which exports both the Sequelize instance and models
+const db = require('./models');
+
 
 // ROUTES
 const publicRoutes = require('./routes/public');
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/user');
+const { FORCE } = require('sequelize/lib/index-hints');
 
 // INIT APP
 const app = express();
@@ -94,11 +99,16 @@ app.use(passport.session());
 app.use('/api', jwtMiddleware);
 
 // ROUTING
-app.use('/', publicRoutes);
+app.use('/', require('./routes/public'));
+// app.use('/', publicRoutes);
 app.use('/auth', authRoutes);
 app.use('/user', userRoutes);
 
-sequelize.sync(); // For development, or use migrations
+app.use((err, req, res, next) => {
+  console.error('💥 Error:', err.stack);
+  res.status(500).send('Something went wrong!');
+});
+
 
 // EJS PAGES
 app.get('/login', checkNotAuthenticated, (req, res) => res.render('login'));
@@ -111,58 +121,58 @@ app.get('/submit/upload/document', checkAuthenticated, (req, res) => res.render(
 app.get('/submit/upload/selfie', checkAuthenticated, (req, res) => res.render('selfie'));
 app.get('/selfie/success', checkAuthenticated, (req, res) => res.render('success'));
 
-// REGISTER POST
-app.post('/register', checkNotAuthenticated, async (req, res) => {
-  try {
-    const { name, email, cemail, password } = req.body;
+// // REGISTER POST
+// app.post('/register', checkNotAuthenticated, async (req, res) => {
+//   try {
+//     const { name, email, cemail, password } = req.body;
 
-    if (email !== cemail) {
-      return res.status(400).send('Emails do not match.');
-    }
+//     if (email !== cemail) {
+//       return res.status(400).send('Emails do not match.');
+//     }
 
-    const existingUser = await User.findOne({ where: { email } });
-    if (existingUser) {
-      req.flash('error', 'Email already registered');
-      return res.redirect('/register');
-    }
+//     const existingUser = await User.findOne({ where: { email } });
+//     if (existingUser) {
+//       req.flash('error', 'Email already registered');
+//       return res.redirect('/register');
+//     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const confirmationToken = crypto.randomBytes(20).toString('hex');
+//     const hashedPassword = await bcrypt.hash(password, 10);
+//     const confirmationToken = crypto.randomBytes(20).toString('hex');
 
-    await User.create({
-      name,
-      email,
-      password: hashedPassword,
-      isConfirmed: false,
-      confirmationToken,
-    });
+//     await User.create({
+//       name,
+//       email,
+//       password: hashedPassword,
+//       isConfirmed: false,
+//       confirmationToken,
+//     });
 
-    res.redirect('/login');
-  } catch (err) {
-    console.error('❌ Registration error:', err);
-    res.redirect('/register');
-  }
-});
+//     res.redirect('/login');
+//   } catch (err) {
+//     console.error('❌ Registration error:', err);
+//     res.redirect('/register');
+//   }
+// });
 
-// LOGIN POST
-app.post(
-  '/login',
-  checkNotAuthenticated,
-  passport.authenticate('local', {
-    successRedirect: '/dashboard',
-    failureRedirect: '/login',
-    failureFlash: true,
-  })
-);
+// // LOGIN POST
+// app.post(
+//   '/login',
+//   checkNotAuthenticated,
+//   passport.authenticate('local', {
+//     successRedirect: '/dashboard',
+//     failureRedirect: '/login',
+//     failureFlash: true,
+//   })
+// );
 
-// LOGOUT
-app.delete('/logout', (req, res, next) => {
-  req.logOut(err => {
-    if (err) return next(err);
-    console.log('✅ Logged out');
-    res.redirect('/login');
-  });
-});
+// // LOGOUT
+// app.delete('/logout', (req, res, next) => {
+//   req.logOut(err => {
+//     if (err) return next(err);
+//     console.log('✅ Logged out');
+//     res.redirect('/login');
+//   });
+// });
 
 // PROTECTED ROUTE HELPERS
 function checkAuthenticated(req, res, next) {
@@ -176,17 +186,19 @@ function checkNotAuthenticated(req, res, next) {
 }
 
 // SEQUELIZE CONNECTION
-sequelize
-  .authenticate()
-  .then(() => console.log('✅ Database connected.'))
-  .catch(err => console.error('❌ Database connection error:', err));
-
-sequelize
-  .sync()
+// This gives you access to all models like db.User, db.Profile, etc.
+sequelize.sync({ alter: true})
   .then(() => console.log('✅ All models synced successfully.'))
   .catch(err => console.error('❌ Error syncing models:', err));
+
+
+db.sequelize.authenticate()
+  .then(() => console.log('✅ Connected to DB.'))
+  .catch(err => console.error('❌ Database connection error:', err));
+
 
 // SERVER START
 app.listen(PORT, () => {
   console.log(`Listening on port ${PORT}`);
 });
+

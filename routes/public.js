@@ -1,16 +1,38 @@
 // routes/public.js
 const express = require('express');
 const router = express.Router();
+const passport = require('passport');
+const authController = require('../controllers/authController');
 const authenticateToken = require('../middleware/jwtMiddleware'); // ✅ Correct: import as a function
 
-// GET /register - serve register page
-router.get('/register', (req, res) => {
-  res.render('register'); // assumes views/register.ejs exists
-});
+// Middleware
+function checkNotAuthenticated(req, res, next) {
+  if (req.isAuthenticated()) return res.redirect('/');
+  next();
+}
 
-// GET /login - serve login page
-router.get('/login', (req, res) => {
-  res.render('login'); // assumes views/login.ejs exists
-});
+// Routes
+router.get('/register', checkNotAuthenticated, authController.getRegister);
+router.post('/register', checkNotAuthenticated, authController.postRegister);
+
+router.get('/login', checkNotAuthenticated, authController.getLogin);
+router.post('/login', checkNotAuthenticated, passport.authenticate('local', {
+  successRedirect: '/dashboard',
+  failureRedirect: '/login',
+  failureFlash: true
+}));
+
+router.delete('/logout', authController.logout);
+
+
+// // GET /register - serve register page
+// router.get('/register', (req, res) => {
+//   res.render('register'); // assumes views/register.ejs exists
+// });
+
+// // GET /login - serve login page
+// router.get('/login', (req, res) => {
+//   res.render('login'); // assumes views/login.ejs exists
+// });
 
 module.exports = router;

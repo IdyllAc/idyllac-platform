@@ -7,7 +7,10 @@ import (
 	"net/smtp"
 	"net/url"
 	"os"
-	"my-news-app/models"
+
+	 "idyllac-platform/models" // Adjust this import path to your actual models package
+	"idyllac-platform/subscriber" // Adjust this import path to your actual models package
+	
 )
 
 func HandleEmailSubscription(w http.ResponseWriter, r *http.Request) {

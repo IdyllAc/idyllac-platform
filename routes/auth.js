@@ -15,15 +15,17 @@ const authenticateToken = require('../middleware/jwtMiddleware');
 const { generateAccessToken, generateRefreshToken } = require('../utils/tokenUtils');
 const sequelize = require('../config/database'); // MySQL connection
 const { Op } = require('sequelize');
+const { FORCE } = require('sequelize/lib/index-hints');
 
 
 
 User.findOne({ where: { email: { [Op.like]: '%@domain.com' } } });
 
-// Database Connection safe database sync (no force)
-sequelize.sync() // Use alter: true for development, or use migrations in production
-.then(() => console.log('Connected to MySQL database'))
-.catch(err => console.error('Unable to connect to MySQL:', err));
+// // Database Connection safe database sync (no force)
+// sequelize.sync({alter: true}) // Use alter: true for development, or use migrations in production
+// .then(() => console.log('Connected to MySQL database'))
+// .catch(err => console.error('Unable to connect to MySQL:', err));
+
 
 // -------------- Register Route ------------
 router.post('/register', async (req, res) => {

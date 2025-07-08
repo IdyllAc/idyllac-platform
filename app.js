@@ -22,14 +22,13 @@ app.use(express.json());
 app.use(passport.initialize());
 app.use(cors({ origin: 'https://anypay.cards', credentials: true }));
 
-// Connect and sync database
-sequelize.authenticate()
-    .then(() => console.log('Database connected'))
-    .catch(err => console.error('Database connection error:', err));
 
-sequelize.sync()
-    .then(() => console.log('Database & tables created!'))
-    .catch(err => console.log('Failed to sync database: ' + err));
+// // Connect and sync database
+// sequelize
+// .authenticate()
+// .then(() => console.log('Database connected'))
+// .catch(err => console.error('Database connection error:', err));
+
 
 // Routes
 app.use('/auth', authRoutes);         // /auth/register, /auth/login, /auth/token, etc.

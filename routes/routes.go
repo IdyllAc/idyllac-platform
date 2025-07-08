@@ -3,7 +3,8 @@ package routes
 
 import (
 	  "net/http"
-	"my-news-app/controllers"
+
+	"idyllac-platform/controllers"
 
 	"github.com/gorilla/mux"
 )

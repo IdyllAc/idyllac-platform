@@ -13,13 +13,16 @@ import (
 	_ "github.com/lib/pq"
 
 	"github.com/gorilla/sessions"
+	// "github.com/joho/godotenv"
 	"github.com/markbates/goth"
 	"github.com/markbates/goth/gothic"
 	"github.com/markbates/goth/providers/facebook"
 	"github.com/markbates/goth/providers/github"
 	"github.com/markbates/goth/providers/google"
 
-	"my-news-app/models" // adjust if needed
+	"github.com/idyllac/idyllac-platform/models"// Adjust this import path to your actual models package
+
+	
 )
 
 var db *sql.DB
