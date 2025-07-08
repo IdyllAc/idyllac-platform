@@ -8,8 +8,8 @@ import (
 	"net/url"
 	"os"
 
-	 "idyllac-platform/models" // Adjust this import path to your actual models package
-	"idyllac-platform/subscriber" // Adjust this import path to your actual models package
+	 " my-news-app/models" // Adjust this import path to your actual models package
+	" my-news-app/subscriber" // Adjust this import path to your actual models package
 	
 )
 

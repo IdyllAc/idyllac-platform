@@ -1,4 +1,4 @@
-module idyllac-platform
+module  my-news-app
 
 go 1.24.2
 

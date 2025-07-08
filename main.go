@@ -20,7 +20,7 @@ import (
 	"github.com/markbates/goth/providers/github"
 	"github.com/markbates/goth/providers/google"
 
-	"github.com/idyllac/idyllac-platform/models"// Adjust this import path to your actual models package
+	"github.com/idyllac/my-news-app/models"// Adjust this import path to your actual models package
 
 	
 )
