@@ -4,7 +4,7 @@ package routes
 import (
 	  "net/http"
 
-	" my-news-app/controllers"
+	"idyllac-platform/controllers" // Adjust this import path to your actual controllers package
 
 	"github.com/gorilla/mux"
 )

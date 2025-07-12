@@ -8,11 +8,10 @@ import (
 	"net/url"
 	"os"
 
-	 " my-news-app/models" // Adjust this import path to your actual models package
-	" my-news-app/subscriber" // Adjust this import path to your actual models package
-	
+	"idyllac-platform/models"
 )
 
+// HandleEmailSubscription handles POST /subscribe/email
 func HandleEmailSubscription(w http.ResponseWriter, r *http.Request) {
 	email := r.FormValue("email")
 	if email == "" {
@@ -20,40 +19,51 @@ func HandleEmailSubscription(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := models.CreateSubscriber(email)
-	if err != nil {
-		http.Error(w, "Could not subscribe: "+err.Error(), 500)
+	// Check if subscriber exists already
+	existing, _ := models.GetSubscriberByEmail(email)
+	if existing != nil {
+		http.Error(w, "Email already subscribed", http.StatusConflict)
 		return
 	}
 
-	link := "https://anypay.cards/verify?email=" + url.QueryEscape(email)
-	sendEmail(email, link)
+	// Create new subscriber
+	err := models.CreateSubscriber(email)
+	if err != nil {
+		http.Error(w, "Could not subscribe: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
 
-	w.Write([]byte("✅ Message received!"))
+	// Send verification email
+	link := "https://anypay.cards/verify?email=" + url.QueryEscape(email)
+	go sendEmail(email, link) // non-blocking
+
+	w.Write([]byte("✅ Please check your email to verify your subscription."))
 }
 
+// HandleEmailVerification handles GET /verify?email=...
 func HandleEmailVerification(w http.ResponseWriter, r *http.Request) {
 	email := r.URL.Query().Get("email")
 	if email == "" {
-		http.Error(w, "Missing email", 400)
+		http.Error(w, "Missing email", http.StatusBadRequest)
 		return
 	}
 
-	err := models.VerifySubscriber(email)
+	err := models.MarkSubscriberVerified(email)
 	if err != nil {
-		http.Error(w, "Verification failed: "+err.Error(), 500)
+		http.Error(w, "Verification failed: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	fmt.Fprintf(w, "✅ Email verified: %s", email)
 }
 
+// sendEmail sends a verification email using SMTP
 func sendEmail(to, link string) {
 	from := os.Getenv("EMAIL_ADDRESS")
 	pass := os.Getenv("EMAIL_PASSWORD")
 
 	subject := "Verify your email"
-	body := fmt.Sprintf("Please verify here: %s", link)
+	body := fmt.Sprintf("Please verify your email by clicking the link: %s", link)
 
 	msg := []byte("To: " + to + "\r\n" +
 		"Subject: " + subject + "\r\n\r\n" +

@@ -5,6 +5,7 @@ const passport = require('passport');
 const sequelize = require('./config/database');
 const cors = require('cors');
 const authenticateToken = require('./middleware/jwtMiddleware');
+const subscriptionRoutes = require('./routes/subscription');
 
 // Route Files
 const authRoutes = require('./routes/auth');        // JWT-based auth
@@ -35,6 +36,7 @@ app.use('/auth', authRoutes);         // /auth/register, /auth/login, /auth/toke
 app.use('/submit', personalRoutes);   // /submit/personal_info
 app.use('/submit', protectRoutes);    // /submit/upload/document, /submit/upload/selfie
 app.use('/', userRoutes);  //mounts /profile, /settings correctly, etc.
+app.use('/', subscriptionRoutes); // /subscriber/email, /submit
 
 // 404 Fallback
 app.use((req, res) => {
