@@ -96,8 +96,8 @@ func main() {
 
 	addr := fmt.Sprintf(":%s", port)
 	log.Printf("Server running on http://localhost:%s", addr)
+
 	// Use the router with the specified port
-	
 	 err = http.ListenAndServe(addr, nil) 
 	 if err != nil {
 		log.Fatalf("Failed to start server: %v", err)
