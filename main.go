@@ -42,11 +42,17 @@ type Message struct {
 
 // type SocialUser struct {
 // 	ID         uint   `gorm:"primaryKey"`
-// 	Provider   string
-// 	ProviderID string `gorm:"index"`
-// 	Name       string
-// 	Email      string
-// 	AvatarURL  string
+// 	Provider   string `gorm:"column:provider"`
+// 	ProviderID string `gorm:"column:provider_id"`
+// 	Name       string `gorm:"column:name"`
+// 	Email      string `gorm:"column:email"`
+// 	AvatarURL  string `gorm:"column:avatar_url"`
+// 	CreatedAt  time.Time
+// }
+
+// // Override table name
+// func (SocialUser) TableName() string {
+// 	return "social_users"
 // }
 
 func main() {
