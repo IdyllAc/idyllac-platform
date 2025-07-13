@@ -88,14 +88,23 @@ func main() {
 	fs := http.FileServer(http.Dir("static"))
 	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", fs))
 
-	// Listen on PORT
+	// Start server
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
 	}
-	log.Printf("Server running on port %s", port)
-	log.Fatal(http.ListenAndServe(":"+port, r))
+
+	addr := fmt.Sprintf(":%s", port)
+	log.Printf("Server running on http://localhost:%s", addr)
+	// Use the router with the specified port
+	
+	 err = http.ListenAndServe(addr, nil) 
+	 if err != nil {
+		log.Fatalf("Failed to start server: %v", err)
+	 }
+	
 }
+
 
 func setupOAuth() {
 	baseURL := os.Getenv("BASE_URL")
