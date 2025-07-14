@@ -187,7 +187,7 @@ function checkNotAuthenticated(req, res, next) {
 
 // SEQUELIZE CONNECTION
 // This gives you access to all models like db.User, db.Profile, etc.
-sequelize.sync({ alter: true})
+sequelize.sync()
   .then(() => console.log('✅ All models synced successfully.'))
   .catch(err => console.error('❌ Error syncing models:', err));
 

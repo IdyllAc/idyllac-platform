@@ -10,7 +10,8 @@ module.exports = (sequelize, DataTypes) => {
   }, {
     tableName: 'users',
     timestamps: true,
-    underscored: false, // ✅ Keep camelCase
+    createdAt: 'created_at',
+    updatedAt: 'updated_at',
   });
 
   User.associate = models => {
