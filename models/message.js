@@ -1,27 +1,45 @@
-'use strict';
-const { Model } = require('sequelize');
+// models/Message.js
 module.exports = (sequelize, DataTypes) => {
-  class Message extends Model {
-    static associate(models) {
-      Message.belongsTo(models.Subscriber, {
-        foreignKey: 'subscriberId',
-        as: 'subscriber',
-        onDelete: 'CASCADE'
-      });
-    }
-  }
-  Message.init({
-    subscriberId: {
-      type: DataTypes.INTEGER,
-      allowNull: false
+  const Message = sequelize.define(
+    'Message',
+    {
+      id: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        autoIncrement: true,
+        primaryKey: true,
+      },
+      subscriberId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        field: 'subscriber_id', // ✅ important for consistency
+      },
+      message: {
+        type: DataTypes.TEXT,
+        allowNull: false,
+      },
     },
-    message: {
-      type: DataTypes.TEXT,
-      allowNull: false
+    {
+      tableName: 'messages',
+      underscored: true,
+      timestamps: true,
+      createdAt: 'created_at',
+      updatedAt: 'updated_at',
+      hooks: {
+        afterCreate: (msg) => {
+          console.log(`✅ New message saved for subscriber ${msg.subscriberId}`);
+        },
+      },
     }
-  }, {
-    sequelize,
-    modelName: 'Message',
-  });
+  );
+
+  Message.associate = (models) => {
+    Message.belongsTo(models.Subscriber, {
+      foreignKey: 'subscriber_id', // ✅ now snake_case, matching DB column
+      as: 'subscriber',
+      onDelete: 'CASCADE',
+    });
+  };
+
   return Message;
 };

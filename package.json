@@ -3,6 +3,8 @@
   "version": "1.0.0",
   "main": "node app.js",
   "scripts": {
+    "migrate": "npx sequelize-cli db:migrate",
+    "down": "npx sequelize-cli db:migrate:undo",
     "preinstall": "npx npm-force-resolutions",
     "start:go": "go run main.go",
     "start:web": "node server.js",

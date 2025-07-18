@@ -1,6 +1,12 @@
+# Node.js
 node_modules/
 .env
 uploads/
+subscriber_emails.txt
 
+# System/IDE
+.DS_Store
+Thumbs.db
+*.log
 
 

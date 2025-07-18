@@ -3,13 +3,15 @@ module.exports = (sequelize, DataTypes) => {
     const UserSettings = sequelize.define('UserSettings', {
       id: {
         type: DataTypes.INTEGER,
-        primaryKey: true,
+        allowNull: false,
         autoIncrement: true,
+        primaryKey: true,
       },
   
       userId: {
         type: DataTypes.INTEGER,
         allowNull: false,
+        field: 'user_id', // 👈 tells Sequelize to map to DB column `user_id`
       },
   
       email_notifications: {
@@ -34,6 +36,20 @@ module.exports = (sequelize, DataTypes) => {
       tableName: 'user_settings',
       underscored: true,
       timestamps: true,
+      createdAt: 'created_at',
+      updatedAt: 'updated_at',
+
+      // ✅ HOOKS SHOULD BE HERE:
+      hooks: {
+        beforeCreate: (settings) => {
+          if (!settings.language) {
+            settings.language = 'en'; // default fallback
+          }
+        },
+        afterCreate: (settings) => {
+          console.log(`✅ New settings created for user ${settings.userId}`);
+        }
+      },
     });
   
     UserSettings.associate = models => {

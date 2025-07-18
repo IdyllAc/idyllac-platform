@@ -3,13 +3,15 @@ module.exports = (sequelize, DataTypes) => {
     const UserProfile = sequelize.define('UserProfile', {
       id: {
         type: DataTypes.INTEGER,
-        primaryKey: true,
+        allowNull: false,
         autoIncrement: true,
+        primaryKey: true,
       },
   
       userId: {
         type: DataTypes.INTEGER,
         allowNull: false,
+        field: 'user_id', // 👈 tells Sequelize to map to DB column `user_id`
       },
   
       first_name: { 
@@ -26,11 +28,6 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.DATEONLY, 
         allowNull: false,
      },
-  
-      age: {
-        type: DataTypes.INTEGER,
-        allowNull: true,
-      },
   
       gender: {
         type: DataTypes.STRING(10),
@@ -56,11 +53,26 @@ module.exports = (sequelize, DataTypes) => {
       tableName: 'user_profiles',
       underscored: true,
       timestamps: true,
+      createdAt: 'created_at',
+      updatedAt: 'updated_at',
+
+      // ✅ HOOKS SHOULD BE HERE:
+      hooks: {
+        beforeCreate: (profile) => {
+          if (!profile.full_name) {
+            throw new Error("❌ Full name is required for profile creation");
+          }
+        },
+        afterCreate: (profile) => {
+          console.log(`✅ New profile created for user ${profile.userId}`);
+        }
+      }
+      
     });
   
     UserProfile.associate = models => {
       UserProfile.belongsTo(models.User, {
-        foreignKey: 'userId',
+        foreignKey: 'user_id',
         as: 'user',
         onDelete: 'CASCADE',
       });

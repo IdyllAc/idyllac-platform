@@ -1,31 +1,52 @@
+// models/Subscriber.js
+
 'use strict';
-const { Model } = require('sequelize');
+
 module.exports = (sequelize, DataTypes) => {
-  class Subscriber extends Model {
-    static associate(models) {
-      Subscriber.hasMany(models.Message, {
-        foreignKey: 'subscriberId',
-        as: 'messages',
-        onDelete: 'CASCADE'
-      });
-    }
-  }
-  Subscriber.init({
+  const Subscriber = sequelize.define('Subscriber', {
+    id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
+      allowNull: false,
+    },
+
     email: {
-      type: DataTypes.STRING,
+      type: DataTypes.STRING(255),
       allowNull: false,
       unique: true,
       validate: {
-        isEmail: true
-      }
+        isEmail: true,
+      },
     },
+
     verified: {
       type: DataTypes.BOOLEAN,
-      defaultValue: false
+      defaultValue: false,
     }
   }, {
-    sequelize,
-    modelName: 'Subscriber',
+    tableName: 'subscribers',
+    underscored: true, // ✅ DB columns: created_at, updated_at
+    timestamps: true,  // ✅ auto adds created_at & updated_at
+    createdAt: 'created_at',
+    updatedAt: 'updated_at',
+
+      // ✅ HOOKS SHOULD BE HERE:
+    hooks: {
+      afterCreate: (subscriber) => {
+        console.log(`✅ New subscriber created: ${subscriber.email}`);
+      }
+    }
   });
+
+  // ✅ Associations
+  Subscriber.associate = (models) => {
+    Subscriber.hasMany(models.Message, {
+      foreignKey: 'subscriber_id',
+      as: 'messages',
+      onDelete: 'CASCADE',
+    });
+  };
+
   return Subscriber;
 };

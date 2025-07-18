@@ -3,6 +3,7 @@ module.exports = (sequelize, DataTypes) => {
     const Selfie = sequelize.define('Selfie', {
       id: {
         type: DataTypes.INTEGER,
+        allowNull: false,
         primaryKey: true,
         autoIncrement: true,
       },
@@ -10,6 +11,7 @@ module.exports = (sequelize, DataTypes) => {
       userId: {
         type: DataTypes.INTEGER,
         allowNull: false,
+        field: 'user_id', // 👈 tells Sequelize to map to DB column `user_id`
       },
   
       selfie_path: {
@@ -21,11 +23,25 @@ module.exports = (sequelize, DataTypes) => {
       tableName: 'selfies',
       underscored: true,
       timestamps: true,
+      createdAt: 'created_at',
+      updatedAt: 'updated_at',
+
+      hooks: {
+        beforeCreate: (selfie) => {
+          if (!selfie.filePath) {
+            throw new Error("❌ Selfie file path is required");
+          }
+        },
+        afterCreate: (selfie) => {
+          console.log(`✅ New selfie uploaded for user ${selfie.userId}`);
+        }
+      }
+      
     });
   
     Selfie.associate = models => {
       Selfie.belongsTo(models.User, {
-        foreignKey: 'userId',
+        foreignKey: 'user_id',
         as: 'user',
         onDelete: 'CASCADE',
       });
