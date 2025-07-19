@@ -25,10 +25,13 @@ module.exports = (sequelize, DataTypes) => {
     isConfirmed: { 
       type: DataTypes.BOOLEAN, 
       defaultValue: false,
+      field: 'is_confirmed', // ✅ important for consistency
+     
     },
     confirmationToken: { 
       type: DataTypes.STRING(255),
       allowNull: true,
+      field: 'confirmation_token', // ✅ important for consistency
     },
   }, {
     tableName: 'users',
