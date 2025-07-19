@@ -22,24 +22,24 @@ module.exports = {
         type: Sequelize.STRING(255),
         allowNull: false,
       },
-      isConfirmed: {
+      is_Confirmed: {
         type: Sequelize.BOOLEAN,
         defaultValue: false,
       },
-      confirmationToken: {
+      confirmation_token: {
         type: Sequelize.STRING(255),
         allowNull: true,
       },
       created_at: {
         type: Sequelize.DATE,
         allowNull: false,
-        defaultValue: Sequelize.fn('NOW'),
+        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
       },
       updated_at: {
         type: Sequelize.DATE,
         allowNull: false,
-        defaultValue: Sequelize.fn('NOW'),
-      },
+        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
+      }
     });
   },
 
