@@ -22,7 +22,7 @@ module.exports = {
         type: Sequelize.STRING(255),
         allowNull: false,
       },
-      is_Confirmed: {
+      is_confirmed: {
         type: Sequelize.BOOLEAN,
         defaultValue: false,
       },
