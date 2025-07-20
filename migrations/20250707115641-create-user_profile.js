@@ -32,11 +32,6 @@ module.exports = {
         allowNull: false,
       },
 
-      gender: {
-        type: Sequelize.STRING(10),
-        allowNull: true,
-      },
-
       nationality: {
         type: Sequelize.STRING(100),
         allowNull: true,
