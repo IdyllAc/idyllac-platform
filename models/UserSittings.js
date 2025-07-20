@@ -54,7 +54,7 @@ module.exports = (sequelize, DataTypes) => {
   
     UserSettings.associate = models => {
       UserSettings.belongsTo(models.User, {
-        foreignKey: 'userId',
+        foreignKey: 'user_id',
         as: 'user',
         onDelete: 'CASCADE',
       });
