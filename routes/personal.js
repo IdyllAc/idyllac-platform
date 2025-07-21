@@ -10,7 +10,7 @@ const authenticateToken = require('../middleware/jwtMiddleware'); // JWT protect
   // // -----------------------------
   router.post('/submit/personal_info', authenticateToken, async (req, res) => {
     try {
-      const { gender, name, firstname, dateOfBirth, phone } = req.body;
+      const { gender, name, first_name, date_Of_Birth, phone } = req.body;
   
       const userId = req.user.id; // Comes from decoded JWT
   
@@ -21,8 +21,8 @@ const authenticateToken = require('../middleware/jwtMiddleware'); // JWT protect
         userId,
         gender,
         name,
-        firstname,
-        dateOfBirth,
+        first_name,
+        date_Of_Birth,
         phone,
       });
   

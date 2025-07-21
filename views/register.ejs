@@ -133,7 +133,7 @@
                       const password = document.getElementById('password').value;
             
                    
-                        const res = await fetch('https://sub.anypay.cards/auth/register', {
+                        const res = await fetch('https://anypay.cards/auth/register', {
                           method: 'POST',
                           headers: { 'Content-Type': 'application/json' },
                           body: JSON.stringify({ name, email, cemail, password })
