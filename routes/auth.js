@@ -1,4 +1,4 @@
-// auth.js
+// routes/auth.js
 if (process.env.NODE_ENV !== 'production') {
   require('dotenv').config();
 }
