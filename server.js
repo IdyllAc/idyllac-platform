@@ -63,7 +63,9 @@ app.set('view engine', 'ejs');
 // MIDDLEWARE
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-app.use(express.static('public'));
+// ✅ Serve static files (HTML, CSS, JS, images)
+app.use(express.static(path.join(__dirname, 'public')));
+// app.use(express.static('public'));
 app.use(flash());
 app.use(methodOverride('_method'));
 
@@ -111,7 +113,7 @@ app.use((err, req, res, next) => {
 
 
 // EJS PAGES
-app.get('/', (req, res) => res.render('index'));
+app.get('/', (req, res) =>  res.sendFile(path.join(__dirname, 'index.html')));
 app.get('/login', checkNotAuthenticated, (req, res) => res.render('login'));
 app.get('/register', checkNotAuthenticated, (req, res) => res.render('register'));
 app.get('/dashboard', checkAuthenticated, (req, res) => res.render('dashboard'));
