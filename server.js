@@ -64,7 +64,8 @@ app.set('view engine', 'ejs');
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // ✅ Serve static files (HTML, CSS, JS, images)
-app.use(express.static(path.join(__dirname, 'public')));
+// app.use(express.static(path.join(__dirname, 'public')));
+
 // app.use(express.static('public'));
 app.use(flash());
 app.use(methodOverride('_method'));
