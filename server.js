@@ -113,7 +113,7 @@ app.use((err, req, res, next) => {
 
 
 // EJS PAGES
-app.get('/', (req, res) =>  res.sendFile(path.join(__dirname, 'index.html')));
+app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 app.get('/login', checkNotAuthenticated, (req, res) => res.render('login'));
 app.get('/register', checkNotAuthenticated, (req, res) => res.render('register'));
 app.get('/dashboard', checkAuthenticated, (req, res) => res.render('dashboard'));
