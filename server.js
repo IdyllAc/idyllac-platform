@@ -8,6 +8,7 @@ const PORT = process.env.PORT || 3000;
 const baseURL = process.env.BASE_URL;
 const apiURL = process.env.API_URL;
 const renderBase = process.env.RENDER_BASE_URL;
+import { fileURLToPath } from 'url';
 
 console.log('Running in:', env);
 console.log('Base URL:', baseURL);
@@ -49,6 +50,9 @@ const { FORCE } = require('sequelize/lib/index-hints');
 const app = express();
 app.set('trust proxy', 1); // Render HTTPS support
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 // PASSPORT INIT
 initializePassport(
   passport,
@@ -65,6 +69,9 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // ✅ Serve static files (HTML, CSS, JS, images)
 // app.use(express.static(path.join(__dirname, 'public')));
+
+// Serve static files from the current directory (or you can specify a folder)
+app.use(express.static(__dirname));
 
 // app.use(express.static('public'));
 app.use(flash());
