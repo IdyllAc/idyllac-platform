@@ -8,7 +8,7 @@ const PORT = process.env.PORT || 3000;
 const baseURL = process.env.BASE_URL;
 const apiURL = process.env.API_URL;
 const renderBase = process.env.RENDER_BASE_URL;
-import { fileURLToPath } from 'url';
+const { fileURLToPath } = require('url');
 
 console.log('Running in:', env);
 console.log('Base URL:', baseURL);
