@@ -8,7 +8,7 @@ const PORT = process.env.PORT || 3000;
 const baseURL = process.env.BASE_URL;
 const apiURL = process.env.API_URL;
 const renderBase = process.env.RENDER_BASE_URL;
-const { fileURLToPath } = require('url');
+
 
 console.log('Running in:', env);
 console.log('Base URL:', baseURL);
@@ -50,8 +50,6 @@ const { FORCE } = require('sequelize/lib/index-hints');
 const app = express();
 app.set('trust proxy', 1); // Render HTTPS support
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 // PASSPORT INIT
 initializePassport(
