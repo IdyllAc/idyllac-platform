@@ -26,7 +26,10 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.DATEONLY, 
         allowNull: false,
        },
-  
+       phone: { 
+        type: DataTypes.STRING(20), 
+        allowNull: true,
+       },
       gender: { 
         type: DataTypes.STRING(10), 
         allowNull: true,
@@ -37,10 +40,6 @@ module.exports = (sequelize, DataTypes) => {
        },
       occupation: { 
         type: DataTypes.STRING(100), 
-        allowNull: true,
-       },
-      phone: { 
-        type: DataTypes.STRING(20), 
         allowNull: true,
        },
   

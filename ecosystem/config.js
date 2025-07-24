@@ -4,6 +4,8 @@ module.exports = {
       {
         name: "web-server",
         script: "server.js",
+        watch: true,
+        autorestart: true,
         env: {
           PORT: 3000
         }
@@ -11,6 +13,8 @@ module.exports = {
       {
         name: "api-server",
         script: "app.js",
+        watch: true,
+        autorestart: true,
         env: {
           PORT: 4000
         }

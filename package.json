@@ -1,17 +1,14 @@
 {
-  "name": "IdyllAc-platform",
+  "name": "idyllac-platform",
   "version": "1.0.0",
-  "main": "node app.js",
+  "main": "node index.js",
   "scripts": {
     "migrate": "npx sequelize-cli db:migrate",
     "down": "npx sequelize-cli db:migrate:undo",
     "preinstall": "npx npm-force-resolutions",
-    "start:go": "go run main.go",
+   
     "start:web": "node server.js",
-    "start:api": "node app.js",
-    "dev:go": "nodemon --exec 'go run main.go'",
     "dev:web": "nodemon server.js",
-    "dev:api": "nodemon app.js",
     "start": "node server.js"
   },
   "keywords": [],

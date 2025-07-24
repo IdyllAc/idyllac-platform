@@ -21,16 +21,18 @@ exports.getProfile = async (req, res) => {
 exports.updateProfile = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { full_name, age, gender, nationality, occupation, phone } = req.body;
+    const { first_name, last_name, date_of_birth, phone, gender, nationality, occupation } = req.body;
 
     const [profile, created] = await UserProfile.upsert({
+      id,
       userId,
-      full_name,
-      age,
+      first_name,
+      last_name,
+      date_of_birth,
+      phone,
       gender,
       nationality,
       occupation,
-      phone
     });
 
     res.json({ message: 'Profile updated successfully.' });
@@ -63,6 +65,7 @@ exports.updateSettings = async (req, res) => {
     const { email_notifications, dark_mode, language } = req.body;
 
     const [settings, created] = await UserSettings.upsert({
+      id,
       userId,
       email_notifications,
       dark_mode,

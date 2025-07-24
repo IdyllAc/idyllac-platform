@@ -4,19 +4,22 @@ const { PersonalInfo } = require('../models');
 exports.submitPersonalInfo = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { full_name, phone, address, dob, gender } = req.body;
+    const { first_name, last_name, date_of_birth, phone, gender } = req.body;
 
     // Remove old entry if it exists
     const existing = await PersonalInfo.findOne({ where: { userId } });
     if (existing) await existing.destroy();
 
     await PersonalInfo.create({
+      id,
       userId,
-      full_name,
+      first_name,
+      last_name,
+      date_of_birth,
       phone,
-      address,
-      dob,
-      gender
+      gender,
+      nationality,
+      occupation,
     });
 
     res.json({ message: 'Personal info submitted successfully.' });
