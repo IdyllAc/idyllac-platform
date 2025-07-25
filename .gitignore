@@ -3,6 +3,9 @@ node_modules/
 .env
 uploads/
 subscriber_emails.txt
+server.old.js
+app.old.js
+index.ejs
 
 # System/IDE
 .DS_Store
