@@ -246,6 +246,11 @@ sequelize
   .then(() => console.log('✅ Database connected'))
   .catch(err => console.error('❌ Database connection error:', err));
 
+  app.get('/test-session', (req, res) => {
+    req.session.test = "Hello session!";
+    res.send("Session saved!");
+  });
+
 /***********************
  *  START SERVER
  ***********************/
