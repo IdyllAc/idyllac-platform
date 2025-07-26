@@ -7,7 +7,7 @@ server.old.js
 app.old.js
 index.ejs
 
-# System/IDE
+# System/I
 .DS_Store
 Thumbs.db
 *.log

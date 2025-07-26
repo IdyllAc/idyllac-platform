@@ -86,12 +86,12 @@
     <h1 class="mb-3 h3">Register</h1>
 
      <!-- register.ejs -->
-    <!-- <% if (messages.error) { %>
+    <% if (messages.error) { %>
         <div class="row">
        <div><%= messages.error %></div>
        <div class="alert alert-danger"></div> 
             <% } %>
-        </div> -->
+        </div> 
                         <h1 style="font-family: cursive;">Sign in here:</h1>
 
     
@@ -133,7 +133,7 @@
                       const password = document.getElementById('password').value;
             
                    
-                        const res = await fetch('https://anypay.cards/auth/register', {
+                        const res = await fetch('https://anypay.cards/register', {
                           method: 'POST',
                           headers: { 'Content-Type': 'application/json' },
                           body: JSON.stringify({ name, email, cemail, password })
