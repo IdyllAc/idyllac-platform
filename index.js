@@ -10,15 +10,15 @@ console.log('✅ Environment:', process.env.NODE_ENV || 'development');
 const express = require('express');
 const path = require('path');
 const cors = require('cors');
-const session = require('express-session');
 const flash = require('express-flash');
 const methodOverride = require('method-override');
 
 /***********************
  *  DATABASE & SESSION
  ***********************/
-const { Pool } = require('pg');
+const session = require('express-session');
 const pgSession = require('connect-pg-simple')(session);
+const { Pool } = require('pg');
 const { sequelize, User } = require('./models'); // Sequelize models
 
 /***********************
@@ -73,20 +73,6 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(express.static(__dirname));
 
-// ✅ FIX: Proper session setup
-app.use(
-  session({
-    secret: process.env.SESSION_SECRET || 'SuperSecretKey', // ✅ REQUIRED
-    resave: false, // don't save session if unmodified
-    saveUninitialized: false, // don't create session until something stored
-    cookie: {
-      secure: process.env.NODE_ENV === 'production', // true if using HTTPS
-      httpOnly: true,
-      maxAge: 1000 * 60 * 60, // 1 hour
-    },
-  })
-);
-
 // if you use flash messages
 app.use(flash());
 app.use(methodOverride('_method'));
@@ -95,12 +81,15 @@ app.use(cors({ origin: process.env.BASE_URL, credentials: true }));
 /***********************
  *  SESSION STORE
  ***********************/
+// ✅ FIX: Proper session setup
 const pgPool = new Pool({
   connectionString: process.env.DATABASE_URL, // ✅ Render provides this
   ssl: {
     rejectUnauthorized: false, // Required for Render hosted Postgres
   },
 });
+
+
 app.use(
   session({
     store: new pgSession({ 
