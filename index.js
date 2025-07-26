@@ -95,20 +95,29 @@ app.use(cors({ origin: process.env.BASE_URL, credentials: true }));
  *  SESSION STORE
  ***********************/
 const pgPool = new Pool({
-  user: process.env.PGUSER,
-  host: process.env.PGHOST,
-  database: process.env.PGDATABASE,
-  password: process.env.PGPASSWORD,
-  port: process.env.PGPORT || 5432,
+  connectionString: process.env.DATABASE_URL, // ✅ Render provides this
+  ssl: {
+    rejectUnauthorized: false, // Required for Render hosted Postgres
+  },
 });
+// const pgPool = new Pool({
+//   user: process.env.PGUSER,
+//   host: process.env.PGHOST,
+//   database: process.env.PGDATABASE,
+//   password: process.env.PGPASSWORD,
+//   port: process.env.PGPORT || 5432,
+// });
 app.use(
   session({
-    store: new pgSession({ pool: pgPool }),
+    store: new pgSession({ 
+      pool: pgPool, // Connection to PostgreSQL
+      tableName: 'session', // Default table name is 'session'
+     }),
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
     cookie: {
-      secure: env === 'production',
+      secure: env === 'production', // ✅ HTTPS only in production
       httpOnly: true,
       sameSite: 'lax',
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days

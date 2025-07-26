@@ -6,7 +6,6 @@
     "migrate": "npx sequelize-cli db:migrate",
     "down": "npx sequelize-cli db:migrate:undo",
     "preinstall": "npx npm-force-resolutions",
-   
     "start:web": "node index.js",
     "dev:web": "nodemon index.js",
     "start": "node index.js"
