@@ -40,12 +40,13 @@ router.post('/register', async (req, res) => {
     if (existingUser) return res.status(400).json({ message: 'User already exists' });
 
     const hashedPassword = await bcrypt.hash(password, 10);
-     // Insert new user into MySQL database
-    const newUser = await User.create({ name, email, password: hashedPassword });
+     // Insert new user into PostgreSQL database
+    const newUser = await User.create({ name, email, password: hashedPassword, isConfirmed: false, confirmationToken,
+     });
 
     res.status(201).json({ 
-    message: 'New user registered ', 
-    user: { id: user.id, email: user.email }
+    message: 'New user registered successfully', 
+    user: { id: User.id, email: User.email }
    });
   } catch (err) {
     console.error('Register error:', err);

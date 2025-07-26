@@ -41,6 +41,7 @@ const userRoutes = require('./routes/user');            // Profile, settings
 const subscriptionRoutes = require('./routes/subscription');
 const personalRoutes = require('./routes/personal');    // Personal info
 const protectRoutes = require('./routes/protect');      // Documents, selfie
+const { FORCE } = require('sequelize/lib/index-hints');
 
 /***********************
  *  EXPRESS APP INIT
@@ -100,18 +101,12 @@ const pgPool = new Pool({
     rejectUnauthorized: false, // Required for Render hosted Postgres
   },
 });
-// const pgPool = new Pool({
-//   user: process.env.PGUSER,
-//   host: process.env.PGHOST,
-//   database: process.env.PGDATABASE,
-//   password: process.env.PGPASSWORD,
-//   port: process.env.PGPORT || 5432,
-// });
 app.use(
   session({
     store: new pgSession({ 
       pool: pgPool, // Connection to PostgreSQL
       tableName: 'session', // Default table name is 'session'
+      createTableIfMissing: true, // ✅ This will create it if it doesn't exist
      }),
     secret: process.env.SESSION_SECRET,
     resave: false,
@@ -124,6 +119,13 @@ app.use(
     },
   })
 );
+// const pgPool = new Pool({
+//   user: process.env.PGUSER,
+//   host: process.env.PGHOST,
+//   database: process.env.PGDATABASE,
+//   password: process.env.PGPASSWORD,
+//   port: process.env.PGPORT || 5432,
+// });
 
 /***********************
  *  PASSPORT SESSION
