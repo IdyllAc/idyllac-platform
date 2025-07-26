@@ -9,17 +9,17 @@ console.log('✅ Environment:', process.env.NODE_ENV || 'development');
  ***********************/
 const express = require('express');
 const path = require('path');
-const cors = require('cors');
 const flash = require('express-flash');
 const methodOverride = require('method-override');
+const cors = require('cors');
 
 /***********************
  *  DATABASE & SESSION
  ***********************/
 const session = require('express-session');
 const pgSession = require('connect-pg-simple')(session);
-const { Pool } = require('pg');
 const { sequelize, User } = require('./models'); // Sequelize models
+const { Pool } = require('pg');
 
 /***********************
  *  PASSPORT (SESSION AUTH)
@@ -69,19 +69,30 @@ app.set('view engine', 'ejs');
 /***********************
  *  MIDDLEWARE
  ***********************/
+// ✅ Parse JSON and forms first
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(express.static(__dirname));
 
-// if you use flash messages
-app.use(flash());
-app.use(methodOverride('_method'));
-app.use(cors({ origin: process.env.BASE_URL, credentials: true }));
+// // ✅ FIX: Proper session setup
+// app.use(
+//   session({
+//     secret: process.env.SESSION_SECRET || 'SuperSecretKey', // ✅ REQUIRED
+//     resave: false, // don't save session if unmodified
+//     saveUninitialized: false, // don't create session until something stored
+//     cookie: {
+//       secure: process.env.NODE_ENV === 'production', // true if using HTTPS
+//       httpOnly: true,
+//       maxAge: 1000 * 60 * 60, // 1 hour
+//     },
+//   })
+// );
+
 
 /***********************
  *  SESSION STORE
  ***********************/
-// ✅ FIX: Proper session setup
+// ✅ Setup PostgreSQL pool for session store
 const pgPool = new Pool({
   connectionString: process.env.DATABASE_URL, // ✅ Render provides this
   ssl: {
@@ -89,25 +100,19 @@ const pgPool = new Pool({
   },
 });
 
+// ✅ Session store (correct, no duplicate session middleware)
+const store = new pgSession({
+  pool: pgPool,
+  tableName: 'session',
+  createTableIfMissing: true, // Auto-create if missing
+});
 
-app.use(
-  session({
-    store: new pgSession({ 
-      pool: pgPool, // Connection to PostgreSQL
-      tableName: 'session', // Default table name is 'session'
-      createTableIfMissing: true, // ✅ This will create it if it doesn't exist
-     }),
-    secret: process.env.SESSION_SECRET,
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      secure: env === 'production', // ✅ HTTPS only in production
-      httpOnly: true,
-      sameSite: 'lax',
-      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
-    },
-  })
-);
+// ✅ Handle session store errors
+store.on('error', (err) => {
+  console.error('❌ SESSION STORE ERROR:', err);
+});
+
+
 // const pgPool = new Pool({
 //   user: process.env.PGUSER,
 //   host: process.env.PGHOST,
@@ -115,6 +120,27 @@ app.use(
 //   password: process.env.PGPASSWORD,
 //   port: process.env.PGPORT || 5432,
 // });
+
+
+app.use(
+  session({
+    store,
+    secret: process.env.SESSION_SECRET || 'SuperSecretKey', // ✅ REQUIRED for signing the session ID cookie
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: process.env.NODE_ENV === 'production', // ✅ HTTPS only in production
+      httpOnly: true,
+      sameSite: 'lax',
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+    },
+  })
+);
+
+ // ✅ Flash, Method Override, CORS (AFTER session)if use flash messages
+app.use(flash());
+app.use(methodOverride('_method'));
+app.use(cors({ origin: process.env.BASE_URL, credentials: true }));
 
 /***********************
  *  PASSPORT SESSION
@@ -236,9 +262,15 @@ sequelize
   .catch(err => console.error('❌ Database connection error:', err));
 
   app.get('/test-session', (req, res) => {
-    req.session.test = "Hello session!";
-    res.send("Session saved!");
+    if (!req.session.views) {
+      req.session.views = 1;
+    } else {
+      req.session.views++;
+    }
+  
+    res.send(`Session saved! You visited this page ${req.session.views} times.`);
   });
+  
 
 /***********************
  *  START SERVER
