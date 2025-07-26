@@ -8,7 +8,9 @@ console.log('✅ Environment:', process.env.NODE_ENV || 'development');
  *  CORE MODULES
  ***********************/
 const express = require('express');
+const bcrypt = require('bcrypt');
 const path = require('path');
+const jwt = require('jsonwebtoken');
 const flash = require('express-flash');
 const methodOverride = require('method-override');
 const cors = require('cors');
@@ -184,7 +186,6 @@ app.get('/selfie/success', checkAuthenticated, (req, res) => res.render('success
  ***********************/
 // REGISTER POST
 app.post('/register', checkNotAuthenticated, async (req, res) => {
-    try {
       const { name, email, cemail, password } = req.body;
   
       if (email !== cemail) {
@@ -196,7 +197,7 @@ app.post('/register', checkNotAuthenticated, async (req, res) => {
         req.flash('error', 'Email already registered');
         return res.redirect('/register');
       }
-  
+      try {
       const hashedPassword = await bcrypt.hash(password, 10);
       const confirmationToken = crypto.randomBytes(20).toString('hex');
   
@@ -207,13 +208,53 @@ app.post('/register', checkNotAuthenticated, async (req, res) => {
         isConfirmed: false,
         confirmationToken,
       });
+
+      console.log('✅ New user registered:', email);
   
-      res.redirect('/login');
+      res.redirect('/login'); // after registration, go to login page
     } catch (err) {
       console.error('❌ Registration error:', err);
       res.redirect('/register');
     }
   });
+
+
+app.post('/login', async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    const user = await User.findOne({ where: { email } });
+    if (!user) return res.status(400).send('User not found');
+
+    const valid = await bcrypt.compare(password, user.password);
+    if (!valid) return res.status(400).send('Invalid password');
+
+    // ✅ Save in session
+    req.session.userId = user.id;
+
+    // ✅ Generate Tokens
+    const accessToken = jwt.sign(
+      { userId: user.id },
+      process.env.ACCESS_TOKEN_SECRET,
+      { expiresIn: '15m' }
+    );
+
+    const refreshToken = jwt.sign(
+      { userId: user.id },
+      process.env.REFRESH_TOKEN_SECRET,
+      { expiresIn: '30d' }
+    );
+
+    console.log(`✅ Login successful! AccessToken: ${accessToken}`);
+
+    // (Optional: save refreshToken in DB if you want token rotation)
+    res.redirect('/dashboard');
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Login failed!');
+  }
+});
+
   
   // LOGIN POST
   app.post('/login', checkNotAuthenticated, passport.authenticate('local', {
