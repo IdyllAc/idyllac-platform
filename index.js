@@ -176,7 +176,7 @@ app.get('/selfie/success', checkAuthenticated, (req, res) => res.render('success
  *  AUTH ROUTES (SESSION)
  ***********************/
 // REGISTER POST
-router.post('/register', async (req, res) => {
+app.post('/register', async (req, res) => {
   try {
     const { name, email, cemail, password } = req.body;
 
