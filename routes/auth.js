@@ -36,13 +36,12 @@ router.post('/register', async (req, res) => {
   }
 
   try {
-    const existingUser = await User.findOne({ where: { email: req.body.email } });
+    const existingUser = await User.findOne({ where: { email } });
     if (existingUser) return res.status(400).json({ message: 'User already exists' });
 
     const hashedPassword = await bcrypt.hash(password, 10);
      // Insert new user into PostgreSQL database
-    const newUser = await User.create({ name, email, password: hashedPassword, isConfirmed: false, confirmationToken,
-     });
+    const newUser = await User.create({ name, email, password: hashedPassword});
 
     res.status(201).json({ 
     message: 'New user registered successfully', 
@@ -57,7 +56,6 @@ router.post('/register', async (req, res) => {
 // ------------- Login Route -------------
 router.post('/login', async (req, res) => {
   const { email, password } = req.body; 
-
   try {
     const user = await User.findOne({ where: { email } });
     if (!user) return res.status(401).json({message: 'Invalid email or password' });
@@ -77,7 +75,7 @@ router.post('/login', async (req, res) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'Strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      maxAge: 7 * 24 * 60 * 60 * 1000,   // 7 days
     });
 
     res.json({ 

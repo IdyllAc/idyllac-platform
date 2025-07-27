@@ -236,7 +236,7 @@
         return;
       }
     
-      const res = await fetch('/auth/refresh-token', {
+      const res = await fetch('https://anypay.cards/auth/refresh-token', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token: refreshToken })
@@ -249,7 +249,7 @@
         return data.accessToken;
       } else {
         console.error('Failed to refresh token:', data.message);
-        window.location.href = '/login';
+        window.location.href = '/login'; // fallback
       }
     }
     

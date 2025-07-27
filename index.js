@@ -151,18 +151,6 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 /***********************
- *  HELPER MIDDLEWARE
- ***********************/
-function checkAuthenticated(req, res, next) {
-  if (req.isAuthenticated()) return next();
-  res.redirect('/login');
-}
-function checkNotAuthenticated(req, res, next) {
-  if (req.isAuthenticated()) return res.redirect('/dashboard');
-  next();
-}
-
-/***********************
  *  SESSION-BASED ROUTES (EJS PAGES)
  ***********************/
 app.use('/', publicRoutes);
@@ -186,6 +174,7 @@ app.get('/selfie/success', checkAuthenticated, (req, res) => res.render('success
  ***********************/
 // REGISTER POST
 app.post('/register', checkNotAuthenticated, async (req, res) => {
+  try {
       const { name, email, cemail, password } = req.body;
   
       if (email !== cemail) {
@@ -197,11 +186,11 @@ app.post('/register', checkNotAuthenticated, async (req, res) => {
         req.flash('error', 'Email already registered');
         return res.redirect('/register');
       }
-      try {
+     
       const hashedPassword = await bcrypt.hash(password, 10);
       const confirmationToken = crypto.randomBytes(20).toString('hex');
   
-      await User.create({
+      const newUser = await User.create({
         name,
         email,
         password: hashedPassword,
@@ -209,51 +198,14 @@ app.post('/register', checkNotAuthenticated, async (req, res) => {
         confirmationToken,
       });
 
-      console.log('✅ New user registered:', email);
+      console.log('✅ New user registered to DB:', newUser.id, newUser.email);
   
-      res.redirect('/login'); // after registration, go to login page
+      res.redirect('/login'); 
     } catch (err) {
       console.error('❌ Registration error:', err);
       res.redirect('/register');
     }
   });
-
-
-app.post('/login', async (req, res) => {
-  const { email, password } = req.body;
-
-  try {
-    const user = await User.findOne({ where: { email } });
-    if (!user) return res.status(400).send('User not found');
-
-    const valid = await bcrypt.compare(password, user.password);
-    if (!valid) return res.status(400).send('Invalid password');
-
-    // ✅ Save in session
-    req.session.userId = user.id;
-
-    // ✅ Generate Tokens
-    const accessToken = jwt.sign(
-      { userId: user.id },
-      process.env.ACCESS_TOKEN_SECRET,
-      { expiresIn: '15m' }
-    );
-
-    const refreshToken = jwt.sign(
-      { userId: user.id },
-      process.env.REFRESH_TOKEN_SECRET,
-      { expiresIn: '30d' }
-    );
-
-    console.log(`✅ Login successful! AccessToken: ${accessToken}`);
-
-    // (Optional: save refreshToken in DB if you want token rotation)
-    res.redirect('/dashboard');
-  } catch (error) {
-    console.error(error);
-    res.status(500).send('Login failed!');
-  }
-});
 
   
   // LOGIN POST
@@ -272,6 +224,19 @@ app.post('/login', async (req, res) => {
       res.redirect('/login');
     });
   });
+
+  /***********************
+ *  HELPER MIDDLEWARE
+   ***********************/
+function checkAuthenticated(req, res, next) {
+  if (req.isAuthenticated()) return next();
+  res.redirect('/login');
+}
+
+function checkNotAuthenticated(req, res, next) {
+  if (req.isAuthenticated()) return res.redirect('/dashboard');
+  next();
+}
 
 
 /***********************
@@ -294,7 +259,7 @@ app.use((err, req, res, next) => {
  ***********************/
 sequelize
   .sync() // Use alter: true for development, or use migrations in production
-  .then(() => console.log('✅ Models synced successfully'))
+  .then(() => console.log('✅ ALL models synced successfully'))
   .catch(err => console.error('❌ Error syncing models:', err));
 
 sequelize
