@@ -8,23 +8,19 @@ const bcrypt = require('bcrypt');
 const passport = require('passport');
 const router = express.Router();
 const { User, RefreshToken } = require('../models');
-const db = require('../models');
-// const RefreshToken = require('../models/RefreshToken'); // Assume Sequelize or similar ORM is used creates table if not exists
-const jwtMiddleware = require('../middleware/jwtMiddleware')
+const { Op } = require('sequelize');
+const sequelize = require('../config/database'); // MySQL connection
 const authenticateToken = require('../middleware/jwtMiddleware');
 const { generateAccessToken, generateRefreshToken } = require('../utils/tokenUtils');
-const sequelize = require('../config/database'); // MySQL connection
-const { Op } = require('sequelize');
-const { FORCE } = require('sequelize/lib/index-hints');
+const crypto = require('crypto');
+const sendConfirmationEmail = require('../utils/sendEmail');
+// const { sendConfirmationEmail } = require('../utils/sendEmail'); // Import your email utility function
+const { v4: uuidv4 } = require('uuid'); // Top of file, for token generation
+
 
 
 
 User.findOne({ where: { email: { [Op.like]: '%@domain.com' } } });
-
-// // Database Connection safe database sync (no force)
-// sequelize.sync({alter: true}) // Use alter: true for development, or use migrations in production
-// .then(() => console.log('Connected to MySQL database'))
-// .catch(err => console.error('Unable to connect to MySQL:', err));
 
 
 // -------------- Register Route ------------
@@ -37,38 +33,84 @@ router.post('/register', async (req, res) => {
 
   try {
     const existingUser = await User.findOne({ where: { email } });
-    if (existingUser) return res.status(400).json({ message: 'User already exists' });
+    if (existingUser) {
+      return res.status(400).json({ message: 'User already exists' });
+    } 
 
+    // Hash the password before saving
     const hashedPassword = await bcrypt.hash(password, 10);
-     // Insert new user into PostgreSQL database
-    const newUser = await User.create({ name, email, password: hashedPassword});
+     const confirmationToken = uuidv4();
 
-    res.status(201).json({ 
-    message: 'New user registered successfully', 
-    user: { id: User.id, email: User.email }
-   });
-  } catch (err) {
-    console.error('Register error:', err);
-    res.status(500).json({ error: 'Server error' });
-  }
-});
+     // create new user in DB (not confirmed yet)
+    const newUser = await User.create({ 
+      name, 
+      email, 
+      password: hashedPassword, 
+      isConfirmed: false, // default on registration
+      confirmationToken,
+    });
+
+    // ✅ Send confirmation email here
+    await sendConfirmationEmail(newUser.email, confirmationToken); // Implement this function to send email
+
+    // ✅ Generate JWT tokens
+    const accessToken = generateAccessToken(newUser);
+    const refreshToken = await generateRefreshToken(newUser); // ✅ pass the full user object
+
+    // ✅ Save refresh token in the database
+    await RefreshToken.create({ token: refreshToken, userId: newUser.id });
+
+    // ✅ Set refresh token as httpOnly cookie
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'Strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+
+    // ✅ Respond with access token and user info
+    return res.status(201).json({ 
+      message: 'Registration successful. Please check your email for confirmation.', 
+      // redirect:'/login', 
+      accessToken, 
+      refreshToken, 
+      user: { 
+        id: newUser.id, 
+        email: newUser.email, 
+        name: newUser.name || 'User' 
+      }
+    });
+    
+
+    } catch (err) {
+       console.error('Register error:', err);
+       res.status(500).json({ error: 'Server error' });
+     }
+  });
 
 // ------------- Login Route -------------
 router.post('/login', async (req, res) => {
   const { email, password } = req.body; 
   try {
     const user = await User.findOne({ where: { email } });
-    if (!user) return res.status(401).json({message: 'Invalid email or password' });
+    if (!user) {
+      return res.status(401).json({message: 'Invalid email or password.' });
+    }
+
+    // ✅ Block login if email not confirmed yet
+    if (!user.isConfirmed) {
+      return res.status(403).json({ message: 'Please confirm your email before logging in.' });
+    }
 
     const valid = await bcrypt.compare(password, user.password);
-    if (!valid) return res.status(400).json({ error: 'Invalid email or password' });
+    if (!valid) return res.status(400).json({ message: 'Invalid email or password' });
 
     // ✅ Correct usage of imported functions
     const accessToken = generateAccessToken(user);
     const refreshToken = await generateRefreshToken(user); // ✅ pass the full user objectsaves to DB already uses userId inside now
 
     // ✅ Save refresh token after generating it
-    // await RefreshToken.create({ token: refreshToken, userId: user.id });
+     await RefreshToken.create({ token: refreshToken, userId: user.id });
 
     // ✅ Set refresh token as httpOnly cookie
     res.cookie('refreshToken', refreshToken, {
@@ -99,7 +141,6 @@ router.post('/refresh-token', async (req, res) => {
     if (!tokenInDb) return res.status(403).json({ message: 'Token not found or revoked' });
     
       const userData = await jwtVerify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
-
       const newAccessToken = generateAccessToken({ id: userData.id });
       const newRefreshToken = generateRefreshToken({ id: userData.id });
 
@@ -115,6 +156,7 @@ router.post('/refresh-token', async (req, res) => {
       });
 
       res.json({ accessToken: newAccessToken });
+
   } catch (err) {
     console.error('Refresh error:', err);
     res.status(403).json({ error: 'Invalid or expired token' });
@@ -160,6 +202,34 @@ router.get('/dashboard', authenticateToken, async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch dashboard data' });
   }
   }); 
+
+// Email Confirmation Route
+router.get('/confirm-email/:token', async (req, res) => {
+  const { token } = req.params;
+
+  try {
+    // Find user by confirmation token
+    const user = await User.findOne({ where: { confirmationToken: token } });
+    if (!user) {
+      return res.status(400).json({ message: 'Invalid or expired confirmation link.' });
+    }
+
+    // Update user to mark email as confirmed
+    user.isConfirmed = true;
+    user.confirmationToken = null; // Clear the token after confirmation
+    await user.save();
+
+    // ✅ Redirect to login or show success page
+    res.redirect('/login?confirmed=true');
+    // OR: res.render('confirmation-success', { email: user.email });
+
+
+    // res.status(200).json({ message: 'Email confirmed successfully. You can now log in.' });
+  } catch (err) {
+    console.error('Email confirmation error:', err);
+    res.status(500).send('Something went wrong.');
+  }
+});
 
 
   module.exports = router;
