@@ -95,65 +95,68 @@
                         <h1 style="font-family: cursive;">Sign in here:</h1>
 
     
-                    <form id="register-form">
-                        <label for="name">Name:</label>
-                        <input type="text" name="name" autocomplete="on" placeholder="Enter your name" required></input>
-                        <label for="email">Email:</label>
-                        <input type="email" name="email" maxlength="150" onkeyup="validateEmail()"
-                         autocomplete="on" placeholder="Enter your email" required></inpu>
-                        <label for="cemail">confirmation email:</label>
-                        <input type="cemail" name="cemail" maxlength="150" onkeyup="validateCemail()"
-                         autocomplete="on" placeholder="Re-enter confirmation email" required></input>
-                        <label for="password">Password:</label>
-                        <input type="password" name="password"  maxlength="150" autocomplete="off" placeholder="Enter strong password and remember it" required></input>
-                        <br><br>
-                    <button type="submit">Submit</button>
-                </form>
-                <p><small>Password 8 caracters minimum. Must include upper case and one at of next for more scurity: <strong> #@&!$%?</strong></small></p>
-             
-                <h3>
-                    <p style="background-color:green;">If already have an account, you will be redirected or log in here?
-                        <a href="./views/login.ejs" style="color: orange;">Login</a>
-                    </p>
-                </h3>
+                        <form id="register-form" method="POST" action="/register">
+                            <label for="name">Name:</label>
+                            <input type="text" name="name" id="name" autocomplete="on" placeholder="Enter your name" required>
+                          
+                            <label for="email">Email:</label>
+                            <input type="email" name="email" id="email" maxlength="150" onkeyup="validateEmail()" autocomplete="on" placeholder="Enter your email" required>
+                          
+                            <label for="cemail">Confirmation email:</label>
+                            <input type="email" name="cemail" id="cemail" maxlength="150" onkeyup="validateCemail()" autocomplete="on" placeholder="Re-enter confirmation email" required>
+                          
+                            <label for="password">Password:</label>
+                            <input type="password" name="password" id="password" maxlength="150" autocomplete="off" placeholder="Enter strong password and remember it" required>
+                          
+                            <br><br>
+                            <button type="submit">Submit</button>
+                          </form>
+                          
+                          <p><small>Password 8 characters minimum. Must include uppercase and one of: <strong># @ & ! $ % ?</strong></small></p>
+                          
+                          <h3>
+                            <p style="background-color:green;">
+                              If already have an account, <a href="/login" style="color: orange;">Login</a>
+                            </p>
+                          </h3>
+                          
+                          <footer class="footer">
+                            <span class="nowrap">Copyrights &copy; <time id="year"></time></span>
+                            <span class="nowrap">IdyllAc</span>
+                          </footer>
+                          
+                          <script>
+                          document.getElementById('register-form').addEventListener('submit', async function (e) {
+                            e.preventDefault();
 
-                <footer class="footer">
-                    <span class="nowrap">Copyrights &copy; <time id="year"></time></span>
-                    <span class="nowrap">IdyllAc</span>
-                </footer>
+                            const formData = {
+                            name: document.getElementById('name').value.trim(),
+                            email: document.getElementById('email').value.trim(),
+                            cemail: document.getElementById('cemail').value.trim(),
+                            password: document.getElementById('password').value.trim()
+                            };
 
-                <script>
-                    document.getElementById('register').addEventListener('submit', async function (e) {
-                      e.preventDefault(); // Stop form from reloading the page
-                
-                     // ✅ FIX: Actually grab name, email, cemail, and password values from form inputs
-                      const name = document.getElementById('name').value;
-                      const email = document.getElementById('email').value;
-                      const cemail = document.getElementById('cemail').value;
-                      const password = document.getElementById('password').value;
-            
-                   
-                        const res = await fetch('https://anypay.cards/auth/register', {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ name, email, cemail, password })
-                        });
-                         
-                        const data = await res.json();
-            
-                        console.log('Access Token:', data.accessToken); // 👈 SHOW IN CONSOLE
-                        console.log('Refresh Token:', data.refreshToken);
-            
-                        if (res.ok) { 
-                            localStorage.setItem(formData);
-                       // Redirect to login
-                        window.location.href = '/login';
-                      } else {
-                        alert(data.message || 'register failed');
-                      }
-                   });
-                  </script>
-
+                            try {
+                              const res = await fetch('/register', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(formData)
+                              });
+                          
+                              if (res.ok) {
+                                alert('✅ Registration successful! Redirecting to login...');
+                                window.location.href = '/login';
+                              } else {
+                                const data = await res.text();
+                                alert('❌ Registration failed: ' + data);
+                              }
+                            } catch (err) {
+                              console.error('❌ Registration error:', err);
+                              alert('Something went wrong. Try again.');
+                            }
+                          });
+                          </script>
+                          
                 <script src="https://kit.fontawesome.com/283a7ae800.js" crossorigin="anonymous"></script>
    </body>
  </html> 

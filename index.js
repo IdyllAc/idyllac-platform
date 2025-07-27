@@ -14,6 +14,9 @@ const jwt = require('jsonwebtoken');
 const flash = require('express-flash');
 const methodOverride = require('method-override');
 const cors = require('cors');
+const SECRET = process.env.JWT_SECRET || 'your_jwt_secret';
+const REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'your_refresh_secret';
+
 
 /***********************
  *  DATABASE & SESSION
@@ -173,39 +176,61 @@ app.get('/selfie/success', checkAuthenticated, (req, res) => res.render('success
  *  AUTH ROUTES (SESSION)
  ***********************/
 // REGISTER POST
-app.post('/register', checkNotAuthenticated, async (req, res) => {
+router.post('/register', async (req, res) => {
   try {
-      const { name, email, cemail, password } = req.body;
-  
-      if (email !== cemail) {
-        return res.status(400).send('Emails do not match.');
-      }
-  
-      const existingUser = await User.findOne({ where: { email } });
-      if (existingUser) {
-        req.flash('error', 'Email already registered');
-        return res.redirect('/register');
-      }
-     
-      const hashedPassword = await bcrypt.hash(password, 10);
-      const confirmationToken = crypto.randomBytes(20).toString('hex');
-  
-      const newUser = await User.create({
-        name,
-        email,
-        password: hashedPassword,
-        isConfirmed: false,
-        confirmationToken,
-      });
+    const { name, email, cemail, password } = req.body;
 
-      console.log('✅ New user registered to DB:', newUser.id, newUser.email);
-  
-      res.redirect('/login'); 
-    } catch (err) {
-      console.error('❌ Registration error:', err);
-      res.redirect('/register');
+    if (!name || !email || !cemail || !password) {
+      return res.status(400).send('All fields are required');
     }
-  });
+
+    if (email !== cemail) {
+      return res.status(400).send('Emails do not match');
+    }
+
+    // Check if user already exists
+    const existingUser = await User.findOne({ where: { email } });
+    if (existingUser) {
+      return res.status(400).send('User already exists');
+    }
+
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Save user in DB
+    const newUser = await User.create({
+      name,
+      email,
+      password: hashedPassword
+    });
+
+    // ✅ Generate JWT tokens (for API use)
+    const accessToken = jwt.sign({ id: newUser.id, email: newUser.email }, SECRET, { expiresIn: '15m' });
+    const refreshToken = jwt.sign({ id: newUser.id, email: newUser.email }, REFRESH_SECRET, { expiresIn: '7d' });
+
+    // ✅ Start session (for EJS use)
+    req.login(newUser, (err) => {
+      if (err) {
+        console.error('Session login error:', err);
+      }
+    });
+
+    // ✅ Optionally, store refresh token in DB or memory (if you manage refresh tokens)
+    // await RefreshToken.create({ userId: newUser.id, token: refreshToken });
+
+    console.log(`✅ User ${newUser.email} registered.`);
+    console.log('Access Token:', accessToken);
+    console.log('Refresh Token:', refreshToken);
+
+    // ✅ Finally redirect to login page (EJS)
+    res.redirect('/login');
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Server error');
+  }
+});
+
 
   
   // LOGIN POST
