@@ -42,7 +42,7 @@ router.post('/register', async (req, res) => {
      const confirmationToken = uuidv4();
 
      // create new user in DB (not confirmed yet)
-    const newUser = await User.create({ 
+     await User.create({ 
       name, 
       email, 
       password: hashedPassword, 
@@ -51,40 +51,40 @@ router.post('/register', async (req, res) => {
     });
 
     // ✅ Send confirmation email here
-    await sendConfirmationEmail(newUser.email, confirmationToken); // Implement this function to send email
+    await sendConfirmationEmail(email, confirmationToken); // Implement this function to send email
 
-    // ✅ Generate JWT tokens
-    const accessToken = generateAccessToken(newUser);
-    const refreshToken = await generateRefreshToken(newUser); // ✅ pass the full user object
+    // // ✅ Generate JWT tokens
+    // const accessToken = generateAccessToken(newUser);
+    // const refreshToken = await generateRefreshToken(newUser); // ✅ pass the full user object
 
-    // ✅ Save refresh token in the database
-    await RefreshToken.create({ token: refreshToken, userId: newUser.id });
+    // // ✅ Save refresh token in the database
+    // await RefreshToken.create({ token: refreshToken, userId: newUser.id });
 
-    // ✅ Set refresh token as httpOnly cookie
-    res.cookie('refreshToken', refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'Strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    });
+    // // ✅ Set refresh token as httpOnly cookie
+    // res.cookie('refreshToken', refreshToken, {
+    //   httpOnly: true,
+    //   secure: process.env.NODE_ENV === 'production',
+    //   sameSite: 'Strict',
+    //   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    // });
 
-    // ✅ Respond with access token and user info
-    return res.status(201).json({ 
-      message: 'Registration successful. Please check your email for confirmation.', 
-      // redirect:'/login', 
-      accessToken, 
-      refreshToken, 
-      user: { 
-        id: newUser.id, 
-        email: newUser.email, 
-        name: newUser.name || 'User' 
-      }
-    });
-    
+    // // ✅ Respond with access token and user info
+    // return res.status(201).json({ 
+    //   message: 'Registration successful. Please check your email for confirmation.', 
+    //   // redirect:'/login', 
+    //   accessToken, 
+    //   refreshToken, 
+    //   user: { 
+    //     id: newUser.id, 
+    //     email: newUser.email, 
+    //     name: newUser.name || 'User' 
+    //   }
+    // });
 
+      return res.redirect('/login'); // ✅ No tokens, just redirect
     } catch (err) {
        console.error('Register error:', err);
-       res.status(500).json({ error: 'Server error' });
+       return res.status(500).json({ error: 'Server error' });
      }
   });
 
