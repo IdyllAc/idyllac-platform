@@ -4,14 +4,14 @@ const nodemailer = require('nodemailer');
 const transporter = nodemailer.createTransport({
   service: 'gmail', // or your email service (e.g., SMTP)
   auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
+    user: process.env.SMTP_EMAIL,
+    pass: process.env.SMTP__PASS
   }
 });
 
 const sendConfirmationEmail = async (email, token) => {
   const confirmUrl = `https://anypay.cards/auth/confirm-email/${token}`; 
-  // change to your production domain later
+ 
 
   const message = `
     <h2>Confirm Your Email</h2>
@@ -20,7 +20,7 @@ const sendConfirmationEmail = async (email, token) => {
   `;
 
   await transporter.sendMail({
-    from: `"Your App Name" <${process.env.EMAIL_USER}>`,
+    from: `"Idyllac anypay" <${process.env.SMTP_EMAIL}>`,
     to: email,
     subject: 'Confirm Your Email',
     html: message

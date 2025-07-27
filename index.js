@@ -201,12 +201,14 @@ app.post('/register', async (req, res) => {
     const newUser = await User.create({
       name,
       email,
-      password: hashedPassword
+      password: hashedPassword,
+      isConfirmed: false, // Default on registration
+      confirmationToken, // You can implement email confirmation later
     });
 
     // ✅ Generate JWT tokens (for API use)
-    const accessToken = jwt.sign({ id: newUser.id, email: newUser.email }, SECRET, { expiresIn: '15m' });
-    const refreshToken = jwt.sign({ id: newUser.id, email: newUser.email }, REFRESH_SECRET, { expiresIn: '7d' });
+    const accessToken = jwt.sign({ id: newUser.id, email: newUser.email }, ACCESS_TOKEN_SECRET, { expiresIn: '15m' });
+    const refreshToken = jwt.sign({ id: newUser.id, email: newUser.email }, REFRESH_TOKEN_SECRET, { expiresIn: '7d' });
 
     // ✅ Start session (for EJS use)
     req.login(newUser, (err) => {

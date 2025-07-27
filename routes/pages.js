@@ -1,7 +1,7 @@
 // routes/pages.js
 const express = require('express');
 const router = express.Router();
-const { checkAuthenticated, checkNotAuthenticated } = require('../middlewares/authMiddleware');
+const { checkAuthenticated, checkNotAuthenticated } = require('../middlewares/jwtMiddleware');
 
 // Home
 router.get('/', (req, res) => res.render('index'));

@@ -10,15 +10,6 @@ module.exports = {
           PORT: 3000
         }
       },
-      {
-        name: "api-server",
-        script: "app.js",
-        watch: true,
-        autorestart: true,
-        env: {
-          PORT: 4000
-        }
-      }
     ]
   }
   
