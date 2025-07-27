@@ -100,10 +100,10 @@
                             <input type="text" name="name" id="name" autocomplete="on" placeholder="Enter your name" required>
                           
                             <label for="email">Email:</label>
-                            <input type="email" name="email" id="email" maxlength="150" onkeyup="validateEmail()" autocomplete="on" placeholder="Enter your email" required>
+                            <input type="email" name="email" id="email" maxlength="150" autocomplete="on" placeholder="Enter your email" required>
                           
                             <label for="cemail">Confirmation email:</label>
-                            <input type="email" name="cemail" id="cemail" maxlength="150" onkeyup="validateCemail()" autocomplete="on" placeholder="Re-enter confirmation email" required>
+                            <input type="email" name="cemail" id="cemail" maxlength="150" autocomplete="on" placeholder="Re-enter confirmation email" required>
                           
                             <label for="password">Password:</label>
                             <input type="password" name="password" id="password" maxlength="150" autocomplete="off" placeholder="Enter strong password and remember it" required>
@@ -126,17 +126,32 @@
                           </footer>
                           
                           <script>
-                          document.getElementById('register-form').addEventListener('submit', async function (e) {
+                          document.addEventListener("DOMContentLoaded", () => {
+                          const form = document.getElementById('register-form');
+                          const email = document.getElementById('email');
+                          const cemail = document.getElementById('cemail');
+
+                            // ✅ Email confirmation validation (live check)
+                          cemail.addEventListener('keyup', () => {
+                          if (cemail.value !== email.value) {
+                          cemail.style.border = "2px solid red";
+                          } else {
+                          cemail.style.border = "2px solid green";
+                           }
+                          });
+
+                          // ✅ Handle form submission via fetch
+                         form.addEventListener('submit', async function (e) {
                             e.preventDefault();
 
                             const formData = {
                             name: document.getElementById('name').value,
-                            email: document.getElementById('email').value,
-                            cemail: document.getElementById('cemail').value,
+                            email: email.value,
+                            cemail: cemail.value,
                             password: document.getElementById('password').value,
                             };
 
-                         
+                         try {
                               const res = await fetch('/register', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
@@ -144,14 +159,19 @@
                               });
                           
                               if (res.ok) {
-                                alert('✅ Registration successful! Redirecting to login...');
+                                alert('✅ Registration successful! Please check your email for confirmation.');
                                 window.location.href = '/login';
                               } else {
                                 const data = await res.text();
                                 alert('❌ Registration failed: ' + data);
                               }
+                            } catch (error) {
+                              alert('❌ Network error occurred: ' + error.message);
+                            }
                           });
+                        });
                           </script>
+                           <script src="index.js"></script>
                           
                 <script src="https://kit.fontawesome.com/283a7ae800.js" crossorigin="anonymous"></script>
    </body>
