@@ -4,9 +4,9 @@ module.exports = (sequelize, DataTypes) => {
   const User = sequelize.define('User', {
     id: { 
       type: DataTypes.INTEGER,
-      allowNull: false,
       autoIncrement: true,
       primaryKey: true, 
+      allowNull: false,
     },
     name: { 
       type: DataTypes.STRING(100), 
@@ -26,7 +26,6 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.BOOLEAN, 
       defaultValue: false,
       field: 'is_confirmed', // ✅ important for consistency
-     
     },
     confirmationToken: { 
       type: DataTypes.STRING(255),

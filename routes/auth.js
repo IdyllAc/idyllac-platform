@@ -13,11 +13,9 @@ const sequelize = require('../config/database'); // MySQL connection
 const authenticateToken = require('../middleware/jwtMiddleware');
 const { generateAccessToken, generateRefreshToken } = require('../utils/tokenUtils');
 const crypto = require('crypto');
-const sendConfirmationEmail = require('../utils/sendEmail');
-// const { sendConfirmationEmail } = require('../utils/sendEmail'); // Import your email utility function
+const sendConfirmationEmail = require('../utils/sendEmail'); // Import your email utility function
+// const { sendConfirmationEmail } = require('../utils/sendEmail'); 
 const { v4: uuidv4 } = require('uuid'); // Top of file, for token generation
-
-
 
 
 User.findOne({ where: { email: { [Op.like]: '%@domain.com' } } });
@@ -50,8 +48,8 @@ router.post('/register', async (req, res) => {
       confirmationToken, // store confirmation token
     });
 
-    // ✅ Send confirmation email here
-    await sendConfirmationEmail(newUser.email, confirmationToken); // Implement this function to send email
+    // ✅ Send after user is created and confirmationToken is generated email here
+    await sendConfirmationEmail(newUser.email, newUser.confirmationToken); // Implement this function to send email
 
     // ✅ Generate JWT tokens
     const accessToken = generateAccessToken(newUser);
@@ -70,7 +68,9 @@ router.post('/register', async (req, res) => {
 
     // ✅ Respond with access token and user info
     return res.status(201).json({ 
-      message: 'Registration successful. Please check your email for confirmation.', 
+      // res.send(`Registration successful! <br><a href="${confirmationUrl}">Click here to confirm your email</a>`);
+      // console.log(`🧪 Confirmation URL for testing: ${process.env.BASE_URL}/auth/confirm-email/${token}`);
+      message: 'Registration successful. Please check your email for confirmation. ', 
       // redirect:'/login', 
       accessToken, 
       refreshToken, 
