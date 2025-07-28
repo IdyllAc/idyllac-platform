@@ -38,9 +38,9 @@ const sendConfirmationEmail = async (email, token) => {
     });
 
     console.log(`✅ Confirmation email sent to ${email}`);
-    console.log(`➡️ Confirmation URL: ${confirmUrl}`);
-  } catch (err) {
-    console.error('❌ Failed to send confirmation email:', err);
+    // console.log(`➡️ Confirmation URL: ${confirmUrl}`);
+  } catch (error) {
+    console.error('❌ Failed to send confirmation email:', error);
   }
 };
 
