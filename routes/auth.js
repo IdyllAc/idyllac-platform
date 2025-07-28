@@ -49,7 +49,7 @@ router.post('/register', async (req, res) => {
     });
 
     // ✅ Send after user is created and confirmationToken is generated email here
-    await sendConfirmationEmail(newUser.email, newUser.confirmationToken); // Implement this function to send email
+    await sendConfirmationEmail(email, confirmationToken); // Implement this function to send email
 
     // ✅ Generate JWT tokens
     const accessToken = generateAccessToken(newUser);
