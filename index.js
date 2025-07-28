@@ -161,7 +161,6 @@ app.use('/', publicRoutes);
 app.use('/auth', authRoutes);
 app.use('/user', userRoutes);
 app.use('/', subscriptionRoutes);
-app.use('/', testRoutes);
 
 app.get('/', (req, res) => res.render('index'));
 app.get('/login', checkNotAuthenticated, (req, res) => res.render('login'));
