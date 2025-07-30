@@ -11,13 +11,14 @@ const express = require('express');
 const bcrypt = require('bcrypt');
 const path = require('path');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 const flash = require('express-flash');
 const methodOverride = require('method-override');
 const cors = require('cors');
-const SECRET = process.env.JWT_SECRET || 'your_jwt_secret';
-const REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'your_refresh_secret';
-
-
+const sendConfirmationEmail = require('./utils/sendEmail');
+const SECRET = process.env.ACCESS_TOKEN_SECRET || 'your_jwt_secret';
+const REFRESH_SECRET = process.env.REFRESH_TOKEN_SECRET|| 'your_refresh_secret';
+const { v4: uuidv4 } = require('uuid');
 
 /***********************
  *  DATABASE & SESSION
@@ -80,20 +81,6 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(express.static(__dirname));
 
-// // ✅ FIX: Proper session setup
-// app.use(
-//   session({
-//     secret: process.env.SESSION_SECRET || 'SuperSecretKey', // ✅ REQUIRED
-//     resave: false, // don't save session if unmodified
-//     saveUninitialized: false, // don't create session until something stored
-//     cookie: {
-//       secure: process.env.NODE_ENV === 'production', // true if using HTTPS
-//       httpOnly: true,
-//       maxAge: 1000 * 60 * 60, // 1 hour
-//     },
-//   })
-// );
-
 
 /***********************
  *  SESSION STORE
@@ -117,16 +104,6 @@ const store = new pgSession({
 store.on('error', (err) => {
   console.error('❌ SESSION STORE ERROR:', err);
 });
-
-
-// const pgPool = new Pool({
-//   user: process.env.PGUSER,
-//   host: process.env.PGHOST,
-//   database: process.env.PGDATABASE,
-//   password: process.env.PGPASSWORD,
-//   port: process.env.PGPORT || 5432,
-// });
-
 
 app.use(
   session({
@@ -198,6 +175,8 @@ app.post('/register', async (req, res) => {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    const confirmationToken = uuidv4(); // require('uuid')
+
     // Save user in DB
     const newUser = await User.create({
       name,
@@ -207,9 +186,13 @@ app.post('/register', async (req, res) => {
       confirmationToken, // You can implement email confirmation later
     });
 
+    // ✅ Send after user is created and confirmationToken is generated email here
+    await sendConfirmationEmail(newUser.email, confirmationToken);
+
+
     // ✅ Generate JWT tokens (for API use)
-    const accessToken = jwt.sign({ id: newUser.id, email: newUser.email }, ACCESS_TOKEN_SECRET, { expiresIn: '15m' });
-    const refreshToken = jwt.sign({ id: newUser.id, email: newUser.email }, REFRESH_TOKEN_SECRET, { expiresIn: '7d' });
+    const accessToken = jwt.sign({ id: newUser.id, email: newUser.email }, SECRET, { expiresIn: '15m' });
+    const refreshToken = jwt.sign({ id: newUser.id, email: newUser.email }, REFRESH_SECRET, { expiresIn: '7d' });
 
     // ✅ Start session (for EJS use)
     req.login(newUser, (err) => {
@@ -270,8 +253,8 @@ function checkNotAuthenticated(req, res, next) {
 /***********************
  *  JWT-PROTECTED API ROUTES
  ***********************/
-app.use('/submit', jwtMiddleware, personalRoutes);
-app.use('/submit', jwtMiddleware, protectRoutes);
+app.use('/submit/personal', jwtMiddleware, personalRoutes);
+app.use('/submit/protect', jwtMiddleware, protectRoutes);
 app.use('/api/user', jwtMiddleware, userRoutes);
 
 /***********************
