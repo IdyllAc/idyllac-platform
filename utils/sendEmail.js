@@ -1,46 +1,30 @@
 // utils/sendEmail.js
 const nodemailer = require('nodemailer');
 
-const transporter = nodemailer.createTransport({
-  service: 'gmail', // or your email service (e.g., SMTP)
-  auth: {
-    user: process.env.SMTP_EMAIL,
-    pass: process.env.SMTP_PASS,
-  },
-});
-
-/**
- * Sends a confirmation email to the user.
- * @param {string} email - The user's email address.
- * @param {string} token - The unique confirmation token.
- */
 const sendConfirmationEmail = async (email, token) => {
-  const confirmUrl = `${process.env.BASE_URL}/auth/confirm-email/${token}`; 
- 
-  const message = `
-    <h2>Confirm Your Email</h2>
-    <p>Click the link below to confirm your email address:</p>
-    <a href="${confirmUrl}">${confirmUrl}</a>
-  `;
+  try {
+    const confirmationUrl = `${process.env.BASE_URL}/auth/confirm-email/${token}`;
 
-  // // Check if the email is valid
-  // if (!email || !/\S+@\S+\.\S+/.test(email)) {
-  //   throw new Error('Invalid email address');
-  // }
-
-  try { 
-    await transporter.sendMail({
-      from: `"IdyllAc for anypay" <${process.env.SMTP_EMAIL}>`,
-      to: email,
-      subject: 'Please confirm Your Email',
-      html: `<p>Hello ${user.name},</p>
-             <p>Click <a href="${process.env.BASE_URL}/auth/confirm-email/${confirmationToken}">here</a> to confirm your email.</p>`,
+    const transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port: process.env.SMTP_PORT,
+      secure: process.env.SMTP_SECURE === 'true',
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
+      },
     });
 
-    console.log(`✅ Confirmation email sent to ${email}`);
-    // console.log(`➡️ Confirmation URL: ${confirmUrl}`);
-  } catch (error) {
-    console.error('❌ Failed to send confirmation email:', error);
+    const info = await transporter.sendMail({
+      from: `"IdyllAc" <${process.env.SMTP_USER}>`,
+      to: email,
+      subject: 'Confirm your email',
+      html: `<p>Please confirm your email:</p><a href="${confirmationUrl}">${confirmationUrl}</a>`,
+    });
+
+    console.log('✅ Email sent:', info.messageId);
+  } catch (err) {
+    console.error('❌ Error sending confirmation email:', err);
   }
 };
 
