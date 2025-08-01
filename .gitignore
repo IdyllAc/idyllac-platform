@@ -4,8 +4,7 @@ node_modules/
 uploads/
 subscriber_emails.txt
 index.ejs
-Pages.js
-api.js
+
 
 # System/I
 .DS_Store
