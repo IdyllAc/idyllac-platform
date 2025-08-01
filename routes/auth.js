@@ -13,7 +13,7 @@ const sequelize = require('../config/database'); // MySQL connection
 const authenticateToken = require('../middleware/jwtMiddleware');
 const { generateAccessToken, generateRefreshToken } = require('../utils/tokenUtils');
 const crypto = require('crypto');
-const sendConfirmationEmail = require('../utils/sendEmail'); // Import your email utility function
+const sendConfirmationEmail = require('../utils/sendEmail66'); // Import your email utility function
 const { v4: uuidv4 } = require('uuid'); // Top of file, for token generation
 
 
