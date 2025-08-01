@@ -29,26 +29,3 @@ exports.submitMessage = async (req, res) => {
     res.status(500).send("Server error.");
   }
 };
-
-
-// // Fetch all subscribers handler
-// exports.getAllSubscribers = async (req, res) => {
-//   try {
-//     const subscribers = await Subscriber.findAll();
-//     res.json(subscribers);
-//   } catch (err) {
-//     console.error(err);
-//     res.status(500).send("Server error.");
-//   }
-// };
-
-// // Fetch all messages handler
-// exports.getAllMessages = async (req, res) => {
-//   try {
-//     const messages = await Message.findAll({ include: Subscriber });
-//     res.json(messages);
-//   } catch (err) {
-//     console.error(err);
-//     res.status(500).send("Server error.");
-//   }
-// };

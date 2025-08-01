@@ -16,7 +16,7 @@ const sendConfirmationEmail = async (email, token) => {
     });
 
     const info = await transporter.sendMail({
-      from: `"IdyllAc" <${process.env.SMTP_USER}>`,
+      from: `"Anypay IdyllAc " <${process.env.SMTP_USER}>`,
       to: email,
       subject: 'Confirm your email',
       html: `<p>Please confirm your email:</p><a href="${confirmationUrl}">${confirmationUrl}</a>`,
