@@ -211,7 +211,9 @@ router.get('/confirm-email/:token', async (req, res) => {
     // Find user by confirmation token
     const user = await User.findOne({ where: { confirmationToken: token } });
     if (!user) {
-      return res.status(400).json({ message: 'Invalid or expired confirmation link.' });
+      req.flash('error', 'Invalid confirmation token');
+      return res.redirect('/login');
+      // return res.status(400).json({ message: 'Invalid or expired confirmation link.' });
     }
 
     // Update user to mark email as confirmed
@@ -219,15 +221,13 @@ router.get('/confirm-email/:token', async (req, res) => {
     user.confirmationToken = null; // Clear the token after confirmation
     await user.save();
 
+    req.flash('info', 'Confirmation email sent. Check your inbox.');
     // ✅ Redirect to login or show success page
-    res.redirect('/login?confirmed=true');
-    // OR: res.render('confirmation-success', { email: user.email });
-
-
+    res.redirect('/login');
     // res.status(200).json({ message: 'Email confirmed successfully. You can now log in.' });
   } catch (err) {
     console.error('Email confirmation error:', err);
-    res.status(500).send('Something went wrong.');
+    res.redirect('/login');
   }
 });
 

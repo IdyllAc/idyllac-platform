@@ -2,6 +2,7 @@
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const { User } = require('../models');
+const { sendConfirmationEmail } = require('../utils/sendEmail'); // ✅ Import it
 
 // GET /register
 exports.getRegister = (req, res) => {
@@ -26,7 +27,7 @@ exports.postRegister = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
     const confirmationToken = crypto.randomBytes(20).toString('hex');
 
-    await User.create({
+    const newUser = await User.create({
       name,
       email,
       password: hashedPassword,
@@ -34,6 +35,10 @@ exports.postRegister = async (req, res) => {
       confirmationToken,
     });
 
+    // ✅ Send confirmation email
+       await sendConfirmationEmail(email, confirmationToken);
+
+    req.flash('info', 'Confirmation email sent. Check your inbox.');
     res.redirect('/login');
   } catch (err) {
     console.error('Registration error:', err);

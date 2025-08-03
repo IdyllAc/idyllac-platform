@@ -1,30 +1,33 @@
 // utils/sendEmail.js
 const nodemailer = require("nodemailer");
 
-const sendEmail = async (to, subject, html) => {
-  try {
     const transporter = nodemailer.createTransport({
       service: "gmail",
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
+      auth: { 
+        user: process.env.EMAIL_USER, // Gmail address
+        pass: process.env.EMAIL_PASS, // App password
       },
     });
 
-    const info = await transporter.sendMail({
-      from: `"Anypay Support" <${process.env.FROM_EMAIL}>`,
-      to,
-      subject,
-      html,
-    });
 
-    console.log("Email sent:", info.messageId);
-    return true;
-  } catch (error) {
-    console.error("Email sending error:", error);
-    return false;
+    exports.sendConfirmationEmail = async (toEmail, token) => {
+      const confirmUrl = `${process.env.BASE_URL}/confirm-email/${token}`;
+      const mailOptions = {
+      from: `"No Reply" <${process.env.EMAIL_USER}>`,
+      to: toEmail,
+      subject: 'Confirm your email',
+      html:`
+      <h3>Email Confirmation</h3>
+      <p>Please click the link below to confirm your email:</p>
+      <a href="${confirmUrl}">${confirmUrl}</a>
+    `,
+    };
+
+    try {
+    await transporter.sendMail(mailOptions);
+    console.log(`✅ Confirmation email sent to ${toEmail}`);
+  } catch (err) {
+    console.error('❌ Email sending failed:', err);
+    throw err;
   }
 };
-
-module.exports = sendEmail;
-
