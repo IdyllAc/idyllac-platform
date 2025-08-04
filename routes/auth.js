@@ -13,7 +13,7 @@ const sequelize = require('../config/database'); // MySQL connection
 const authenticateToken = require('../middleware/jwtMiddleware');
 const { generateAccessToken, generateRefreshToken } = require('../utils/tokenUtils');
 const crypto = require('crypto');
-const sendConfirmationEmail = require('../utils/sendEmail66'); // Import your email utility function
+// const { sendConfirmationEmail } = require('../utils/sendEmail'); // Import your email utility function
 const { v4: uuidv4 } = require('uuid'); // Top of file, for token generation
 
 
@@ -47,38 +47,38 @@ router.post('/register', async (req, res) => {
       confirmationToken, // store confirmation token
     });
 
-    // ✅ Send after user is created and confirmationToken is generated email here
+    // // ✅ Send after user is created and confirmationToken is generated email here
     
-    await sendConfirmationEmail(newUser.email, confirmationToken); // Implement this function to send email
+    //    await sendConfirmationEmail(newUser.email, confirmationToken); // Implement this function to send email
 
-    // ✅ Generate JWT tokens
-    const accessToken = generateAccessToken(newUser);
-    const refreshToken = await generateRefreshToken(newUser); // ✅ pass the full user object
+    // // ✅ Generate JWT tokens
+    // const accessToken = generateAccessToken(newUser);
+    // const refreshToken = await generateRefreshToken(newUser); // ✅ pass the full user object
 
-    // ✅ Save refresh token in the database
-    await RefreshToken.create({ token: refreshToken, userId: newUser.id });
+    // // ✅ Save refresh token in the database
+    // await RefreshToken.create({ token: refreshToken, userId: newUser.id });
 
-    // ✅ Set refresh token as httpOnly cookie
-    res.cookie('refreshToken', refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'Strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    });
+    // // ✅ Set refresh token as httpOnly cookie
+    // res.cookie('refreshToken', refreshToken, {
+    //   httpOnly: true,
+    //   secure: process.env.NODE_ENV === 'production',
+    //   sameSite: 'Strict',
+    //   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    // });
 
     // ✅ Respond with access token and user info
     return res.status(201).json({ 
       // res.send(`Registration successful! <br><a href="${confirmationUrl}">Click here to confirm your email</a>`);
       // console.log(`🧪 Confirmation URL for testing: ${process.env.BASE_URL}/auth/confirm-email/${token}`);
       message: 'Registration successful. Please check your email for confirmation. ', 
-      // redirect:'/login', 
-      accessToken, 
-      refreshToken, 
-      user: { 
-        id: newUser.id, 
-        email: newUser.email, 
-        name: newUser.name || 'User' 
-      }
+      // // redirect:'/login', 
+      // accessToken, 
+      // refreshToken, 
+      // user: { 
+      //   id: newUser.id, 
+      //   email: newUser.email, 
+      //   name: newUser.name || 'User' 
+      // }
     });
 
       // return res.redirect('/login'); // ✅ No tokens, just redirect

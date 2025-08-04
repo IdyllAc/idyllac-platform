@@ -1,6 +1,8 @@
 /***********************
  *  LOAD ENV VARIABLES
  ***********************/
+// @ts-check
+/* eslint-disable @typescript-eslint/no-var-requires */
 require('dotenv').config();
 console.log('✅ Environment:', process.env.NODE_ENV || 'development');
 
@@ -15,7 +17,7 @@ const crypto = require('crypto');
 const flash = require('express-flash');
 const methodOverride = require('method-override');
 const cors = require('cors');
-const sendConfirmationEmail = require('./utils/sendEmail66');
+// const { sendConfirmationEmail } = require('./utils/sendEmail');
 const SECRET = process.env.ACCESS_TOKEN_SECRET || 'your_jwt_secret';
 const REFRESH_SECRET = process.env.REFRESH_TOKEN_SECRET|| 'your_refresh_secret';
 const { v4: uuidv4 } = require('uuid');
@@ -25,6 +27,7 @@ const { v4: uuidv4 } = require('uuid');
  ***********************/
 const session = require('express-session');
 const pgSession = require('connect-pg-simple')(session);
+// @ts-ignore
 const { sequelize, User } = require('./models'); // Sequelize models
 const { Pool } = require('pg');
 
@@ -48,7 +51,6 @@ const userRoutes = require('./routes/user');            // Profile, settings
 const subscriptionRoutes = require('./routes/subscription');
 const personalRoutes = require('./routes/personal');    // Personal info
 const protectRoutes = require('./routes/protect');      // Documents, selfie
-const { FORCE } = require('sequelize/lib/index-hints');
 
 /***********************
  *  EXPRESS APP INIT
@@ -154,7 +156,8 @@ app.get('/selfie/success', checkAuthenticated, (req, res) => res.render('success
  *  AUTH ROUTES (SESSION)
  ***********************/
 // REGISTER POST
-app.post('/register', async (req, res) => {
+// @ts-ignore
+app.post('/register', async (req, res, next) => {
   try {
     const { name, email, cemail, password } = req.body;
 
@@ -186,46 +189,51 @@ app.post('/register', async (req, res) => {
       confirmationToken, // You can implement email confirmation later
     });
 
-    // ✅ Send after user is created and confirmationToken is generated email here
-    await sendConfirmationEmail(newUser.email, confirmationToken);
+    // try {
+    //   await sendConfirmationEmail(newUser.email, confirmationToken);
+    //   console.log(`📧 Confirmation email sent to ${newUser.email}`);
+    // } catch (emailErr) {
+    //   console.error(`❌ Failed to send confirmation email: ${emailErr.message}`);
+    //   // optionally: delete user or flag as unconfirmed with error
+    // }
 
+    // // ✅ Generate JWT tokens (for API use)
+    // const accessToken = jwt.sign({ id: newUser.id, email: newUser.email }, SECRET, { expiresIn: '15m' });
+    // const refreshToken = jwt.sign({ id: newUser.id, email: newUser.email }, REFRESH_SECRET, { expiresIn: '7d' });
 
-    // ✅ Generate JWT tokens (for API use)
-    const accessToken = jwt.sign({ id: newUser.id, email: newUser.email }, SECRET, { expiresIn: '15m' });
-    const refreshToken = jwt.sign({ id: newUser.id, email: newUser.email }, REFRESH_SECRET, { expiresIn: '7d' });
-
-    // ✅ Start session (for EJS use)
-    req.login(newUser, (err) => {
-      if (err) {
-        console.error('Session login error:', err);
-      }
-    });
+    // // ✅ Start session (for session-EJS use)
+    // req.login(newUser, (err) => {
+    //   if (err) {
+    //     console.error('Session login error:', err);
+    //     return next(err); // 🔁 Pass to global error handler
+    //   }
 
     // ✅ Optionally, store refresh token in DB or memory (if you manage refresh tokens)
     // await RefreshToken.create({ userId: newUser.id, token: refreshToken });
 
     console.log(`✅ User ${newUser.email} registered.`);
-    console.log('Access Token:', accessToken);
-    console.log('Refresh Token:', refreshToken);
+//     console.log('Access Token:', accessToken);
+//     console.log('Refresh Token:', refreshToken);
 
-    // ✅ Finally redirect to login page (EJS)
-    res.redirect('/login');
+//     // ✅ Finally redirect to login page (EJS)
+//     return res.redirect('/login'); // Final redirect after success
+//   });
 
   } catch (err) {
-    console.error(err);
-    res.status(500).send('Server error');
+     console.error('❌ Registration error:', err);
+     next(err); // ✅ Send to error-handling middleware
   }
-});
+ });
 
 
   
-  // LOGIN POST
-  app.post('/login', checkNotAuthenticated, passport.authenticate('local', {
-      successRedirect: '/dashboard',
-      failureRedirect: '/login',
-      failureFlash: true,
-    })
-  );
+//   // LOGIN POST
+//   app.post('/login', checkNotAuthenticated, passport.authenticate('local', {
+//       successRedirect: '/dashboard',
+//       failureRedirect: '/login',
+//       failureFlash: true,
+//     })
+//   );
   
   // LOGOUT
   app.delete('/logout', (req, res, next) => {
@@ -261,7 +269,7 @@ app.use('/api/user', jwtMiddleware, userRoutes);
  *  ERROR HANDLER
  ***********************/
 app.use((err, req, res, next) => {
-  console.error('💥 Error:', err.stack);
+  console.error('💥 Uncaught error:', err.stack);
   res.status(500).send('Something went wrong!');
 });
 
@@ -278,15 +286,15 @@ sequelize
   .then(() => console.log('✅ Database connected'))
   .catch(err => console.error('❌ Database connection error:', err));
 
-  app.get('/test-session', (req, res) => {
-    if (!req.session.views) {
-      req.session.views = 1;
-    } else {
-      req.session.views++;
-    }
+  // app.get('/test-session', (req, res) => {
+  //   if (!req.session.views) {
+  //     req.session.views = 1;
+  //   } else {
+  //     req.session.views++;
+  //   }
   
-    res.send(`Session saved! You visited this page ${req.session.views} times.`);
-  });
+  //   res.send(`Session saved! You visited this page ${req.session.views} times.`);
+  // });
   
 
 /***********************

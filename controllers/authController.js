@@ -36,7 +36,13 @@ exports.postRegister = async (req, res) => {
     });
 
     // ✅ Send confirmation email
-       await sendConfirmationEmail(email, confirmationToken);
+       console.log("Preparing to send confirmation email...");
+
+       await sendConfirmationEmail(newUser.email, confirmationToken);
+
+       console.log("Confirmation email sent (or attempted).");
+       console.log("EMAIL_USER:", process.env.EMAIL_USER);
+
 
     req.flash('info', 'Confirmation email sent. Check your inbox.');
     res.redirect('/login');

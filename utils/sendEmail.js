@@ -10,11 +10,11 @@ const nodemailer = require("nodemailer");
     });
 
 
-    exports.sendConfirmationEmail = async (toEmail, token) => {
+    exports.sendConfirmationEmail = async function(email, token) {
       const confirmUrl = `${process.env.BASE_URL}/confirm-email/${token}`;
       const mailOptions = {
       from: `"No Reply" <${process.env.EMAIL_USER}>`,
-      to: toEmail,
+      to: email,
       subject: 'Confirm your email',
       html:`
       <h3>Email Confirmation</h3>
@@ -25,7 +25,7 @@ const nodemailer = require("nodemailer");
 
     try {
     await transporter.sendMail(mailOptions);
-    console.log(`✅ Confirmation email sent to ${toEmail}`);
+    console.log(`✅ Confirmation email sent to ${email}`);
   } catch (err) {
     console.error('❌ Email sending failed:', err);
     throw err;
