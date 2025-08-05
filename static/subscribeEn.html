@@ -34,14 +34,13 @@
   <p>Choose how you want to subscribe:</p>
 
   <h2>📧 Subscribe via Email</h2>
-  <form action="/subscriber/email" method="POST" id="email-form">
-    <input type="email" name="email" placeholder="Enter your email" required />
+  <form id="email-form">
+    <input type="email" name="email" id="email" placeholder="Enter your email" required />
     <button type="submit">Subscribe</button>
   </form> 
 
   <hr>
 
-  
   
   <section>
     <h2>📱 Social Login</h2>
@@ -66,19 +65,19 @@
 <h5>.If you encounter any proplem at crossing any parier,  contact us. // Si vous rencontrez un problème lors du franchissement d'une barière, contactez nous. // .إذا واجهت اي مشكلة في تخطئ حاجر, إتصل بنا</h5>
 <h4 style="color: #333; text-align:center; margin-bottom: 0;">To get more information enter your email.</h4>
   
-<form action="/submit" method="POST" id="message-form">
+<form id="message-form">
   <!-- <label for="email" style="color: lime;" >Email:</label><br> -->
-   <input type="email" name="email" placeholder="Enter your email" required><br>
+   <input type="email" name="email" id="email" placeholder="Enter your email" required><br>
   <!-- <label for="message" style="color: lime;" >Your Message:</label> -->
   <h4 style="color:rgb(35, 35, 222); text-align: center; margin-bottom: 0;">Insert your question then proceed to send.</h4> <br> 
-  <textarea name="message" placeholder="Write your message shortly here" cols="30" rows="10" required></textarea><br>
+  <textarea type="text" name="message" id="message" placeholder="Write your message shortly here" cols="30" rows="10" required></textarea><br>
   <button type="submit">Submit</button> 
  </form>
 
   <p id="status"></p>
 
   <script>
-      const SUBSCRIBER_API = 'https://sub.anypay.cards/submit';
+      const SUBSCRIBER_API = 'https://anypay.cards/submit';
     // Optional: handle response without page reload
    document.getElementById("email-form").addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -100,6 +99,8 @@
     }
     });
   </script>
+
+<script src="./index.js"></script>
 
 </body>
 </html>

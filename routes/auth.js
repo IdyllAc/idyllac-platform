@@ -13,6 +13,8 @@ const sequelize = require('../config/database'); // MySQL connection
 const authenticateToken = require('../middleware/jwtMiddleware');
 const { generateAccessToken, generateRefreshToken } = require('../utils/tokenUtils');
 const crypto = require('crypto');
+const SECRET = process.env.ACCESS_TOKEN_SECRET || 'your_jwt_secret';
+const REFRESH_SECRET = process.env.REFRESH_TOKEN_SECRET|| 'your_refresh_secret';
 // const { sendConfirmationEmail } = require('../utils/sendEmail'); // Import your email utility function
 const { v4: uuidv4 } = require('uuid'); // Top of file, for token generation
 
@@ -47,38 +49,12 @@ router.post('/register', async (req, res) => {
       confirmationToken, // store confirmation token
     });
 
-    // // ✅ Send after user is created and confirmationToken is generated email here
-    
-    //    await sendConfirmationEmail(newUser.email, confirmationToken); // Implement this function to send email
-
-    // // ✅ Generate JWT tokens
-    // const accessToken = generateAccessToken(newUser);
-    // const refreshToken = await generateRefreshToken(newUser); // ✅ pass the full user object
-
-    // // ✅ Save refresh token in the database
-    // await RefreshToken.create({ token: refreshToken, userId: newUser.id });
-
-    // // ✅ Set refresh token as httpOnly cookie
-    // res.cookie('refreshToken', refreshToken, {
-    //   httpOnly: true,
-    //   secure: process.env.NODE_ENV === 'production',
-    //   sameSite: 'Strict',
-    //   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    // });
-
     // ✅ Respond with access token and user info
     return res.status(201).json({ 
-      // res.send(`Registration successful! <br><a href="${confirmationUrl}">Click here to confirm your email</a>`);
-      // console.log(`🧪 Confirmation URL for testing: ${process.env.BASE_URL}/auth/confirm-email/${token}`);
+       // res.send(`Registration successful! <br><a href="${confirmationUrl}">Click here to confirm your email</a>`),
+       // console.log(`🧪 Confirmation URL for testing: ${process.env.BASE_URL}/auth/confirm-email/${token}`),
       message: 'Registration successful. Please check your email for confirmation. ', 
-      // // redirect:'/login', 
-      // accessToken, 
-      // refreshToken, 
-      // user: { 
-      //   id: newUser.id, 
-      //   email: newUser.email, 
-      //   name: newUser.name || 'User' 
-      // }
+        name: newUser.name || 'User'  
     });
 
       // return res.redirect('/login'); // ✅ No tokens, just redirect
@@ -206,30 +182,31 @@ router.get('/dashboard', authenticateToken, async (req, res) => {
 // Email Confirmation Route
 router.get('/confirm-email/:token', async (req, res) => {
   const { token } = req.params;
+  console.log("Hit confirmation route with token:", token); // ✅ Logging the token received
 
   try {
     // Find user by confirmation token
-    const user = await User.findOne({ where: { confirmationToken: token } });
-    if (!user) {
-      req.flash('error', 'Invalid confirmation token');
-      return res.redirect('/login');
-      // return res.status(400).json({ message: 'Invalid or expired confirmation link.' });
-    }
+    const user = await User.findOne({ where: { confirmation_token: token } }); // use correct column name
 
-    // Update user to mark email as confirmed
-    user.isConfirmed = true;
-    user.confirmationToken = null; // Clear the token after confirmation
+    if (!user) {
+      console.log("Token not found in DB:", token); // ✅ Logging if token is not found
+      req.flash('error', 'Invalid or expired confirmation token.');
+      return res.redirect('/login');
+        }
+
+    // Update user to mark email as confirmed 
+    user.is_confirmed = true;
+    user.confirmation_token = null; // Clear the token after confirmation
     await user.save();
 
-    req.flash('info', 'Confirmation email sent. Check your inbox.');
+    req.flash('info', 'Your email has been successfully confirmed. You can now log in.');
     // ✅ Redirect to login or show success page
-    res.redirect('/login');
-    // res.status(200).json({ message: 'Email confirmed successfully. You can now log in.' });
-  } catch (err) {
+    return res.redirect('/login?confirmed=true');
+    } catch (err) {
     console.error('Email confirmation error:', err);
-    res.redirect('/login');
+    req.flash('error', 'Something went wrong. Please try again later.');
+    return res.redirect('/login');
   }
 });
-
 
   module.exports = router;

@@ -34,8 +34,8 @@
   <p>Choisissez votre mode d’abonnement:</p>
 
   <h2>📧 Abonnez-vous par email.</h2>
-  <form action="/subscriber/email" method="POST" id="email-form">
-    <input type="email" name="email" placeholder="Insérez votre email" required />
+  <form id="email-form" action="/subscriber/email" method="POST">
+    <input type="email" name="email" id="email" placeholder="Insérez votre email" required />
     <button type="submit">Envoyer</button>
   </form> 
 
@@ -63,20 +63,20 @@
   Pour obtenir plus d’informations saisissez votre adresse mail.".
 </h4>
   
-<form action="/submit" method="POST" id="message-form">
+<form id="message-form">
   <!-- <label for="email" style="color: lime;" >Email:</label><br> -->
-   <input type="email" name="email" placeholder="Insérez votre email" required><br>
+   <input type="email" name="email" id="email" placeholder="Insérez votre email" required><br>
   <!-- <label for="message" style="color: lime;" >Your Message:</label> -->
   <h4 style="color:rgb(44, 44, 232); text-align: center; margin-bottom: 0;">Insérez votre question puis procédez à l’envoi.</h4> <br> 
   
-  <textarea name="message" placeholder="Rédigez brièvement votre message ici." id="textarea" cols="30" rows="10" required></textarea><br>
+  <textarea type="text" name="message" id="message" placeholder="Rédigez brièvement votre message ici." id="textarea" cols="30" rows="10" required></textarea><br>
   <button type="submit">Envoyer</button> 
  </form>
 
   <p id="status"></p>
 
   <script>
-      const SUBSCRIBER_API = 'https://sub.anypay.cards/submit';
+      const SUBSCRIBER_API = 'https://anypay.cards/submit';
     // Handle async form submission only for the subscription form
     document.getElementById("email-form").addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -98,6 +98,8 @@
     }
     });
   </script>
+
+<script src="./index.js"></script>
 
 </body>
 </html>

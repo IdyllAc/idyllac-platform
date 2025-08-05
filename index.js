@@ -3,7 +3,7 @@
  ***********************/
 // @ts-check
 /* eslint-disable @typescript-eslint/no-var-requires */
-require('dotenv').config();
+require('dotenv').config(); // import dotenv from 'config';
 console.log('✅ Environment:', process.env.NODE_ENV || 'development');
 
 /***********************
@@ -177,7 +177,6 @@ app.post('/register', async (req, res, next) => {
 
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
-
     const confirmationToken = uuidv4(); // require('uuid')
 
     // Save user in DB
@@ -189,45 +188,26 @@ app.post('/register', async (req, res, next) => {
       confirmationToken, // You can implement email confirmation later
     });
 
-    // try {
-    //   await sendConfirmationEmail(newUser.email, confirmationToken);
-    //   console.log(`📧 Confirmation email sent to ${newUser.email}`);
-    // } catch (emailErr) {
-    //   console.error(`❌ Failed to send confirmation email: ${emailErr.message}`);
-    //   // optionally: delete user or flag as unconfirmed with error
-    // }
-
-    // // ✅ Generate JWT tokens (for API use)
-    // const accessToken = jwt.sign({ id: newUser.id, email: newUser.email }, SECRET, { expiresIn: '15m' });
-    // const refreshToken = jwt.sign({ id: newUser.id, email: newUser.email }, REFRESH_SECRET, { expiresIn: '7d' });
-
-    // // ✅ Start session (for session-EJS use)
-    // req.login(newUser, (err) => {
-    //   if (err) {
-    //     console.error('Session login error:', err);
-    //     return next(err); // 🔁 Pass to global error handler
-    //   }
-
-    // ✅ Optionally, store refresh token in DB or memory (if you manage refresh tokens)
-    // await RefreshToken.create({ userId: newUser.id, token: refreshToken });
-
     console.log(`✅ User ${newUser.email} registered.`);
-//     console.log('Access Token:', accessToken);
-//     console.log('Refresh Token:', refreshToken);
+    // ✅ Respond with success message (no tokens yet)
+    res.status(201).json({
+      message: 'Registration successful. Please check your email for confirmation.',
+      // name: newUser.name || 'User',
+    });
 
-//     // ✅ Finally redirect to login page (EJS)
-//     return res.redirect('/login'); // Final redirect after success
-//   });
-
+     // ✅ Finally redirect to login page (EJS)
+     // return res.redirect('/login'); // Final redirect after success
+ 
   } catch (err) {
      console.error('❌ Registration error:', err);
      next(err); // ✅ Send to error-handling middleware
   }
  });
 
-
-  
+// /***********************
 //   // LOGIN POST
+//   ***********************/
+//  // LOGIN POST
 //   app.post('/login', checkNotAuthenticated, passport.authenticate('local', {
 //       successRedirect: '/dashboard',
 //       failureRedirect: '/login',

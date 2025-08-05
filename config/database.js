@@ -8,7 +8,7 @@ module.exports = {
     database: process.env.DB_NAME || 'idyllac_db_e081',
     host: process.env.DB_HOST || '127.0.0.1',
     dialect: 'postgres',
-    logging: false, // 👈 turn off all SQL logs or 
+    logging: false,// 👈 turn off all SQL logs or 
   },
 
   production: {

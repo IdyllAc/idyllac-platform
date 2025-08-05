@@ -31,8 +31,8 @@
   <p>Choose how you want to subscribe:</p>
 
   <h2>📧 Subscribe via Email</h2>
-  <form action="/subscriber/email" method="POST" id="email-form">
-    <input type="email" name="email" placeholder="Enter your email" required />
+  <form id="email-form">
+    <input type="email" name="email" id="email" placeholder="Enter your email" required />
     <button type="submit">Submit</button>
   </form>
 
@@ -60,21 +60,21 @@
     To get more information enter your email // Pour obtenir plus d’informations saisissez votre adresse mail // للحصول على مزيد من المعلومات, سجل عنوانك البريد الإلكتروني 
   </h4>
 
-  <form action="/submit" method="POST" id="message-form">
-    <input type="email" name="email" placeholder="Enter your email" required><br>
+  <form id="message-form">
+    <input type="email" name="email" id="email" placeholder="Enter your email" required><br>
     <h4 style="color: rgb(36, 36, 224);">Insert your question then proceed to send // Insérez votre question puis procédez à l’envoi // إدرج السؤال وقم بالإرسال بالنقر على الزر أسفله#</h4>
-    <textarea name="message" placeholder="Write your message shortly here" cols="30" rows="10" required></textarea><br>
+    <textarea type="text" name="message" id="message" placeholder="Write your message shortly here" cols="30" rows="10" required></textarea><br>
     <button type="submit">Submit</button>
   </form>
 
   <p id="status"></p>
 
   <script>
-      const SUBSCRIBER_API = 'https://sub.anypay.cards/submit';
+      const SUBSCRIBER_API = 'https://anypay.cards/submit';
     // Handle async form submission only for the subscription form
     document.getElementById("message-form").addEventListener("submit", async (e) => {
-     
       e.preventDefault();
+
       const form = e.target;
       const formData = new FormData(form);
       const status = document.getElementById("status");
@@ -93,6 +93,8 @@
     }
     });
   </script>
+
+<script src="./index.js"></script>
 
 </body>
 </html>
