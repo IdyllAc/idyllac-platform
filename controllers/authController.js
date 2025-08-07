@@ -1,8 +1,83 @@
 // controllers/authController.js
+
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
-const { User } = require('../models');
-const { sendConfirmationEmail } = require('../utils/sendEmail'); // ✅ Import it
+const jwt = require('jsonwebtoken');
+const { v4: uuidv4 } = require('uuid');
+
+const { User, RefreshToken } = require('../models');
+const { sendConfirmationEmail } = require('../utils/sendEmail');
+const { generateAccessToken, generateRefreshToken } = require('../utils/tokenUtils');
+
+// Exported functions (postRegister, postLogin, refreshToken, logout, getDashboard, confirmEmail)
+// will go here...
+
+module.exports = {
+  postRegister,
+  postLogin,
+  refreshToken,
+  logout,
+  getDashboard,
+  confirmEmail
+};
+
+
+// GET /login
+exports.getLogin = (req, res) => {
+  res.render('login');
+};
+
+exports.postLogin = async (req, res) => {
+  const { email, password } = req.body; 
+
+  try {
+    const user = await User.findOne({ where: { email } });
+
+    if (!user) {
+      return res.status(401).json({ message: 'Invalid email or password.' });
+    }
+
+    // ✅ Block login if email not confirmed yet
+    if (!user.is_confirmed) {
+      return res.status(403).json({ message: 'Please confirm your email before logging in.' });
+    }
+
+    const valid = await bcrypt.compare(password, user.password);
+    if (!valid) return res.status(400).json({ message: 'Invalid email or password' });
+
+    // ✅ Generate tokens
+    const accessToken = generateAccessToken(user);
+    const refreshToken = await generateRefreshToken(user);
+
+    // ✅ Save refresh token in DB
+    await RefreshToken.create({ token: refreshToken, userId: user.id });
+
+    // ✅ Set refresh token as httpOnly cookie
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'Strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000,   // 7 days
+    });
+
+    res.json({ 
+      accessToken, 
+      refreshToken, 
+      message: 'Login successful'
+    });
+
+     // Save data to session
+  req.session.userId = user.id;
+  req.session.isLoggedIn = true;
+
+  res.redirect('/dashboard');
+
+  } catch (err) {
+    console.error('Login error:', err);
+    res.status(500).json({ error: 'Login failed' });
+  }
+};
+
 
 // GET /register
 exports.getRegister = (req, res) => {
@@ -14,70 +89,133 @@ exports.postRegister = async (req, res) => {
   try {
     const { name, email, cemail, password } = req.body;
 
+    if (!name || !email || !cemail || !password) {
+       return res.status(400).send('All fields are required');
+    }
+      
+
     if (email !== cemail) {
       return res.status(400).send("Emails do not match.");
     }
 
+     // Check if user already exists
     const existingUser = await User.findOne({ where: { email } });
     if (existingUser) {
-      req.flash('error', 'Email already registered');
-      return res.redirect('/register');
+      return res.status(400).json({ message: "Email already registered." });
     }
 
+    // Hash the password before saving
     const hashedPassword = await bcrypt.hash(password, 10);
-    const confirmationToken = crypto.randomBytes(20).toString('hex');
 
+    // ✅ Generate confirmation token once and use it for both DB and email
+    const confirmationToken = uuidv4();  // require('uuid')
+
+    // create and save new user in DB (not confirmed yet)
     const newUser = await User.create({
       name,
       email,
       password: hashedPassword,
-      isConfirmed: false,
-      confirmationToken,
+      is_confirmed: false,
+      confirmation_token,
     });
 
-    console.log("Preparing to send confirmation email...");
-
-    // Construct confirmation URL
     // Ensure BASE_URL is set in your environment variables
     if (!process.env.BASE_URL) {
       console.error("BASE_URL environment variable is not set.");
-      req.flash('error', 'Server configuration error. Please try again later.');
-      return res.redirect('/register');
+      return res.status(500).json({ message: "Server error. Try later." });
     }
-    
-    // Use the confirmation token to create a URL for email confirmation
 
-    const confirmationUrl = `${process.env.BASE_URL}/auth/confirm-email/${confirmationToken}`;
     try {
-    // ✅ Send confirmation email
-        console.log("Sending confirmation email to:", newUser.email);
-       await sendConfirmationEmail(newUser.email, confirmationToken);
+      // ✅ Send confirmation email using the correct token
+      await sendConfirmationEmail(newUser.email, confirmationToken);
 
-       console.log("Confirmation email sent (or attempted).");
-       console.log("EMAIL_USER:", process.env.EMAIL_USER);
+      // ✅ Respond with access token and user info
+      return res.status(201).json({
+        message: "Registration successful. Please check your email to confirm.",
+         // name: newUser.name || 'User',
+      });
+
+      // ✅ Finally redirect to login page (EJS)
+      // return res.redirect('/login'); // Final redirect after success
+      
     } catch (emailError) {
       console.error("Failed to send confirmation email:", emailError);
       req.flash('error', 'Failed to send confirmation email. Please try again later.');
       return res.redirect('/register');
     }
-
-    req.flash('info', 'Confirmation email sent. Check your inbox.');
-    res.redirect('/login');
   } catch (err) {
     console.error('Registration error:', err);
     res.redirect('/register');
   }
 };
 
-// GET /login
-exports.getLogin = (req, res) => {
-  res.render('login');
+
+
+exports.refreshToken = async (req, res) => {
+  const refreshToken = req.cookies.refreshToken || req.body.token;
+  if (!refreshToken) return res.status(403).json({ message: 'Refresh token required' });
+
+  try {
+    const tokenInDb = await RefreshToken.findOne({ where: { token: refreshToken } });
+    if (!tokenInDb) return res.status(403).json({ message: 'Token not found or revoked' });
+
+    const userData = await jwtVerify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
+    const newAccessToken = generateAccessToken({ id: userData.id });
+    const newRefreshToken = generateRefreshToken({ id: userData.id });
+
+    // Rotate the refresh token
+    tokenInDb.token = newRefreshToken;
+    await tokenInDb.save();
+
+    res.cookie('refreshToken', newRefreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'Strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    res.json({ accessToken: newAccessToken });
+  } catch (err) {
+    console.error('Refresh error:', err);
+    res.status(403).json({ error: 'Invalid or expired token' });
+  }
 };
 
-// DELETE /logout
-exports.logout = (req, res, next) => {
-  req.logOut(err => {
-    if (err) return next(err);
-    res.redirect('/login');
-  });
+exports.logout = async (req, res) => {
+  const refreshToken = req.cookies.refreshToken;
+  if (!refreshToken) return res.status(400).json({ message: 'No refresh token found' });
+
+  try {
+    await RefreshToken.destroy({ where: { token: refreshToken } });
+    res.clearCookie('refreshToken');
+    res.status(200).json({ message: 'Logged out successfully' });
+  } catch (err) {
+    console.error('Logout error:', err);
+    res.status(500).json({ error: 'Logout failed' });
+  }
 };
+
+exports.getDashboard = async (req, res) => {
+  try {
+    const user = await User.findByPk(req.user.id, {
+      attributes: ['id', 'email', 'name'],
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.json({
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name || 'User',
+      },
+    });
+  } catch (err) {
+    console.error('Dashboard error:', err);
+    res.status(500).json({ error: 'Failed to fetch dashboard data' });
+  }
+};
+
+

@@ -152,68 +152,27 @@ app.get('/submit/upload/document', checkAuthenticated, (req, res) => res.render(
 app.get('/submit/upload/selfie', checkAuthenticated, (req, res) => res.render('selfie'));
 app.get('/selfie/success', checkAuthenticated, (req, res) => res.render('success'));
 
-/***********************
- *  AUTH ROUTES (SESSION)
- ***********************/
-// REGISTER POST
-// @ts-ignore
-app.post('/register', async (req, res, next) => {
-  try {
-    const { name, email, cemail, password } = req.body;
-
-    if (!name || !email || !cemail || !password) {
-      return res.status(400).send('All fields are required');
-    }
-
-    if (email !== cemail) {
-      return res.status(400).send('Emails do not match');
-    }
-
-    // Check if user already exists
-    const existingUser = await User.findOne({ where: { email } });
-    if (existingUser) {
-      return res.status(400).send('User already exists');
-    }
-
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const confirmationToken = uuidv4(); // require('uuid')
-
-    // Save user in DB
-    const newUser = await User.create({
-      name,
-      email,
-      password: hashedPassword,
-      isConfirmed: false, // Default on registration
-      confirmationToken, // You can implement email confirmation later
-    });
-
-    console.log(`✅ User ${newUser.email} registered.`);
-    // ✅ Respond with success message (no tokens yet)
-    res.status(201).json({
-      message: 'Registration successful. Please check your email for confirmation.',
-      // name: newUser.name || 'User',
-    });
-
-     // ✅ Finally redirect to login page (EJS)
-     // return res.redirect('/login'); // Final redirect after success
- 
-  } catch (err) {
-     console.error('❌ Registration error:', err);
-     next(err); // ✅ Send to error-handling middleware
-  }
- });
-
 // /***********************
-//   // LOGIN POST
-//   ***********************/
+//  *  AUTH ROUTES (SESSION)
+//  ***********************/
+
+
+/***********************
+  // LOGIN POST
+  ***********************/
 //  // LOGIN POST
-//   app.post('/login', checkNotAuthenticated, passport.authenticate('local', {
-//       successRedirect: '/dashboard',
-//       failureRedirect: '/login',
-//       failureFlash: true,
-//     })
-//   );
+//  app.post('/login', (req, res, next) => {
+//   // forward manually to /auth/login if you use express.Router()
+//   req.url = '/auth/login';
+//   next();
+// });
+  app.post('/login', checkNotAuthenticated, passport.authenticate('local', {
+      successRedirect: '/dashboard',
+      failureRedirect: '/login',
+      failureFlash: true,
+    })
+  );
+  // <form action="/auth/login" method="POST">
   
   // LOGOUT
   app.delete('/logout', (req, res, next) => {
