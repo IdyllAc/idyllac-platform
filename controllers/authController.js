@@ -9,23 +9,12 @@ const { User, RefreshToken } = require('../models');
 const { sendConfirmationEmail } = require('../utils/sendEmail');
 const { generateAccessToken, generateRefreshToken } = require('../utils/tokenUtils');
 
-// Exported functions (postRegister, postLogin, refreshToken, logout, getDashboard, confirmEmail)
-// will go here...
-
-module.exports = {
-  postRegister,
-  postLogin,
-  refreshToken,
-  logout,
-  getDashboard,
-  confirmEmail
-};
-
 
 // GET /login
 exports.getLogin = (req, res) => {
   res.render('login');
 };
+
 
 exports.postLogin = async (req, res) => {
   const { email, password } = req.body; 
@@ -84,7 +73,7 @@ exports.getRegister = (req, res) => {
   res.render('register');
 };
 
-// POST /register
+
 exports.postRegister = async (req, res) => {
   try {
     const { name, email, cemail, password } = req.body;
@@ -181,6 +170,7 @@ exports.refreshToken = async (req, res) => {
   }
 };
 
+
 exports.logout = async (req, res) => {
   const refreshToken = req.cookies.refreshToken;
   if (!refreshToken) return res.status(400).json({ message: 'No refresh token found' });
@@ -194,6 +184,7 @@ exports.logout = async (req, res) => {
     res.status(500).json({ error: 'Logout failed' });
   }
 };
+
 
 exports.getDashboard = async (req, res) => {
   try {
@@ -218,4 +209,47 @@ exports.getDashboard = async (req, res) => {
   }
 };
 
+
+exports.confirmEmail = async (req, res) => {
+  const { token } = req.params;
+  console.log("Hit confirmation route with token:", token); // ✅ Logging the token received
+
+  try {
+    // Find user by confirmation token
+    const user = await User.findOne({ where: { confirmation_token: token } }); // use correct column name
+
+    if (!user) {
+      console.log("Token not found in DB:", token); // ✅ Logging if token is not found
+      req.flash('error', 'Invalid or expired confirmation token.');
+      return res.redirect('/login');
+    }
+
+    // Update user to mark email as confirmed 
+    user.is_confirmed = true;
+    user.confirmation_token = null; // Clear the token after confirmation
+    await user.save();
+
+    req.flash('info', 'Your email has been successfully confirmed. You can now log in.');
+    // ✅ Redirect to login or show success page
+    return res.redirect('/login?confirmed=true');
+
+    } catch (err) {
+    console.error('Email confirmation error:', err);
+    req.flash('error', 'Something went wrong. Please try again later.');
+    return res.redirect('/login');
+  }
+};
+
+
+// Exported functions (postRegister, postLogin, refreshToken, logout, getDashboard, confirmEmail)
+// will go here...
+
+// module.exports = {
+//   postRegister,
+//   postLogin,
+//   refreshToken,
+//   logout,
+//   getDashboard,
+//   confirmEmail
+// };
 
