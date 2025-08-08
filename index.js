@@ -54,7 +54,7 @@ app.set('view engine', 'ejs');
  ***********************/
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-// app.use(express.static(path.join(__dirname, 'static')));
+app.use(express.static(path.join(__dirname, 'public')));
 
 const pgPool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -120,7 +120,7 @@ app.use('/submit/protect', jwtMiddleware, protectRoutes);
 /***********************
  *  SIMPLE PAGE ROUTES
  ***********************/
-app.get('/', (req, res) => res.render('index'));
+app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 app.get('/login', checkNotAuthenticated, (req, res) => res.render('login'));
 app.get('/register', checkNotAuthenticated, (req, res) => res.render('register'));
 app.get('/dashboard', checkAuthenticated, (req, res) => res.render('dashboard'));
