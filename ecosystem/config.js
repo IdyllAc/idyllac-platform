@@ -3,7 +3,7 @@ module.exports = {
     apps: [
       {
         name: "web-server",
-        script: "server.js",
+        script: "index.js",
         watch: true,
         autorestart: true,
         env: {

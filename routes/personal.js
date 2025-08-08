@@ -19,11 +19,11 @@ const authenticateToken = require('../middleware/jwtMiddleware'); // JWT protect
   
      constinfo = await PersonalInfo.create({
         userId,
-        gender,
-        name,
         first_name,
+        last_name,
         date_Of_Birth,
         phone,
+        gender,
       });
   
       res.status(201).json({ message: 'Personal info submitted and saved successfully' });

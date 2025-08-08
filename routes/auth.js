@@ -1,5 +1,4 @@
 // routes/auth.js
-
 if (process.env.NODE_ENV !== 'production') {
   require('dotenv').config();
 }
@@ -9,17 +8,22 @@ const router = express.Router();
 const authController = require('../controllers/authController');
 const authenticateToken = require('../middleware/jwtMiddleware');
 
-// register route
+// 🔹 API: Register (returns JSON)
 router.post('/register', authController.postRegister);
-// login route
+
+// 🔹 API: Login (returns JSON with tokens)
 router.post('/login', authController.postLogin);
-// Refresh token route
+
+// 🔹 API: Refresh token
 router.post('/refresh-token', authController.refreshToken);
-// Logout route
+
+// 🔹 API: Logout (invalidate refresh token)
 router.post('/logout', authController.logout);
-// Protected dashboard route
+
+// 🔹 API: Protected dashboard (JWT only)
 router.get('/dashboard', authenticateToken, authController.getDashboard);
-// Email confirmation route
+
+// 🔹 API: Email confirmation
 router.get('/confirm-email/:token', authController.confirmEmail);
 
-  module.exports = router;
+module.exports = router;

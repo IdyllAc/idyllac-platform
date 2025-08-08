@@ -10,7 +10,6 @@ const opts = {
     secretOrKey: process.env.ACCESS_TOKEN_SECRET, //Secret used to sign the JWT. Make sure this is in your .env
 };
 
-// Passport JWT Strategy
 // JWT strategy to authenticate user via token
 module.exports = passport => {
     passport.use(
