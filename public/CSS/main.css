@@ -10,18 +10,16 @@
 	padding: 0; 
 	box-sizing: border-box;
 	font: inherit;
+	background-color: gray;
+	line-height: 1px;
 
 } 
 
   header, nav, section {
+	
 	display: block;
 	margin: auto;
 	
-}
-
-  body {
-	background-color: gray;
-	line-height: 1px;
 }
 
 /* Basic */
@@ -72,16 +70,12 @@
 
  /* Container */
 	
-	.container {
-		margin: 0 auto;
-		max-width: 100%;
-		width: 1400px;
-	}
+	
 
 	.content {
 		box-sizing: border-box;
 		display: block;
-		margin: auto;
+		margin-top:0;
 		background-color: rgba(27, 27, 27, 0.75);
 		color: whitesmoke;
 		padding: 1px 8rem;
@@ -108,8 +102,6 @@
 	     }
 
 		
-
-
 		/* Section/Article */
 
 	header.major {
@@ -126,7 +118,6 @@
   /* Image */
 		
   img {
-	background-color: gray;
 	width:800px;
 	display: block;
 	margin: auto;
@@ -166,24 +157,19 @@
 			#banner {
 				height: 18em;
 			}
-
+			
 	}
    
 
-  /* Header */
-
-  	  #header {
-		text-align: center;
-		background-color: orange;
-	} 
-
-
+  
 			/* Nav */
 
 	#nav {
-		cursor: default;
 		background-color: #333;
+		margin: 0;
 		padding: 0; 
+		text-align: center;
+		cursor: default;
 	}
 
 		#nav:after {
@@ -268,7 +254,7 @@
 		position: relative;
 	}
 
-		 #banner header {
+		  #banner header {
 			position:absolute;
 			bottom: 0;
 			left: 0;
@@ -276,7 +262,7 @@
 			background: rgba(27, 27, 27, 0.75);
 			color: #fff;
 			padding: 1.5em 0;
-		}
+		} 
 		
 		 #banner header h1 {
 			display:block;
@@ -300,12 +286,11 @@
 				margin: 0;
 				font-size: 1em;
 				vertical-align: middle;
-				color:#37c0fb;
+				color: whitesmoke;
 			 }  
 
 
    /* Wrapper */
-
 		 .wrapper {
 			background-image: url("/images/banner.jpg");
 			margin: 40px;
