@@ -239,21 +239,21 @@
 						left: 50%; 
 						margin-left: -0.375em;
 						background-color: #37c0fb;
-					} 
+				} 
 
-					 #nav > ul > li.current a {
+				#nav > ul > li.current a {
 						color: #fff;
-					} 
+				} 
 
-				  #nav > ul > li.active a {
+				#nav > ul > li.active a {
 					color: limegreen;
 				}
 
-				  #nav > ul > li.active.current:before {
+				#nav > ul > li.active.current:before {
 					opacity: 0;
 				}
 
-				  #nav > ul > li > ul {
+				#nav > ul > li > ul {
 					display: none;
 				} 
 
@@ -283,7 +283,7 @@
 			margin: 0;
 			font-size: 3em;
 			font-family: Georgia, 'Times New Roman', Times, serif;
-			color: #fff ;
+			color:whitesmoke;
 		}
 
 			
@@ -300,7 +300,7 @@
 				margin: 0;
 				font-size: 1em;
 				vertical-align: middle;
-				color: #37c0fb;
+				color:#37c0fb;
 			 }  
 
 
