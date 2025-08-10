@@ -120,7 +120,29 @@ app.use('/submit/protect', jwtMiddleware, protectRoutes);
 /***********************
  *  SIMPLE PAGE ROUTES
  ***********************/
-app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
+// app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
+// Auto language detection for root route
+app.get('/', (req, res) => {
+  const lang = req.acceptsLanguages('ar', 'en', 'fr') || 'en';
+
+  let fileName;
+  switch (lang) {
+    case 'ar':
+      fileName = 'indexAr.html';
+      break;
+    case 'fr':
+      fileName = 'indexFr.html';
+      break;
+    case 'en':
+    default:
+      fileName = 'indexEn.html';
+      break;
+  }
+
+  res.sendFile(path.join(__dirname, 'public', fileName));
+});
+
+// Manual routes if user explicitly visits
 app.get('/ar', (req, res) => res.sendFile(path.join(__dirname, 'public', 'indexAr.html')));
 app.get('/en', (req, res) => res.sendFile(path.join(__dirname, 'puplic', 'indexEn.html')));
 app.get('/fr', (req, res) => res.sendFile(path.join(__dirname, 'public', 'indexFr.html')));
