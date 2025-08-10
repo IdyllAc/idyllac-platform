@@ -121,9 +121,9 @@ app.use('/submit/protect', jwtMiddleware, protectRoutes);
  *  SIMPLE PAGE ROUTES
  ***********************/
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
-app.get('/indexAr', (req, res) => res.sendFile(path.join(__dirname, 'public', 'indexAr.html')));
-app.get('/indexEn', (req, res) => res.sendFile(path.join(__dirname, 'puplic', 'indexEn.html')));
-app.get('/indexFr', (req, res) => res.sendFile(path.join(__dirname, 'public', 'indexFr.html')));
+app.get('/ar', (req, res) => res.sendFile(path.join(__dirname, 'public', 'indexAr.html')));
+app.get('/en', (req, res) => res.sendFile(path.join(__dirname, 'puplic', 'indexEn.html')));
+app.get('/fr', (req, res) => res.sendFile(path.join(__dirname, 'public', 'indexFr.html')));
 app.get('/subscribe', checkNotAuthenticated, (req, res) => res.render('subscribe.html'));
 // app.get('/subscribeEn', checkNotAuthenticated, (req, res) => res.render('subscribeEn'));
 // app.get('/subscribeFr', checkNotAuthenticated, (req, res) => res.render('subscribeFr'));
