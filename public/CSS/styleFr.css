@@ -226,7 +226,7 @@ h4 {
     margin-right: 0;
     color:whitesmoke;
     justify-items: center;
-	font-size: 2vh;
+	font-size: 1.4vh;
 	font-weight:lighter;
 	text-align-last: left;			
 }  
@@ -241,6 +241,7 @@ h4 {
     justify-content: center;
     font-weight: bold;
 	font: 1.6rem sans-serif;
+	font-weight: bolder;
     box-shadow: 0 6px 5px -5px #333;
 	cursor: default;
   }

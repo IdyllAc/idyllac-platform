@@ -226,7 +226,7 @@ h4 {
     margin-left: 0;
     margin-right: 0;
     color:whitesmoke;
-	font-size: 2vh;
+	font-size: 1.5vh;
 	font-weight: lighter;
 	text-align-last: left;			
 }  
@@ -240,7 +240,7 @@ h4 {
     background-image:-webkit-radial-gradient(orange,blanchedalmond, skyblue, orange);
     justify-content: center;
     font-weight: bold;
-	font: 1.60rem sans-serif;
+	font: 1.6rem sans-serif;
 	font-weight: bolder;
     box-shadow: 0 6px 5px -5px #333;
 	cursor: default;
