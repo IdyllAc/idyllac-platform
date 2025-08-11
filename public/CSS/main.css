@@ -246,7 +246,7 @@
   /* Banner */
 
   #banner {
-		background-image: url("/images/banner.jpg");
+		background-image: url("../img/banner.jpg");
 		background-position: center;
 		background-size: cover;
 		height: 48em;
@@ -292,7 +292,7 @@
 
    /* Wrapper */
 		 .wrapper {
-			background-image: url("/img/banner.jpg");
+			background-image: url("../img/banner.jpg");
 			margin: 40px;
 			padding: 5em 0 3em 0;
 		} 
