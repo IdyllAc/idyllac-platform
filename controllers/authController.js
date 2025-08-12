@@ -3,7 +3,7 @@ const bcrypt = require('bcrypt');
 const { v4: uuidv4 } = require('uuid');
 const jwt = require('jsonwebtoken');
 
-const { User, RefreshToken } = require('../models');
+const { User, RefreshToken } = require('../models/User');
 const { sendConfirmationEmail } = require('../utils/sendEmail');
 const { generateAccessToken, generateRefreshToken } = require('../utils/tokenUtils');
 
@@ -56,19 +56,26 @@ exports.getRegister = (req, res) => res.render('register');
 exports.postRegister = async (req, res) => {
   try {
     const { name, email, cemail, password } = req.body;
+
+    // 1️⃣ Input validation
     if (!name || !email || !cemail || !password) {
-      return res.status(400).send('All fields are required');
+      return res.status(400).json({ message: 'All fields are required.' });
     }
-    if (email !== cemail) {
-      return res.status(400).send("Emails do not match.");
+    if (email.trim().toLowerCase() !== cemail.trim().toLowerCase()) {
+      return res.status(400).json({ message: 'Emails do not match.' });
     }
 
+    // 2️⃣ Check existing user
     const existingUser = await User.findOne({ where: { email } });
-    if (existingUser) return res.status(400).json({ message: "Email already registered." });
+    if (existingUser) {
+      return res.status(400).json({ message: 'Email is already registered.' });
+    }
 
+    // 3️⃣ Hash password & create token
     const hashedPassword = await bcrypt.hash(password, 10);
     const confirmationToken = uuidv4();
 
+    // 4️⃣ Save user
     const newUser = await User.create({
       name,
       email,
@@ -77,17 +84,31 @@ exports.postRegister = async (req, res) => {
       confirmation_token: confirmationToken
     });
 
+    // 5️⃣ Send confirmation email
     if (!process.env.BASE_URL) {
-      console.error("BASE_URL not set");
-      return res.status(500).json({ message: "Server error. Try later." });
+      console.error('❌ BASE_URL not set in environment variables.');
+      // Clean up the user record before error
+      await newUser.destroy();
+      return res.status(500).json({ message: 'Server error. Try later.' });
     }
 
-    await sendConfirmationEmail(newUser.email, confirmationToken);
-
-    res.status(201).json({ message: "Registration successful. Please check your email to confirm." });
+    console.log('📧 Register route hit, sending confirmation email to', newUser.email);
+    try {
+      await sendConfirmationEmail(newUser.email, confirmationToken);
+      console.log('✅ Email function completed.');
+      res.status(201).json({
+      message: '✅ Registration successful! Please check your email to confirm your account.'
+    });
+    } catch (emailErr) {
+      console.error('❌ Email sending failed, removing unconfirmed user:', emailErr.message);
+    
+      // await newUser.destroy();
+      await newUser.destroy(); // Delete user if email send fails
+      return res.status(500).json({ message: 'Failed to send confirmation email. Please try again..' });
+    }
   } catch (err) {
-    console.error('Registration error:', err);
-    res.redirect('/register');
+    console.error('❌ Registration error:', err);
+    res.redirect("/register");
   }
 };
 
