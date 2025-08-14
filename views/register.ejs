@@ -78,7 +78,7 @@
 </head>
 <body>
     <h1 style="display: block; color: whitesmoke; margin-top: 70px;">مرحباً بك على منصة تطبيق إيديلك</h1>
-    <p style="color: whitesmoke;"> Welcome within IdyllAc</p>
+    <p style="color: whitesmoke;"> Welcome into IdyllAc</p>
 
     <p style="background-color:green">Still not subscribed so far?
         Fill the form.</p>
@@ -88,10 +88,15 @@
      <!-- register.ejs -->
     <% if (messages.error) { %>
         <div class="row">
-       <div><%= messages.error %></div>
-       <div class="alert alert-danger"></div> 
+          <div class="col-12">
+            <div class="alert alert-danger">
+              <i class="fas fa-exclamation-triangle"></i> 
+              <strong>Error:</strong> <%= messages.error %>
+            </div>
+         </div>
+      </div> 
             <% } %>
-        </div> 
+       
                         <h1 style="font-family: cursive;">Sign in here:</h1>
 
     
@@ -116,7 +121,7 @@
                           
                           <h3>
                             <p style="background-color:green;">
-                              If already have an account, <a href="/login" style="color: orange;">Login</a>
+                              Have an account, <a href="/login" style="color: orange;">Login</a>
                             </p>
                           </h3>
                           

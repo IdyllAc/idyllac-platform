@@ -3,15 +3,21 @@ const bcrypt = require('bcrypt');
 const { v4: uuidv4 } = require('uuid');
 const jwt = require('jsonwebtoken');
 
-const { User, RefreshToken } = require('../models/User');
-const { sendConfirmationEmail } = require('../utils/sendEmail');
+const { User, RefreshToken } = require('../models');
+const sendEmail  = require('../utils/sendEmail'); // adjust path if needed
 const { generateAccessToken, generateRefreshToken } = require('../utils/tokenUtils');
 
 const SECRET = process.env.ACCESS_TOKEN_SECRET || 'your_jwt_secret';
 const REFRESH_SECRET = process.env.REFRESH_TOKEN_SECRET || 'your_refresh_secret';
 
 // GET /login
-exports.getLogin = (req, res) => res.render('login');
+exports.getLogin = (req, res) => res.render('login', {
+  messages: {
+  error: req.flash('error'),
+  info: req.flash('info'),
+  success: req.flash('success')
+}
+});
 
 // POST /login
 exports.postLogin = async (req, res) => {
@@ -68,7 +74,7 @@ exports.postRegister = async (req, res) => {
     // 2️⃣ Check existing user
     const existingUser = await User.findOne({ where: { email } });
     if (existingUser) {
-      return res.status(400).json({ message: 'Email is already registered.' });
+      return res.status(400).json({ message: 'Email already exists.' });
     }
 
     // 3️⃣ Hash password & create token
@@ -80,37 +86,36 @@ exports.postRegister = async (req, res) => {
       name,
       email,
       password: hashedPassword,
-      is_confirmed: false,
-      confirmation_token: confirmationToken
+      isConfirmed: false,
+      confirmationToken: confirmationToken
     });
 
-    // 5️⃣ Send confirmation email
-    if (!process.env.BASE_URL) {
-      console.error('❌ BASE_URL not set in environment variables.');
-      // Clean up the user record before error
-      await newUser.destroy();
-      return res.status(500).json({ message: 'Server error. Try later.' });
-    }
+    console.log(`✅ New user created: ID ${newUser.id}, token ${confirmationToken}`);
 
-    console.log('📧 Register route hit, sending confirmation email to', newUser.email);
+    // 5️⃣ Build confirmation URL
+    const confirmUrl= `${process.env.BASE_URL || `${req.protocol}://${req.get('host')}`}/api/auth/confirm-email/${confirmationToken}`;
+    console.log(`📧 Confirmation URL: ${confirmUrl}`);
+
+    // 6️⃣ Send email (only once!)
     try {
-      await sendConfirmationEmail(newUser.email, confirmationToken);
-      console.log('✅ Email function completed.');
+      await sendEmail(email, 'Confirm your email', confirmationToken);
+      console.log(`✅ Confirmation email sent to ${newUser.email}`);
+
       res.status(201).json({
-      message: '✅ Registration successful! Please check your email to confirm your account.'
-    });
+        message: '✅ Registration successful! Please check your email to confirm your account.'
+      });
     } catch (emailErr) {
-      console.error('❌ Email sending failed, removing unconfirmed user:', emailErr.message);
-    
-      // await newUser.destroy();
-      await newUser.destroy(); // Delete user if email send fails
-      return res.status(500).json({ message: 'Failed to send confirmation email. Please try again..' });
+      console.error(`❌ Failed to send email to ${newUser.email}:`, emailErr.message);
+      await newUser.destroy();
+      return res.status(500).json({ message: 'Failed to send confirmation email. Please try again.' });
     }
+
   } catch (err) {
     console.error('❌ Registration error:', err);
-    res.redirect("/register");
+    res.status(500).json({ message: 'Server error. Please try again later.' });
   }
 };
+
 
 // POST /token
 exports.refreshToken = async (req, res) => {
@@ -170,24 +175,43 @@ exports.getDashboard = async (req, res) => {
   }
 };
 
-// GET /confirm/:token
+// GET /api/auth/confirm-email/:token
 exports.confirmEmail = async (req, res) => {
-  const { token } = req.params;
   try {
-    const user = await User.findOne({ where: { confirmation_token: token } });
-    if (!user) {
-      req.flash('error', 'Invalid or expired confirmation token.');
-      return res.redirect('/login');
-    }
-    user.is_confirmed = true;
-    user.confirmation_token = null;
-    await user.save();
+    const { token } = req.params;
 
-    req.flash('info', 'Your email has been successfully confirmed. You can now log in.');
-    res.redirect('/login?confirmed=true');
-  } catch (err) {
-    console.error('Email confirmation error:', err);
-    req.flash('error', 'Something went wrong. Please try again later.');
-    res.redirect('/login');
+    if (!token) {
+      return res.status(400).json({ message: 'Invalid or missing token' });
+    }
+
+  
+     // 1️⃣ Find the user by this confirmation token
+    const user = await User.findOne({ where: { confirmationToken: token } });
+
+    if (!user) {
+      return res.status(400).send('Invalid or expired confirmation link.');
+    }
+
+
+     // 2️⃣ If already confirmed, avoid re-confirmation
+     if (user.isConfirmed) {
+      return res.status(200).send('Email is already confirmed. You can log in.');
+    }
+
+     // 3️⃣ Update user record
+    user.isConfirmed = true;
+    user.confirmationToken = null; // optional: clear the token so it can't be reused
+    await user.save()
+      
+        console.log(`✅ Email confirmed for user: ${user.email}`);
+
+    // 4️⃣ Show a nice confirmation message or redirect
+    res.status(200).send('✅ Your email has been successfully confirmed! You can now log in.');
+    // Or: res.redirect('/login'); if you have a login page
+  } catch (error) {
+        console.error(`❌ Email confirmation error: ${error.message}`);
+        res.status(500).send('Server error while confirming email.');
   }
 };
+
+  
