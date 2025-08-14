@@ -1,5 +1,5 @@
 const { configureLocalStrategy } = require('./passport-config');
-const User = require('../models/user');
+const User = require('../models/User');
 function initializePassport(passport, getUserByEmail, getUserById) {
    // Set up LocalStrategy
   configureLocalStrategy(passport);
