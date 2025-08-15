@@ -4,7 +4,7 @@ const { v4: uuidv4 } = require('uuid');
 const jwt = require('jsonwebtoken');
 
 const { User, RefreshToken } = require('../models');
-const sendEmail  = require('../utils/sendEmail'); // adjust path if needed
+const { sendEmail }  = require('../utils/sendEmail'); // adjust path if needed
 const { generateAccessToken, generateRefreshToken } = require('../utils/tokenUtils');
 
 const SECRET = process.env.ACCESS_TOKEN_SECRET || 'your_jwt_secret';
