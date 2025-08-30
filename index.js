@@ -16,6 +16,8 @@ const { Pool } = require('pg');
 const { sequelize, User } = require('./models');
 const initializePassport = require('./config/passport');
 const jwtMiddleware = require('./middleware/jwtMiddleware');
+// const dashboardController = require('./controllers/dashboardController');
+
 
 /***********************
  *  ROUTES
@@ -37,11 +39,7 @@ app.set('trust proxy', 1);
 /***********************
  *  PASSPORT INIT
  ***********************/
-initializePassport(
-  passport,
-  async email => await User.findOne({ where: { email } }),
-  async id => await User.findByPk(id)
-);
+initializePassport(passport);
 
 /***********************
  *  VIEW ENGINE
@@ -71,7 +69,14 @@ store.on('error', err => console.error('❌ SESSION STORE ERROR:', err));
 
 app.use(
   session({
-    store,
+    store: new pgSession({
+      conObject: {
+        connectionString: process.env.DATABASE_URL || "postgres://stidyllac@127.0.0.1/idyllac_db_e081",
+        ssl: process.env.NODE_ENV === "production"
+          ? { rejectUnauthorized: false }
+          : false, // 👈 disable SSL locally
+      },
+    }),
     secret: process.env.SESSION_SECRET || 'SuperSecretKey',
     resave: false,
     saveUninitialized: false,
@@ -116,68 +121,73 @@ app.use('/api/auth', authRoutes); // Login/register/logout API
 app.use('/api/user', jwtMiddleware, userRoutes);
 app.use('/submit/personal', jwtMiddleware, personalRoutes);
 app.use('/submit/protect', jwtMiddleware, protectRoutes);
+app.use('/dashboard', require('./routes/dashboard'));
 
 /***********************
  *  SIMPLE PAGE ROUTES
  ***********************/
-// // Auto language detection for root route
-// app.get('/', (req, res) => {
-//   const lang = req.acceptsLanguages('ar', 'en', 'fr') || 'en';
+// Auto language detection for root route
+app.get('/', (req, res) => {
+  const lang = req.acceptsLanguages('ar', 'en', 'fr') || 'en';
 
-//   let fileName;
-//   switch (lang) {
-//     case 'ar':
-//       fileName = 'indexAr.html';
-//       break;
-//     case 'fr':
-//       fileName = 'indexFr.html';
-//       break;
-//     case 'en':
-//     default:
-//       fileName = 'indexEn.html';
-//       break;
-//   }
+  let fileName;
+  switch (lang) {
+    case 'ar':
+      fileName = 'indexAr.html';
+      break;
+    case 'fr':
+      fileName = 'indexFr.html';
+      break;
+    case 'en':
+    default:
+      fileName = 'indexEn.html';
+      break;
+  }
 
-//   res.sendFile(path.join(__dirname, 'public', fileName));
-// });
+  res.sendFile(path.join(__dirname, 'public', fileName));
+});
 
-// Manual routes if user explicitly visits
+// Public static pages
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 app.get('/ar', (req, res) => res.sendFile(path.join(__dirname, 'public', 'indexAr.html')));
-app.get('/en', (req, res) => res.sendFile(path.join(__dirname, 'puplic', 'indexEn.html')));
 app.get('/fr', (req, res) => res.sendFile(path.join(__dirname, 'public', 'indexFr.html')));
+app.get('/en', (req, res) => res.sendFile(path.join(__dirname, 'puplic', 'indexEn.html')));
+
+// Auth entry pages
 app.get('/subscribe', checkNotAuthenticated, (req, res) => res.render('subscribe.html'));
-// app.get('/subscribeEn', checkNotAuthenticated, (req, res) => res.render('subscribeEn'));
-// app.get('/subscribeFr', checkNotAuthenticated, (req, res) => res.render('subscribeFr'));
+app.get('/subscribeEn', checkNotAuthenticated, (req, res) => res.render('subscribeEn'));
+app.get('/subscribeFr', checkNotAuthenticated, (req, res) => res.render('subscribeFr'));
 app.get('/login', checkNotAuthenticated, (req, res) => res.render('login'));
 app.get('/register', checkNotAuthenticated, (req, res) => res.render('register'));
-app.get('/dashboard', checkAuthenticated, (req, res) => res.render('dashboard'));
-app.get('/profile', checkAuthenticated, (req, res) => res.render('profile'));
-app.get('/settings', checkAuthenticated, (req, res) => res.render('settings'));
-app.get('/submit/personal_info', checkAuthenticated, (req, res) => res.render('personal'));
-app.get('/submit/upload/document', checkAuthenticated, (req, res) => res.render('document'));
-app.get('/submit/upload/selfie', checkAuthenticated, (req, res) => res.render('selfie'));
-app.get('/selfie/success', checkAuthenticated, (req, res) => res.render('success'));
 
-/***********************
- *  LOGIN / LOGOUT (SESSION)
- ***********************/
-app.post(
-  '/login',
-  checkNotAuthenticated,
-  passport.authenticate('local', {
-    successRedirect: '/dashboard',
-    failureRedirect: '/login',
-    failureFlash: true,
-  })
-);
+// ❌ remove from server.js
+// app.get('/dashboard', checkAuthenticated, (req, res) => res.render('dashboard'));
+// app.get('/profile', checkAuthenticated, (req, res) => res.render('profile'));
+// app.get('/settings', checkAuthenticated, (req, res) => res.render('settings'));
+// app.get('/submit/personal_info', checkAuthenticated, (req, res) => res.render('personal'));
+// app.get('/submit/upload/document', checkAuthenticated, (req, res) => res.render('document'));
+// app.get('/submit/upload/selfie', checkAuthenticated, (req, res) => res.render('selfie'));
+// app.get('/selfie/success', checkAuthenticated, (req, res) => res.render('success'));
 
-app.delete('/logout', (req, res, next) => {
-  req.logOut(err => {
-    if (err) return next(err);
-    res.redirect('/login');
-  });
-});
+// /***********************
+//  *  LOGIN / LOGOUT (SESSION)
+//  ***********************/
+// app.post(
+//   '/login',
+//   checkNotAuthenticated,
+//   passport.authenticate('local', {
+//     successRedirect: '/dashboard',
+//     failureRedirect: '/login',
+//     failureFlash: true,
+//   })
+// );
+
+// app.delete('/logout', (req, res, next) => {
+//   req.logOut(err => {
+//     if (err) return next(err);
+//     res.redirect('/login');
+//   });
+// });
 
 /***********************
  *  ERROR HANDLER

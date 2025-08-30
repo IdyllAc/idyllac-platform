@@ -7,8 +7,8 @@
     "down": "npx sequelize-cli db:migrate:undo",
     "preinstall": "npx npm-force-resolutions",
     "start:web": "node index.js",
-    "dev:web": "nodemon index.js",
-    "start": "node index.js"
+    "dev:web": "NODE_ENV=development nodemon index.js",
+    "start": "NODE_ENV=production node index.js"
   },
   "keywords": [],
   "author": "",

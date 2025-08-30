@@ -1,47 +1,48 @@
-// passport-jwt.js
-// const { Strategy: JwtStrategy, ExtractJwt } = require('passport-jwt');
-const JwtStrategy = require('passport-jwt').Strategy;
-const ExtractJwt = require('passport-jwt').ExtractJwt;
-const { User } = require('../models'); // Adjust path based on your structure
+// config/passport-jwt.js
+const { Strategy: JwtStrategy, ExtractJwt } = require('passport-jwt');
+const { User } = require('../models');
 
-// Options for extracting JWT from Authorization header as Bearer token
 const opts = {
-    jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-    secretOrKey: process.env.ACCESS_TOKEN_SECRET, //Secret used to sign the JWT. Make sure this is in your .env
+  jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+  secretOrKey: process.env.ACCESS_TOKEN_SECRET,
 };
 
-// JWT strategy to authenticate user via token
 module.exports = passport => {
-    passport.use(
-        new JwtStrategy(opts, async (jwt_payload, done) => {
-            try {
-                // Validate presence of userid in payload
-                if (!jwt_payload.userid) {
-                    console.warn('JWT payload does not contain userid');
-                    return done(null, false);
-                }
+  passport.use(
+    new JwtStrategy(opts, async (jwt_payload, done) => {
+      try {
+        console.log('🔍 JWT payload received:', jwt_payload);
 
-                // Find user from token payload
-                const user = await User.findByPk(jwt_payload.userid);
+        // In your tokens you probably use { userid: user.id } — confirm this
+        const userId = jwt_payload.userid || jwt_payload.id;
 
-                if (!user) {
-                    return done(null, false); // No user found
-                }
+        if (!userId) {
+          console.warn('❌ JWT payload missing userid');
+          return done(null, false);
+        }
 
-                // Optional: Add extra checks (e.g. email verification, ban status)
-                if (user.is_banned || user.is_verified === false) {
-                    return done(null, false); // User is restricted
-                }
+        const user = await User.findByPk(userId);
 
-                // All good
-                return done(null, user);
-            } catch (error) {
-                console.error('Error in Passport JWT Strategy:', error);
-                return done(error, false);
-            }
-        })
-    );
+        if (!user) {
+          console.warn('❌ No user found for id from JWT:', userId);
+          return done(null, false);
+        }
+
+        if (!user.is_confirmed) {
+          console.warn('❌ User not confirmed:', user.email);
+          return done(null, false);
+        }
+
+        // If you want to support banning later, add column `is_banned`
+        // if (user.is_banned) return done(null, false);
+
+        console.log('✅ JWT auth success for:', user.email);
+        return done(null, user);
+
+      } catch (err) {
+        console.error('🔥 Error in Passport JWT Strategy:', err);
+        return done(err, false);
+      }
+    })
+  );
 };
-
-
-

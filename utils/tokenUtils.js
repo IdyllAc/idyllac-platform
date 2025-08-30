@@ -1,8 +1,12 @@
 // utils/tokenUtils.js
 const jwt = require('jsonwebtoken');
-const { RefreshToken } = require('../models'); // Make sure path is correct
+const { RefreshToken } = require('../models');
 
-// Generate access token (short-lived)
+/**
+ * Generate an access token (short-lived)
+ * @param {Object} user - user object { id, email }
+ * @returns {string} - signed JWT access token
+ */
 function generateAccessToken(user) {
   return jwt.sign(
     { id: user.id, email: user.email },
@@ -11,7 +15,11 @@ function generateAccessToken(user) {
   );
 }
 
-// Generate and store refresh token in DB (long-lived)
+/**
+ * Generate and store a refresh token (long-lived)
+ * @param {Object} user - user object { id, email }
+ * @returns {Promise<string>} - signed JWT refresh token
+ */
 async function generateRefreshToken(user) {
   const token = jwt.sign(
     { id: user.id, email: user.email },
@@ -19,17 +27,37 @@ async function generateRefreshToken(user) {
     { expiresIn: '7d' }
   );
 
-  // Store refresh token in the database using camelCase
+  // Save refresh token in DB
   await RefreshToken.create({
     token,
-    userId: user.id, // ✅ this is correct and matches your model
+    userId: user.id,
     expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
   });
 
   return token;
 }
 
+/**
+ * Verify a refresh token and return decoded payload
+ * @param {string} token
+ * @returns {Object} - decoded JWT payload
+ */
+function verifyRefreshToken(token) {
+  return jwt.verify(token, process.env.REFRESH_TOKEN_SECRET);
+}
+
+/**
+ * Revoke (delete) a refresh token from DB
+ * @param {string} token
+ * @returns {Promise<number>} - number of deleted rows
+ */
+async function revokeRefreshToken(token) {
+  return await RefreshToken.destroy({ where: { token } });
+}
+
 module.exports = {
   generateAccessToken,
   generateRefreshToken,
+  verifyRefreshToken,
+  revokeRefreshToken,
 };

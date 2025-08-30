@@ -1,6 +1,6 @@
 const { configureLocalStrategy } = require('./passport-config');
 const { User } = require('../models');
-function initializePassport(passport, getUserByEmail, getUserById) {
+function initializePassport(passport) {
    // Set up LocalStrategy
   configureLocalStrategy(passport);
 
@@ -8,7 +8,6 @@ function initializePassport(passport, getUserByEmail, getUserById) {
     passport.serializeUser((user, done) => {
         done(null, user.id);
     });
-
 
     passport.deserializeUser(async (id, done) => {
         try {

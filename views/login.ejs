@@ -50,13 +50,14 @@
          border-radius: 5px;
    }
 
-
-    .row {
-        background-color:orangered;
-    }
-
+    .alert {
+        padding: 10px;
+        margin: 10px 0;
+        border-radius: 5px;
       .outline {
         background-color: lightskyblue;
+        color: #333;
+      }
     }  
 
     form {
@@ -89,16 +90,36 @@
         <p style="margin-top: 15vh; background-color: green">Have account signin.</p> 
         
         <!-- login.ejs -->
-        <% if (messages.error) { %>
-          <div class="row">
+        <% if (messages.error && messages.error.length > 0) { %>
+          <div class="row" style="background-color: orangered">
             <div class="col-12">
               <div class="alert alert-danger">
                 <i class="fas fa-exclamation-triangle"></i> 
-                <strong>Error:</strong> <%= messages.error %>
-              </div>
+                <strong>Error:</strong> <%= messages.error[0] %></div>
            </div>
         </div> 
               <% } %>
+
+              <% if (messages.success && messages.success.length > 0) { %>
+                <div class="row" style="background-color: limegreen;">
+                  <div class="col-12">
+                    <div class="alert alert-success">
+                      <i class="fas fa-check-circle"></i> 
+                      <strong>Success:</strong> <%= messages.success[0] %></div>
+                  </div>
+                </div>
+              <% } %>
+
+              <% if (messages.info && messages.info.length > 0) { %>
+                <div class="row" style="background-color: orange;">
+                  <div class="col-12">
+                    <div class="alert alert-info">
+                      <i class="fas fa-info-circle"></i> 
+                      <strong>Info:</strong> <%= messages.info[0] %></div>                
+                  </div>
+                </div>
+              <% } %>
+              
          
         <h1 style="font-family: cursive;">Log in here</h1>
 

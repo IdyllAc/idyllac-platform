@@ -193,7 +193,7 @@
       
         const token = localStorage.getItem('accessToken');
       
-        const res = await fetch('https://anypay.cards/submit/personal_info', {
+        const res = await fetch('/submit/personal_info', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

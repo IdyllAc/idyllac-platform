@@ -2,6 +2,9 @@
 const express = require('express');
 const router = express.Router();
 const authenticateToken = require('../middleware/jwtMiddleware'); // ✅ Correct: import as a function
+// const checkAuthenticated = require('../middleware/authMiddleware'); // for session login
+// const dashboardController = require('../controllers/dashboardController');
+
 
 // ✅ Add your Sequelize models here:
 const { User, PersonalInfo, Document, Selfie } = require('../models'); // Adjust if path is different
@@ -15,7 +18,6 @@ router.get('/profile', authenticateToken, async (req, res) => {
     });
 
     if (!user) return res.status(404).json({ error: 'User not found' });
-
     res.json({ message: 'Profile loaded successfully', user }); // ✅ corrected res.json()
   } catch (err) {
     console.error(err);
@@ -31,12 +33,12 @@ router.get('/settings', authenticateToken, async (req, res) => {
     });
 
     if (!user) return res.status(404).json({ error: 'User not found' });
-
     res.json({ message: 'Settings loaded successfully', user }); // ✅ send user settings too
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Settings fetch failed.' });
   }
 });
+
 
 module.exports = router;

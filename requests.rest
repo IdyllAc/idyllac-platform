@@ -1,12 +1,12 @@
 ### Access protected route with token
-GET http://localhost:4000/auth/dashboard
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwiZW1haWwiOiJ2aWN0b3IudmlhN0BnbWFpbC5jb20iLCJpYXQiOjE3NTA5NDg1MTksImV4cCI6MTc1MDk0OTQxOX0.50nTlUCnXuJv0Wg8RHv8p8pUCoZ0fgbTprkTQrrLj-U
+GET http://localhost:3000/api/auth/dashboard
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MzcsImVtYWlsIjoidmljdG9yLnZpYTdAZ21haWwuY29tIiwiaWF0IjoxNzU1ODc1ODMzLCJleHAiOjE3NTU4NzY3MzN9.6PF0YIlaSAVU0nfOakIiIQMNrGecXs6gcRVcD3IlydI
 
 
 
 
 ### Logout request to invalidate the token
-DELETE http://localhost:4000/auth/logout
+DELETE http://localhost:3000/auth/logout
 Content-Type: application/json
 
 {
@@ -17,48 +17,60 @@ Content-Type: application/json
 
 
 #### Refresh token request to get a new token
-POST http://localhost:4000/auth/refresh-token
+POST http://localhost:3000/api/user/refresh-token
 Content-Type: application/json
 
 
 {
-  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwiZW1haWwiOiJ2aWN0b3IudmlhN0BnbWFpbC5jb20iLCJpYXQiOjE3NTA5NDg1MTksImV4cCI6MTc1MTU1MzMxOX0.c6ptZZKLCu_4NPcWy8Tx0WWM1pTU2FxbRdPo6o3m0SM"
+  "token": ""
 }
 
 
 ### Register request to create a new user
-POST http://localhost:3000/register
+POST http://localhost:3000/api/auth/register
 Content-Type: application/json
 
  {
-    "name": "IDY",
-  "email": "fawzistuka@yahoo.com",
-  "password": "123"
+    "name": "IDYLLAC",
+  "email": "victor.via7@gmail.com",
+  "password": "333639"
 }
 
 
 ### Login request to get the token
-POST http://localhost:4000/auth/login
-Content-Type: application/json
-
- {
-  "email": "fawzistuka@yahoo.com",
-  "password": "123"
-}
-
-
-### Login request to get the token
-POST http://localhost:4000/auth/login
+POST http://localhost:3000/api/auth/login
 Content-Type: application/json
 
  {
   "email": "victor.via7@gmail.com",
-  "password": "333639@&"
+  "password": "333639"
+}
+
+
+### Register request to create a new user
+POST http://localhost:3000/api/auth/register
+Content-Type: application/json
+
+ {
+    "name": "Test",
+  "email": "fawzistuka@yahoo.com",
+  "password": "2244"
 }
 
 
 ### Login request to get the token
-POST http://localhost:4000/auth/login
+POST http://localhost:3000/api/auth/login
+Content-Type: application/json
+
+ {
+  "email": "fawzistuka@yahoo.com",
+  "password": "123"
+}
+
+
+
+### Login request to get the token
+POST http://localhost:3000/auth/login
 Content-Type: application/json
 
  {
@@ -69,7 +81,7 @@ Content-Type: application/json
 
 
 ### Login request to get the token
-POST http://localhost:4000/auth/login
+POST http://localhost:3000/auth/login
 Content-Type: application/json
 
 
