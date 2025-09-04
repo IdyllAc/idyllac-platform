@@ -11,7 +11,10 @@ function configureLocalStrategy(passport) {
         try {
           console.log('🔍 LocalStrategy attempt - email:', email);
 
-          const user = await User.findOne({ where: { email } });
+          const user = await User.findOne({
+            where: { email },
+            attributes: ['id', 'email', 'password', 'isConfirmed'], // ✅ force include
+          });
 
           if (!user) {
             console.warn('❌ No user found with email:', email);
@@ -21,16 +24,15 @@ function configureLocalStrategy(passport) {
           console.log('✅ User found:', {
             id: user.id,
             email: user.email,
-            isConfirmed: user.is_confirmed,
+            isConfirmed: user.isConfirmed, // ✅ correct property
           });
 
-          if (!user.is_confirmed) {
+          if (!user.isConfirmed) {
             console.warn('❌ User email not confirmed:', user.email);
             return done(null, false, { message: 'Please confirm your email before logging in' });
           }
 
           const isMatch = await bcrypt.compare(password, user.password);
-
           if (!isMatch) {
             console.warn('❌ Invalid password for user:', user.email);
             return done(null, false, { message: 'Incorrect password' });

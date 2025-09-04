@@ -2,10 +2,11 @@
 const bcrypt = require('bcrypt');
 const { v4: uuidv4 } = require('uuid');
 const jwt = require('jsonwebtoken');
+const passport = require("passport");
 
 const { User, RefreshToken } = require('../models');
 const sendEmail = require('../utils/sendEmail'); // adjust path if needed
-const { generateAccessToken, generateRefreshToken } = require('../utils/tokenUtils');
+const { verifyRefreshToken, generateAccessToken, generateRefreshToken, revokeRefreshToken } = require('../utils/tokenUtils');
 
 const SECRET = process.env.ACCESS_TOKEN_SECRET || 'your_jwt_secret';
 const REFRESH_SECRET = process.env.REFRESH_TOKEN_SECRET || 'your_refresh_secret';
@@ -86,78 +87,158 @@ exports.getLogin = (req, res) => {
 });
 };
 
+// controllers/authController.js
 
-// SESSION LOGIN
-exports.postLoginSession = (req, res, next) => {
-  // This is just a hook after Passport.authenticate succeeds
-  req.logIn(req.user, err => {
+// POST /login (for both EJS + API style)
+exports.postLogin = (req, res, next) => {
+  passport.authenticate('local', async (err, user, info) => {
     if (err) return next(err);
+    if (!user) {
+      req.flash('error', 'Invalid email or password');
+      return res.redirect('/login');
+    }
 
-    console.log('✅ Login successful, session before save:', req.session);
-    console.log('✅ User:', req.user);
-
-    req.session.save(err => {
+    req.login(user, async (err) => {
       if (err) return next(err);
-      req.flash('success', 'Welcome back!');
-      return res.redirect('/dashboard');
+
+      try {
+        // ✅ Generate tokens
+        const accessToken = generateAccessToken(user);
+        const refreshToken = await generateRefreshToken(user);
+
+       // // ✅ Save access token in HttpOnly cookie
+        res.cookie('accessToken', accessToken, {
+          httpOnly: false, // frontend JS needs access
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'Strict',
+          maxAge: 15 * 60 * 1000, // 15 min
+        });
+
+        res.cookie('refreshToken', refreshToken, {
+          httpOnly: true, // refresh stays hidden from JS
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'Strict',
+          maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+        });
+        
+
+        // Check if request expects JSON (API) or HTML (EJS form submit)
+        if (req.headers.accept && req.headers.accept.includes('application/json')) {
+          // API client → send tokens in JSON
+          return res.json({
+            message: 'Login successful',
+            accessToken,
+            refreshToken
+          });
+        } else {
+          // Browser form → use session + redirect
+          req.flash('success', 'Welcome back!');
+          return res.redirect('/dashboard');
+        }
+
+      } catch (tokenErr) {
+        console.error("❌ Token generation failed:", tokenErr);
+        return res.status(500).json({ message: "Login failed, token error" });
+      }
     });
-  });
+  })(req, res, next);
 };
 
 
-// POST /JWT Login
-exports.postLoginJWT = async (req, res) => {
+
+// exports.postLogin = (req, res, next) => {
+//   passport.authenticate('local', async (err, user, info) => {
+//     if (err) return next(err);
+//     if (!user) {
+//       req.flash('error', 'Invalid email or password');
+//       return res.redirect('/login');
+//     }
+//     req.login(user, async (err) => {
+//       if (err) return next(err);
+
+//       try {
+//         // Generate tokens
+//         const accessToken = generateAccessToken(user);
+//         const refreshToken = await generateRefreshToken(user);
+
+//         // Send refresh token as httpOnly cookie
+//         res.cookie('refreshToken', refreshToken, {
+//           httpOnly: true,
+//           secure: process.env.NODE_ENV === 'production',
+//           sameSite: 'Strict',
+//           maxAge: 7 * 24 * 60 * 60 * 1000
+//         });
+
+//         // Send access token in response (frontend must store in memory, not localStorage ideally)
+//         return res.json({ message: 'Login successful', accessToken});
+
+//       } catch (tokenErr) {
+//         console.error("Token generation failed:", tokenErr);
+//         return res.status(500).json({ message: "Login failed, token error" });
+//       }
+//     });
+//   })(req, res, next);
+// };
+
+
+
+
+// // POST /JWT Login
+// exports.postLoginJWT = async (req, res) => {
   
-  try {
-  const { email, password } = req.body; 
-    const user = await User.findOne({ where: { email } });
-    if (!user) return res.status(400).json({ message: 'Invalid email or password' });
-    if (!user.isConfirmed) return res.status(403).json({ message: 'Please confirm your email first' });
+//   try {
+//   const { email, password } = req.body; 
+//     const user = await User.findOne({ where: { email } });
+//     if (!user) return res.status(400).json({ message: 'Invalid email or password' });
+//     if (!user.isConfirmed) return res.status(403).json({ message: 'Please confirm your email first' });
       
-   const valid = await bcrypt.compare(password, user.password);
-    if (!valid) return res.status(400).json({ message: 'Invalid email or password' });
+//    const valid = await bcrypt.compare(password, user.password);
+//     if (!valid) return res.status(400).json({ message: 'Invalid email or password' });
 
   
-    // ✅ generate tokens
-    const accessToken = generateAccessToken(user);    // probably already synchronous
-    const refreshToken = await generateRefreshToken(user);  // already inserts into DB must await! now just returns string
+//     // ✅ generate tokens
+//     const accessToken = generateAccessToken(user);    // probably already synchronous
+//     const refreshToken = await generateRefreshToken(user);  // already inserts into DB must await! now just returns string
 
-    // ✅ send cookie with refresh token
-    res.cookie('refreshToken', refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'Strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000
-    });
+//     // ✅ send cookie with refresh token
+//     res.cookie('refreshToken', refreshToken, {
+//       httpOnly: true,
+//       secure: process.env.NODE_ENV === 'production',
+//       sameSite: 'Strict', // blocks CSRF but may prevent cross-domain refresh flows. If your frontend and backend are on different subdomains
+//       maxAge: 7 * 24 * 60 * 60 * 1000
+//     });
+    
 
-    // req.session.userId = user.id;
-    // req.session.isLoggedIn = true;
+//     // req.session.userId = user.id;
+//     // req.session.isLoggedIn = true;
 
-    return res.json({ accessToken });
-  } catch (err) {
-    console.error('JWT login error:', err);
-    return res.status(500).json({ error: 'Login failed something went wrong. Please try again.' });
-  }
-};
+//     return res.json({ accessToken });
+//   } catch (err) {
+//     console.error('JWT login error:', err);
+//     return res.status(500).json({ error: 'Login failed something went wrong. Please try again.' });
+//   }
+// };
 
 
-// POST /token
+// Refresh token controller
 exports.refreshToken = async (req, res) => {
-  const refreshToken = req.cookies.refreshToken || req.body.token;
-  if (!refreshToken) return res.status(403).json({ message: 'Refresh token required' });
-
   try {
-    const tokenInDb = await RefreshToken.findOne({ where: { token: refreshToken } });
-    if (!tokenInDb) return res.status(403).json({ message: 'Token not found or revoked' });
+  const refreshToken = req.cookies.refreshToken 
+  if (!refreshToken) return res.status(403).json({ message: 'Refresh token required' });
+  
 
-    const userData = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
-    const newAccessToken = generateAccessToken({ id: userData.id, email: userData.email });
-    const newRefreshToken = await generateRefreshToken({ id: userData.id, email: userData.email }); // << Must await create new token in DB
+     // ✅ Verify refresh token (throws if invalid/expired)
+    const userData = verifyRefreshToken(refreshToken);
 
-  // update stored token
-    tokenInDb.token = newRefreshToken;
-    await tokenInDb.save();
+    // ✅ Revoke old token
+    await revokeRefreshToken(refreshToken);
 
+    // Generate new tokens
+    const newAccessToken = generateAccessToken(userData);
+    const newRefreshToken = await generateRefreshToken(userData); 
+
+
+      // Send new refresh token as HttpOnly cookie
     res.cookie('refreshToken', newRefreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
@@ -173,55 +254,29 @@ exports.refreshToken = async (req, res) => {
 };
 
 
-// // GET /api/auth/dashboard
-// exports.getDashboard = (req, res) => {
-//   res.json({
-//     message: 'Welcome to your dashboard',
-//     user: req.user
-//   });
-// };
-
-
-// // GET /dashboard
-// exports.getDashboard = (req, res) => {
-//   res.render('dashboard', { user: req.user });
-// };
-
-// exports.getDashboard = async (req, res) => {
-//   try {
-//     const user = await User.findByPk(req.user.id, { attributes: ['id', 'name', 'email' ] });
-//     if (!user) return res.status(404).json({ message: 'User not found' });
-
-//     res.json({ user });
-//   } catch (err) {
-//     console.error('Dashboard error:', err);
-//     res.status(500).json({ error: 'Failed to fetch dashboard data' });
-//   }
-// };
-
-
 // POST /logout
-exports.logout = async (req, res) => {
+exports.logoutJWT = async (req, res) => {
+  try {
   const refreshToken = req.cookies.refreshToken;
   if (!refreshToken) {
-    req.flash('error', 'No refresh token found.');
-    return res.redirect('/login'); }
+    return res.status(400).json({ message: 'No refresh token found.' });
+  }
 
-  try {
-    await RefreshToken.destroy({ where: { token: refreshToken } });
-    res.clearCookie('refreshToken');
+    // ✅ Use utility to revoke token from DB
+    await revokeRefreshToken(refreshToken);
 
-    req.logOut(err => {
-      if (err)  console.error('Session logout error:', err);
-      console.log('✅ Session logged out');
-      req.flash('success', 'Logged out successfully.');
-      return res.redirect('/login');
-    });
-   } catch (err) {
+      // Clear cookie
+    res.clearCookie('refreshToken', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'Strict'
+   });
+
+   return res.json({ message: 'Logged out successfully.' });
+  } catch (err) {
     console.error('Logout error:', err);
-    req.flash('error', 'Logout failed.');
-    return res.redirect('/dashboard');
-   }
+    return res.status(500).json({ message: 'Logout failed.' });
+  }
 };
 
 

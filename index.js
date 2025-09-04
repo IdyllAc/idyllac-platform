@@ -16,6 +16,7 @@ const { Pool } = require('pg');
 const { sequelize, User } = require('./models');
 const initializePassport = require('./config/passport');
 const jwtMiddleware = require('./middleware/jwtMiddleware');
+const cookieParser = require('cookie-parser');
 // const dashboardController = require('./controllers/dashboardController');
 
 
@@ -67,6 +68,7 @@ const store = new pgSession({
 
 store.on('error', err => console.error('❌ SESSION STORE ERROR:', err));
 
+// Session setup
 app.use(
   session({
     store: new pgSession({
@@ -92,6 +94,7 @@ app.use(
 app.use(flash());
 app.use(methodOverride('_method'));
 app.use(cors({ origin: process.env.BASE_URL, credentials: true }));
+app.use(cookieParser()); // ✅ parse cookies into req.cookies
 
 app.use(passport.initialize());
 app.use(passport.session());
@@ -113,15 +116,15 @@ function checkNotAuthenticated(req, res, next) {
  *  ROUTE MOUNTING
  ***********************/
 // Public HTML pages (EJS)
-app.use('/', publicRoutes);
-app.use('/', subscriptionRoutes);
+app.use('/', publicRoutes); // EJS routes (login, register, static pages)
+app.use('/', subscriptionRoutes); // subscription forms
 
 // JSON API
-app.use('/api/auth', authRoutes); // Login/register/logout API
-app.use('/api/user', jwtMiddleware, userRoutes);
+app.use('/api/auth', authRoutes); // API Login/register/logout API
+app.use('/api/user', jwtMiddleware, userRoutes); // user API
 app.use('/submit/personal', jwtMiddleware, personalRoutes);
 app.use('/submit/protect', jwtMiddleware, protectRoutes);
-app.use('/dashboard', require('./routes/dashboard'));
+app.use('/dashboard', require('./routes/dashboard')); // dashboard (session protected)
 
 /***********************
  *  SIMPLE PAGE ROUTES
@@ -160,34 +163,6 @@ app.get('/subscribeFr', checkNotAuthenticated, (req, res) => res.render('subscri
 app.get('/login', checkNotAuthenticated, (req, res) => res.render('login'));
 app.get('/register', checkNotAuthenticated, (req, res) => res.render('register'));
 
-// ❌ remove from server.js
-// app.get('/dashboard', checkAuthenticated, (req, res) => res.render('dashboard'));
-// app.get('/profile', checkAuthenticated, (req, res) => res.render('profile'));
-// app.get('/settings', checkAuthenticated, (req, res) => res.render('settings'));
-// app.get('/submit/personal_info', checkAuthenticated, (req, res) => res.render('personal'));
-// app.get('/submit/upload/document', checkAuthenticated, (req, res) => res.render('document'));
-// app.get('/submit/upload/selfie', checkAuthenticated, (req, res) => res.render('selfie'));
-// app.get('/selfie/success', checkAuthenticated, (req, res) => res.render('success'));
-
-// /***********************
-//  *  LOGIN / LOGOUT (SESSION)
-//  ***********************/
-// app.post(
-//   '/login',
-//   checkNotAuthenticated,
-//   passport.authenticate('local', {
-//     successRedirect: '/dashboard',
-//     failureRedirect: '/login',
-//     failureFlash: true,
-//   })
-// );
-
-// app.delete('/logout', (req, res, next) => {
-//   req.logOut(err => {
-//     if (err) return next(err);
-//     res.redirect('/login');
-//   });
-// });
 
 /***********************
  *  ERROR HANDLER

@@ -1,7 +1,6 @@
 ### Access protected route with token
 GET http://localhost:3000/api/auth/dashboard
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MzcsImVtYWlsIjoidmljdG9yLnZpYTdAZ21haWwuY29tIiwiaWF0IjoxNzU1ODc1ODMzLCJleHAiOjE3NTU4NzY3MzN9.6PF0YIlaSAVU0nfOakIiIQMNrGecXs6gcRVcD3IlydI
-
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NjQsImVtYWlsIjoidmljdG9yLnZpYTdAZ21haWwuY29tIiwiaWF0IjoxNzU2OTQzMzQ5LCJleHAiOjE3NTY5NDQyNDl9.h5esfxD_FYCrtJ0fmZ4yEb28YUM_Kk4XsKpRKuxkDd4
 
 
 

@@ -8,6 +8,7 @@ module.exports = {
     database: process.env.DB_NAME || "idyllac_db_e081",
     host: process.env.DB_HOST || "127.0.0.1",
     dialect: process.env.DB_DIALECT || "postgres",
+    port: process.env.DB_PORT,
     logging: false,
     dialectOptions: {
       ssl: false, // 👈 no SSL locally
@@ -20,6 +21,7 @@ module.exports = {
     database: process.env.DB_NAME || "idyllac_db_test",
     host: process.env.DB_HOST || "127.0.0.1",
     dialect: "postgres",
+    port: process.env.DB_PORT,
     logging: false,
     dialectOptions: {
       ssl: false, // 👈 no SSL in test either

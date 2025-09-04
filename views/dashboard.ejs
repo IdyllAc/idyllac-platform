@@ -37,74 +37,75 @@
     <h4><span class="nowrap">&copy;<time id="year"></time> IdyllAc</span></h4>
   </footer> 
 
+
   <script>
-    // Refresh token logic
+    // ✅ Refresh access token using cookie refreshToken
     async function refreshAccessToken() {
-      const refreshToken = localStorage.getItem('refreshToken');
-      if (!refreshToken) {
-        window.location.href = '/login';
-        return;
-      }
-      const res = await fetch('/api/auth/refresh-token', {
-        method:'POST',
-        headers:{ 'Content-Type':'application/json' },
-        body: JSON.stringify({ token: refreshToken })
-      });
-      const data = await res.json();
-      if (res.ok) {
-        localStorage.setItem('accessToken', data.accessToken);
-        return data.accessToken;
-      } else {
-        console.error('Failed to refresh token:', data.message);
+      try {
+        const res = await fetch('/api/auth/refresh-token', {
+          method: 'POST',
+          credentials: 'include', // 👈 send/receive cookies
+          });
+  
+        if (res.ok) throw new Error('Failed to refresh token');
+          const data = await res.json();
+           console.log('🔑 Refreshed access token');
+          return data.accessToken; // ✅ only access token comes back in JSON
+      } catch (err) {
+        console.error('Refresh request failed:', err);
         window.location.href = '/login';
       }
     }
-
-    // Load dashboard info
+  
+    // ✅ Load dashboard info
     async function loadDashboard() {
-      let accessToken = localStorage.getItem('accessToken');
-      if (!accessToken) accessToken = await refreshAccessToken();
-
+      try {
       const res = await fetch('/api/auth/dashboard', {
-        method:'GET',
-        headers:{ 'Authorization': `Bearer ${accessToken}` }
+        method: 'GET',
+        credentials: 'include', // 👈 send cookies
       });
 
+      if (res.status === 401 || res.status === 403) {
+        console.log('⚠️ Access expired, refreshing...');
+        await refreshAccessToken();
+        res = await fetch('/api/auth/dashboard', {
+          method: 'GET',
+          credentials: 'include'
+        });
+      }
+  
       if (res.ok) {
         const data = await res.json();
         document.getElementById('dashboard-content').innerHTML = `
           <h2>Hello, ${data.user.name}</h2>
           <p>Email: ${data.user.email}</p>
           <p>User ID: ${data.user.id}</p>`;
-      } else if (res.status === 401) {
-        const newToken = await refreshAccessToken();
-        if (newToken) return loadDashboard();
-        else window.location.href = '/login';
       } else {
-        alert('Failed to load dashboard');
+        throw new Error('Failed to load dashboard');
       }
+    } catch (err) {
+      console.error(err);
+      window.location.href = '/login';
     }
-
-    loadDashboard();
-    setInterval(refreshAccessToken, 14*60*1000);
-
-    // Logout
+   }
+  
+    // Auto-refresh access token every 14 minutes
+    setInterval(refreshAccessToken, 14 * 60 * 1000);
+  
+    // ✅ Logout
     const logoutBtn = document.getElementById('logout-btn');
     if (logoutBtn) {
       logoutBtn.addEventListener('click', async () => {
-        const refreshToken = localStorage.getItem('refreshToken');
-        if (refreshToken) {
-          await fetch('/api/auth/logout', {
-            method:'POST',
-            headers:{ 'Content-Type':'application/json' },
-            body: JSON.stringify({ token: refreshToken })
-          });
-        }
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
+        await fetch('/api/auth/logout', {
+          method: 'POST',
+          credentials: 'include', // 👈 ensures cookie sent
+        });
         window.location.href = '/login';
       });
     }
+    // Load dashboard on page load
+    loadDashboard();
   </script>
 </body>
 </html>
+

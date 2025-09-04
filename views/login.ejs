@@ -153,27 +153,38 @@
           const email = document.getElementById('email').value;
           const password = document.getElementById('password').value;
 
-       
+          try {
             const res = await fetch('/api/auth/login', {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
+              headers: { 
+                'Content-Type': 'application/json', 
+                'Accept': 'application/json'  
+              },
               body: JSON.stringify({ email, password })
             });
 
             const data = await res.json();
 
-            console.log('Access Token:', data.accessToken); // 👈 SHOW IN CONSOLE
+            
             console.log('Refresh Token:', data.refreshToken);
 
             if (res.ok) { 
+              console.log('✅ Access Token:', data.accessToken); // 👈 SHOW IN CONSOLE
+
+            // Save access token (in memory/localStorage)
             localStorage.setItem('accessToken', data.accessToken);
-            localStorage.setItem('refreshToken', data.refreshToken); // Optional
+
+           
             // Redirect to dashboard
             window.location.href = '/dashboard';
           } else {
             alert(data.message || 'Login failed');
           }
-       });
+        } catch (error) {
+            console.error('Error during login:', error);
+            alert('Something went wrong. Please try again.');
+          }
+        });
       </script>
 
       <script src="https://kit.fontawesome.com/283a7ae800.js" crossorigin="anonymous"></script>

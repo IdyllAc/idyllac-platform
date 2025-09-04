@@ -11,10 +11,15 @@ exports.getDashboardPage = async (req, res) => {
   try {
     const user = await fetchDashboardData(req.user.id);
     if (!user) {
-      req.flash('error', 'User not found??');
+      req.flash('error', 'User not found');
       return res.redirect('/login');
     }
-   res.render('/dashboard/page', { user: req.user });
+
+    // Flash welcome message (only shown once)
+      req.flash('success', 'Welcome back!');
+
+      // Render dashboard directly with user data and flash messages
+      res.render('dashboard', { user, messages: req.flash() }); // this triggers my /dashboard route
   } catch (err) {
     console.error('Dashboard (EJS) error:', err);
     res.status(500).render('error', { message: 'Failed to load dashboard' });
@@ -25,17 +30,16 @@ exports.getDashboardPage = async (req, res) => {
 exports.getDashboardApi = async (req, res) => {
   try {
     const user = await fetchDashboardData(req.user.id);
-    if (!user) return res.status(404).json({ message: 'User not found!!' });
+    if (!user) return res.status(404).json({ message: 'User not found' });
 
     res.json({ 
       message: 'Welcome to your dashboard',
       user: {
-        id: req.user.id,
-        name: req.user.name || req.user.username,
-        email: req.user.email,
+        id: user.id,
+        name: user.name || user.username,
+        email: user.email,
       }
     });
-    
     // res.json({ message: 'Welcome to JWT Dashboard', user });
   } catch (err) {
     console.error('Dashboard (API) error:', err);

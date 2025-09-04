@@ -2,31 +2,30 @@
 const jwt = require('jsonwebtoken');
 const { User } = require('../models');
 
-// Middleware to protect routes
 module.exports = async function authenticateToken(req, res, next) {
-    const authHeader = req.headers['authorization']; // Get token from headers (Bearer <token>)
-
-    // if (!authHeader || !authHeader.startsWith('Bearer')) {   // Check if the authorization header is present and starts with 'Bearer'
-    //     return res.status(401).json({ message: 'Authorization header missing or malformed' });
-    //   }
-    if (!authHeader || !authHeader.toLowerCase().startsWith('bearer')) {   // Check if the authorization header is present and starts with 'Bearer'
-        return res.status(401).json({ message: 'Authorization header missing or malformed' });
-      }
-
-      const token = authHeader && authHeader.split(' ')[1]; // "Bearer <token>"
+  try {
+    // 1️⃣ Try to read token from cookie (fallback to Authorization header if needed)
+    const token = req.cookies?.accessToken || (req.headers['authorization']?.split(' ')[1]);
 
     if (!token) {
-        return res.status(401). json({ message: 'Authorization header missing or malformed'});
+      return res.status(401).json({ message: 'Access token missing' });
     }
-    try {
-        const payload = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
-        req.user = await User.findByPk(payload.id, { attributes: ['id', 'name', 'email'] });
-        if (!req.user) return res.status(404).json({ message: 'User not found' });
-        next(); // Proceed to the next middleware or route handler
-    } catch (err) {
-        console.error('JWT verification error:', err);
-        return res.status(403).json({ message: 'Invalid token or expired' });
-    }
-  };
 
+    // 2️⃣ Verify JWT
+    const payload = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
 
+    // 3️⃣ Lookup user
+    const user = await User.findByPk(payload.id, {
+      attributes: ['id', 'name', 'email'],
+    });
+
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    // 4️⃣ Attach user object to request
+    req.user = user;
+    next();
+  } catch (err) {
+    console.error('❌ JWT verification error:', err.message);
+    return res.status(403).json({ message: 'Invalid or expired token' });
+  }
+};

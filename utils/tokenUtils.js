@@ -1,4 +1,3 @@
-// utils/tokenUtils.js
 const jwt = require('jsonwebtoken');
 const { RefreshToken } = require('../models');
 
@@ -17,6 +16,7 @@ function generateAccessToken(user) {
 
 /**
  * Generate and store a refresh token (long-lived)
+ * Always deletes old tokens for the user before inserting a new one
  * @param {Object} user - user object { id, email }
  * @returns {Promise<string>} - signed JWT refresh token
  */
@@ -27,11 +27,14 @@ async function generateRefreshToken(user) {
     { expiresIn: '7d' }
   );
 
-  // Save refresh token in DB
+  // 🔑 Delete old refresh tokens for this user (rotate)
+  await RefreshToken.destroy({ where: { userId: user.id } });
+
+  // Save new refresh token in DB
   await RefreshToken.create({
     token,
     userId: user.id,
-    expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
+    expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
   });
 
   return token;
