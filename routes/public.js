@@ -2,39 +2,42 @@
 const express = require('express');
 const passport = require('passport');
 const router = express.Router();
-const { postRegister, postLoginSession, getDashboard } = require('../controllers/authController');
 const authController = require('../controllers/authController');
 const dashboardController = require('../controllers/dashboardController');
 
-
-// Middleware to prevent logged-in users from visiting login/register pages
+// Middleware
 function checkNotAuthenticated(req, res, next) {
   if (req.isAuthenticated()) return res.redirect('/dashboard');
   next();
 }
 
-// 🔹 Render register page
+function checkAuthenticated(req, res, next) {
+  if (req.isAuthenticated()) return next();
+  res.redirect('/login');
+}
+
+// Middleware to prevent browser caching
+function noCache(req, res, next) {
+  res.set("Cache-Control", "no-store");
+  next();
+}
+
+// Render register page
 router.get('/register', checkNotAuthenticated, authController.getRegister);
 
-// 🔹 Session-based registration (redirects)
-router.post('/register', checkNotAuthenticated, postRegister);
+// Session-based registration
+router.post('/register', checkNotAuthenticated, authController.postRegister);
 
-// 🔹 Render login page
+// Render login page
 router.get('/login', checkNotAuthenticated, authController.getLogin);
 
-
-// Session-based login
+// Session login (Passport local)
 router.post('/login', checkNotAuthenticated, authController.postLogin);
 
+// Session logout (requires login)
+router.get('/logout', checkAuthenticated, authController.logoutSession);
 
-// 🔹 Page-based logout (session)
-router.delete('/logout', (req, res, next) => {
-  req.logOut(err => {
-    if (err) return next(err);
-    console.log('✅ Session logged out');
-    res.redirect('/login');
-  });
-});
-
+// EJS session (Passport) dashboard
+router.get('/dashboard', checkAuthenticated, noCache, dashboardController.getDashboardPage);
 
 module.exports = router;

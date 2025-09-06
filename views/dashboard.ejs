@@ -91,20 +91,43 @@
   
     // Auto-refresh access token every 14 minutes
     setInterval(refreshAccessToken, 14 * 60 * 1000);
-  
-    // ✅ Logout
-    const logoutBtn = document.getElementById('logout-btn');
-    if (logoutBtn) {
-      logoutBtn.addEventListener('click', async () => {
-        await fetch('/api/auth/logout', {
-          method: 'POST',
-          credentials: 'include', // 👈 ensures cookie sent
-        });
-        window.location.href = '/login';
+
+    // Logout
+   // public/js/dashboard.js
+const logoutBtn = document.getElementById("logout-btn");
+
+if (logoutBtn) {
+  logoutBtn.addEventListener("click", async () => {
+    try {
+      // Try JWT logout first
+      let res = await fetch("/api/auth/logout", {
+        method: "POST",
+        credentials: "include",
       });
+
+      if (res.ok) {
+        // Expect JSON with redirect
+        const data = await res.json();
+        if (data.redirect) {
+          window.location.href = data.redirect;
+          return;
+        }
+      }
+
+      // If JWT logout failed, fallback to session logout
+      res = await fetch("/logout", { method: "GET", credentials: "include" });
+
+      if (res.redirected) {
+        window.location.href = res.url;
+      } else {
+        window.location.href = "/login"; // fallback
+      }
+    } catch (err) {
+      console.error("Logout error:", err);
+      window.location.href = "/login"; // ultimate fallback
     }
-    // Load dashboard on page load
-    loadDashboard();
+  });
+}
   </script>
 </body>
 </html>

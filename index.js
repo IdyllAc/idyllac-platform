@@ -55,41 +55,49 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-const pgPool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false },
-});
+let pgPool;
+
+if (process.env.NODE_ENV === 'production') {
+  // Render/Postgres in production
+  pgPool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: { require: true, rejectUnauthorized: false },
+  });
+} else {
+  // Local development DB
+  pgPool = new Pool({
+    user: process.env.DB_USER || "stidyllac",
+    password: process.env.DB_PASSWORD || null,
+    host: process.env.DB_HOST || "127.0.0.1",
+    port: process.env.DB_PORT || 5432,
+    database: process.env.DB_NAME || "idyllac_db_e081",
+    ssl: false, // explicitly off
+  });
+}
 
 const store = new pgSession({
   pool: pgPool,
-  tableName: 'session',
+  tableName: "session",
   createTableIfMissing: true,
 });
 
-store.on('error', err => console.error('❌ SESSION STORE ERROR:', err));
 
-// Session setup
+// ✅ Using the store defined above
 app.use(
   session({
-    store: new pgSession({
-      conObject: {
-        connectionString: process.env.DATABASE_URL || "postgres://stidyllac@127.0.0.1/idyllac_db_e081",
-        ssl: process.env.NODE_ENV === "production"
-          ? { rejectUnauthorized: false }
-          : false, // 👈 disable SSL locally
-      },
-    }),
-    secret: process.env.SESSION_SECRET || 'SuperSecretKey',
+    store,
+    secret: process.env.SESSION_SECRET || "SuperSecretKey",
     resave: false,
     saveUninitialized: false,
     cookie: {
-      secure: process.env.NODE_ENV === 'production',
+      secure: process.env.NODE_ENV === "production", // HTTPS only in prod
       httpOnly: true,
-      sameSite: 'lax',
-      maxAge: 30 * 24 * 60 * 60 * 1000,
+      sameSite: "lax",
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
     },
   })
 );
+
 
 app.use(flash());
 app.use(methodOverride('_method'));
