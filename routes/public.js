@@ -25,7 +25,7 @@ router.get('/logout', checkAuthenticated, authController.logoutSession);
 // EJS session (Passport) dashboard
 router.get('/dashboard', checkAuthenticated, noCache, dashboardController.getDashboardPage);
 
-router.get('/profile', checkAuthenticated, noCache, dashboardController.getProfilePage);
-router.get('/sittings', checkAuthenticated, noCache, dashboardController.getSittinsPage);
+// router.get('/profile', checkAuthenticated, noCache, dashboardController.getProfilePage);
+// router.get('/sittings', checkAuthenticated, noCache, dashboardController.getSittinsPage);
 
 module.exports = router;

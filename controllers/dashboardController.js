@@ -19,7 +19,9 @@ exports.getDashboardPage = async (req, res) => {
       req.flash('success', 'Welcome back!');
 
       // Render dashboard directly with user data and flash messages
-      res.render('dashboard', { user, messages: req.flash() }); // this triggers my /dashboard route
+      res.render('dashboard', {   // this triggers my /dashboard route
+        user: req.user || null,   // Passport user object
+        messages: req.flash() }); //  Flash messages if any
   } catch (err) {
     console.error('Dashboard (EJS) error:', err);
     res.status(500).render('error', { message: 'Failed to load dashboard' });
@@ -36,9 +38,9 @@ exports.getDashboardApi = async (req, res) => {
     res.json({ 
       message: 'Welcome to your dashboard',
       user: {
-        id: user.id,
-        name: user.name || user.username,
-        email: user.email,
+        id: req.user.id,
+        name: req.user.name || req.user.username,
+        email: req.user.email,
       }
     });
     // res.json({ message: 'Welcome to JWT Dashboard', user });

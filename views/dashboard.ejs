@@ -15,21 +15,60 @@
     #dashboard-content { margin:2rem auto; max-width:600px; padding:1rem; background:#444; border-radius:8px; }
     button { display:block; margin:1rem auto; padding:0.5rem 1rem; font:inherit; color:#fff; background:orange; border:none; border-radius:5px; cursor:pointer; }
     footer { margin-top:3rem; text-align:center; }
+    /* .welcome-card {
+  background: linear-gradient(135deg, #4facfe, #00f2fe);
+  color: white;
+  padding: 20px;
+  border-radius: 12px;
+  text-align: center;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+.welcome-card h1 {
+  margin: 0;
+  font-size: 2rem;
+}
+.welcome-card p {
+  margin: 5px 0 0;
+  font-size: 1.1rem;
+} */
+
   </style>
 </head>
 
 <body> 
-  <div id="dashboard-content">Loading User info/profile...</div>
-  
+  <!-- <h2 id="dashboard-content">Loading User info/profile...</h2>
+  -->
   <button id="logout-btn">Log out</button> 
-    
+
+
+
+  <h1 class="text-3xl font-bold mb-2">👋 Welcome back, <%= user.name %>!</h1>
+  <p class="text-lg text-gray-600">Your personal dashboard is ready.</p>
+
+  <br><hr><br>
+ 
+  <div class="welcome-card">
+    <h1>🌟 Hello <%= user.name %>!</h1>
+    <p>We’re glad to see you again. Let’s get started 🚀</p>
+  </div>
+
+  <br><hr><br>
+
+  <h2 class="text-2xl font-semibold">Welcome, <%= user.name %> 🎉</h2>
+<p class="mt-2">You’re now securely logged in to your IdyllAc dashboard.</p>
+
+<br><hr><br>
+
+  <h2>Welcome, <%= user.name %>!</h2>
+
   <h1>Welcome to Your Dashboard</h1> 
   <p>You're now securely logged in.</p>
 
   <h2>How can I help you?</h2>
   <h3>You are about to make an order of IdyllAc card.<br>
       To do that: Provide your Personal Information and queries:<br>
-      Fill the form, upload documents, take selfie, and send.</h3>
+      Fill the form, upload documents, take selfie, and send.</h3> 
 
   <p><a href="/submit/personal_info" class="btn">Continue to Personal Info Form</a></p>
 
@@ -47,44 +86,46 @@
           credentials: 'include', // 👈 send/receive cookies
           });
   
-        if (res.ok) throw new Error('Failed to refresh token');
+        if (!res.ok) throw new Error('Failed to refresh token');
           const data = await res.json();
            console.log('🔑 Refreshed access token');
-          return data.accessToken; // ✅ only access token comes back in JSON
+          return data.accessToken; // ✅ return only the new access token in JSON
       } catch (err) {
         console.error('Refresh request failed:', err);
         window.location.href = '/login';
       }
     }
   
-    // ✅ Load dashboard info
+    // ✅ Load dashboard info info with fallback on expired access token
     async function loadDashboard() {
       try {
-      const res = await fetch('/api/auth/dashboard', {
+      let res = await fetch('/api/auth/dashboard', {
         method: 'GET',
-        credentials: 'include', // 👈 send cookies
+        credentials: 'include', // 👈 send cookies (access token in Authorization header if you use it)
       });
 
+       // Handle expired/invalid token
       if (res.status === 401 || res.status === 403) {
         console.log('⚠️ Access expired, refreshing...');
         await refreshAccessToken();
+
+         // retry request after refreshing
         res = await fetch('/api/auth/dashboard', {
           method: 'GET',
           credentials: 'include'
         });
       }
   
-      if (res.ok) {
+      if (!res.ok) throw new Error('Failed to load dashboard');
+      
         const data = await res.json();
         document.getElementById('dashboard-content').innerHTML = `
           <h2>Hello, ${data.user.name}</h2>
           <p>Email: ${data.user.email}</p>
-          <p>User ID: ${data.user.id}</p>`;
-      } else {
-        throw new Error('Failed to load dashboard');
-      }
+          <p>User ID: ${data.user.id}</p>
+          `;
     } catch (err) {
-      console.error(err);
+      console.error('Dashboard load error', err);
       window.location.href = '/login';
     }
    }
