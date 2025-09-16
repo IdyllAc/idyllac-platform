@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Forms</title>
   <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
-  <script src="https://kit.fontawesome.com/ab8baff07d.js" crossorigin="anonymous"></script>
   <script src="https://kit.fontawesome.com/cbdd759dc1.js" crossorigin="anonymous"></script>
   <style>
     body {
@@ -120,17 +119,63 @@
       font-size: 0.9em;
       color: #1f7d5f;
     }
+
+
+
+     .btn {
+  display: inline-block;
+  padding: 12px 25px;
+  margin: 10px;
+  font-size: 1rem;
+  font-weight: bold;
+  text-align: center;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease-in-out;
+  text-decoration: none;
+  border: none;
+}
+
+.btn-primary {
+  background-color: orange;
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: #e69500;
+}
+
+.btn-secondary {
+  background-color: #1f7d5f;
+  color: white;
+}
+
+.btn-secondary:hover {
+  background-color: #145c45;
+}
+
+.btn-outline {
+  background-color: transparent;
+  border: 2px solid orange;
+  color: orange;
+}
+
+.btn-outline:hover {
+  background-color: orange;
+  color: white;
+}
+
   </style>
 </head>
-
 <body>
   <br><br>
   <div class="container">
-    <form id="personalInfoForm">
+    <form id="personal" method="POST" action="/protect/personal_info">
         <i class="fa-regular fa-paper-plane"></i>
         <h2>Personnel Information</h2>
         <h5>Fill & send your form here</h5>
-      
+
+
         <div class="genderContainer">
           <label>Gender: </label>
           <input class="gender1" type="radio" name="gender" value="Madame">Madame
@@ -139,25 +184,25 @@
       
         <div class="input-group">
           <label>
-            Name:
-            <input type="text" id="name" name="name" maxlength="100" placeholder="Enter your name" required>
-            <span id="name-error"></span>
+            First name:
+            <input type="text" id="firstname" name="first_name" maxlength="100" placeholder="Enter firstname" required>
+            <span id="firstname-error"></span>
           </label>
         </div>
-      
+
         <div class="input-group">
           <label>
-            First name:
-            <input type="text" id="firstname" name="firstname" maxlength="100" placeholder="Enter firstname" required>
-            <span id="firstname-error"></span>
+            Last name:
+            <input type="text" id="lastname" name="last_name" maxlength="100" placeholder="Enter your lastname" required>
+            <span id="lastname-error"></span>
           </label>
         </div>
       
         <div class="input-group">
           <label>
             Date of birth:
-            <input type="date" id="date" name="dateOfBirth" maxlength="10" required>
-            <span id="date-error"></span>
+            <input type="date" id="dateofbirth" name="date_of_birth" maxlength="10" required>
+            <span id="dateofbirth-error"></span>
           </label>
         </div>
       
@@ -168,6 +213,22 @@
             <span id="phone-error"></span>
           </label>
         </div>
+
+        <div class="input-group">
+          <label>
+            Nationality:
+          <input type="text" id="nationality" name="nationality" placeholder="Enter your nationality" required>
+          <span id="nationality-error"></span>
+        </label>
+        </div>
+        
+        <div class="input-group">
+          <label>
+          Occupation:
+          <input type="text" id="occupation" name="occupation" placeholder="Enter your occupation" required>
+          <span id="occupation-error"></span>
+        </label>
+        </div>
       
         <br>
         <button type="submit">Submit</button>
@@ -175,43 +236,64 @@
       
         <h6><small>If everything is done correctly, you should receive a corresponding message.</small></h6>
       </form>
+      <div class="form-actions">
+        <p><a href="/dashboard" class="btn btn-outline">← Back</a>
+        <button type="submit" class="btn btn-primary">Next → Upload Documents</button></p>
+         
+      </div>
     </div>
-    <br>
+    <br><br>
+    
 
-    <footer class="content">
+    <footer class="content" style="text-align: center; font-size:medium;">
       <span class="nowrap">Copyright &copy; <time id="year">IdyllAc</time></span>
     </footer>
   
       
       <script>
-      document.getElementById('personalInfoForm').addEventListener('submit', async (e) => {
+      document.getElementById('personal').addEventListener('submit', async (e) => {
         e.preventDefault();
       
         const form = e.target;
         const formData = new FormData(form);
         const data = Object.fromEntries(formData.entries());
-      
-        const token = localStorage.getItem('accessToken');
-      
-        const res = await fetch('/submit/personal_info', {
+
+        try {
+        const token = localStorage.getItem('accessToken'); // 🔑 get JWT from storage
+        if (!token) {
+      alert("Access token missing. Please log in again.");
+      return;
+    }
+
+        const response = await fetch('/protect/personal_info', { // 👈 match your Express mount
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ` + accessToken, // if using JWT
+            'Authorization': `Bearer ${token}`, // ✅ if using JWT
           },
           body: JSON.stringify(data)
         });
-      
-        if (res.ok) {
-          window.location.href = '/upload/document';
+
+        const result = await response.json();
+
+        if (response.ok) {
+          alert(result.message); // ✅ success
+           // 👇 redirect client-side
+          window.location.href = '/protect/upload/document'; // 👈 redirect to next step
         } else {
-          const error = await res.json();
-          alert(error.message || 'Submission failed.');
+          document.getElementById("submit-error").innerText = result.error || "Submission failed.";
+        }
+      } catch (err) {
+        console.error("Error submitting form:", err);
+        alert("Something went wrong while submitting your info.");
         }
       });
       </script>
-  
-  <!-- <script>
+</body>
+</html>
+
+
+<!-- <script>
     document.addEventListener("DOMContentLoaded", () => {
       const form = document.getElementById('personalInfoForm');
 
@@ -250,6 +332,3 @@
       });
     });
   </script> -->
-
-</body>
-</html>

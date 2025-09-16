@@ -17,6 +17,10 @@ module.exports = {
         onDelete: 'CASCADE',
       },
 
+      gender: {
+        type: Sequelize.STRING(10),
+        allowNull: true,
+      },
       first_name: {
         type: Sequelize.STRING(100),
         allowNull: false,
@@ -29,9 +33,8 @@ module.exports = {
         type: Sequelize.DATEONLY,
         allowNull: false,
       },
-
-      gender: {
-        type: Sequelize.STRING(10),
+      phone: {
+        type: Sequelize.STRING(20),
         allowNull: true,
       },
       nationality: {
@@ -42,11 +45,6 @@ module.exports = {
         type: Sequelize.STRING(100),
         allowNull: true,
       },
-      phone: {
-        type: Sequelize.STRING(20),
-        allowNull: true,
-      },
-
       created_at: {
         type: Sequelize.DATE,
         allowNull: false,

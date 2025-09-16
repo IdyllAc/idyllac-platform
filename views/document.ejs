@@ -15,6 +15,50 @@
     form { text-align: center; display: block; flex-flow: column nowrap; gap: 1.5rem; }
    .footer { padding: sticky; margin-bottom: O; color: var(--HEADER-COLOR); padding: var(--PADDING-TB) var(--PADDING-SIDE); 
     margin-top: 1em; padding-bottom: 0.7em; text-align: center; font-size: 0.9em; }
+
+    .btn {
+  display: inline-block;
+  padding: 12px 25px;
+  margin: 10px;
+  font-size: 1rem;
+  font-weight: bold;
+  text-align: center;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease-in-out;
+  text-decoration: none;
+  border: none;
+}
+
+.btn-primary {
+  background-color: orange;
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: #e69500;
+}
+
+.btn-secondary {
+  background-color: #1f7d5f;
+  color: white;
+}
+
+.btn-secondary:hover {
+  background-color: #145c45;
+}
+
+.btn-outline {
+  background-color: transparent;
+  border: 2px solid orange;
+  color: orange;
+}
+
+.btn-outline:hover {
+  background-color: orange;
+  color: white;
+}
+
 </style>
 </head>
 <body>
@@ -39,14 +83,14 @@
     <h3 style="letter-spacing: 0.6;">:حمل ملفاتك من هنا وقم بالإرسال</h3>
 
     
-  <form id="documentUploadForm" enctype="multipart/form-data">
+  <form id="document" enctype="multipart/form-data">
     <h3>Upload your files here and send.</h3>
     <hr style="width: 30rem;">
    <label>Passport:
    <input type="file" name="passport_path" required>
   </label><br>
    <hr style="width: 30rem;">
-   <label>Carte Identity:
+   <label>ID Identity:
    <input type="file" name="id_card_path" required>
   </label><br>
    <hr style="width: 30rem;">
@@ -55,14 +99,19 @@
   </label><br>
    <hr style="width: 11.5rem; color: green;">
    <button type="submit">Submit Documents</button>
-   <hr style="width: 30rem; color: green;">
-   <hr style="width: 30rem; color: green;">
+   <hr style="width: 30rem; text-decoration:#1f7d5f;">
+  
    <br>
   </form>
 
-  <p style="letter-spacing: 0.4px;">للتأكد من الوصول سوف تتلقى رد حول سير الإرسال وتمامه بنجاح والاإنتقال الى الخطوة التالية تحميل الوثائق الشخصية</p>
-    <p>When submit, if every thing went correctly you should recieve a response informing you: "Transmitted
+  <p style="letter-spacing: 0.4px;">بعد التأكد من سلامة الإرسال سوف تتلقى رد حول سير الوصول وتمامه بنجاح</p>
+    <p>After submiting, if every thing went correctly you should recieve a confirmation: "Transmitted
         successfuly!"</p>
+<hr>
+        <div class="form-actions">
+          <p><a href="/protect/personal_info" class="btn btn-secondary">← Back</a>
+          <button type="submit" class="btn btn-primary">Next → Upload Selfie</button></p>
+        </div>
 
         <footer class="footer">
           <span class="nowrap">Copyrights &copy; <time id="year"></time></span>
@@ -70,17 +119,17 @@
         </footer>
 
         <script>
-          document.getElementById('documentUploadForm').addEventListener('submit', async (e) => {
+          document.getElementById('document').addEventListener('submit', async (e) => {
             e.preventDefault();
       
             const token = localStorage.getItem('accessToken'); // ✅ Gets JWT
             const formData = new FormData(e.target); // ✅ Gathers all file inputs
       
             try {
-              const res = await fetch('https://anypay.cards/submit/upload/document', {
+              const res = await fetch('/protect/upload/document', {
                 method: 'POST',
                 headers: {
-                  'Authorization': 'Bearer ' + token // ✅ Correct use of Bearer token
+                  'Authorization': `Bearer ${token}`, // ✅ Correct use of Bearer token
                 },
                 body: formData // ✅ No Content-Type — browser handles multipart
               });
@@ -93,7 +142,7 @@
               }
       
               alert('Documents uploaded successfully!');
-              window.location.href = '/upload/selfie'; // ✅ Redirect to selfie step
+              window.location.href = '/protect/upload/selfie'; // ✅ Redirect to selfie step
             } catch (err) {
               console.error('Upload failed:', err);
               alert('Something went wrong.');

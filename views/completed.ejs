@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Profile Completion</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f7fa;
+      color: #333;
+      margin: 0;
+      padding: 0;
+    }
+
+    h1, h2 {
+      text-align: center;
+      color: #1f7d5f;
+    }
+
+    .summary-box {
+      max-width: 800px;
+      margin: 2rem auto;
+      padding: 2rem;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    }
+
+    .section {
+      margin-bottom: 2rem;
+    }
+
+    .section h3 {
+      color: orange;
+      margin-bottom: 0.5rem;
+      border-bottom: 2px solid #ddd;
+      padding-bottom: 0.3rem;
+    }
+
+    .field {
+      margin: 0.3rem 0;
+    }
+
+    .field span {
+      font-weight: bold;
+      color: #1f7d5f;
+    }
+
+    .documents img, .selfie img {
+      max-width: 150px;
+      margin: 0.5rem;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+
+    .actions {
+      text-align: center;
+      margin-top: 2rem;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 12px 25px;
+      margin: 10px;
+      font-size: 1rem;
+      font-weight: bold;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease-in-out;
+      text-decoration: none;
+      border: none;
+    }
+
+    .btn-primary {
+      background-color: orange;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background-color: #e69500;
+    }
+
+    .btn-outline {
+      background-color: transparent;
+      border: 2px solid #1f7d5f;
+      color: #1f7d5f;
+    }
+
+    .btn-outline:hover {
+      background-color: #1f7d5f;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🎉 Profile Completed!</h1>
+  <p style="text-align:center;">Review your information below before final confirmation.</p>
+
+  <div class="summary-box">
+
+    <!-- ✅ Personal Info -->
+    <div class="section">
+      <h3>Personal Information</h3>
+      <div class="field"><span>First Name:</span> <%= personalInfo.first_name %></div>
+      <div class="field"><span>Last Name:</span> <%= personalInfo.last_name %></div>
+      <div class="field"><span>Date of Birth:</span> <%= personalInfo.date_of_birth %></div>
+      <div class="field"><span>Gender:</span> <%= personalInfo.gender %></div>
+      <div class="field"><span>Nationality:</span> <%= personalInfo.nationality %></div>
+      <div class="field"><span>Occupation:</span> <%= personalInfo.occupation %></div>
+      <div class="field"><span>Phone:</span> <%= personalInfo.phone %></div>
+    </div>
+
+    <!-- ✅ Uploaded Documents -->
+    <div class="section documents">
+      <h3>Documents</h3>
+      <% if (documents.passport) { %>
+        <div><span>Passport:</span><br>
+          <img src="/uploads/<%= user.id %>/<%= documents.passport %>" alt="Passport">
+        </div>
+      <% } %>
+      <% if (documents.id_card) { %>
+        <div><span>ID Card:</span><br>
+          <img src="/uploads/<%= user.id %>/<%= documents.id_card %>" alt="ID Card">
+        </div>
+      <% } %>
+      <% if (documents.license) { %>
+        <div><span>Driving License:</span><br>
+          <img src="/uploads/<%= user.id %>/<%= documents.license %>" alt="License">
+        </div>
+      <% } %>
+    </div>
+
+    <!-- ✅ Selfie -->
+    <div class="section selfie">
+      <h3>Selfie</h3>
+      <% if (selfiePath) { %>
+        <img src="/uploads/<%= user.id %>/<%= selfiePath %>" alt="Selfie">
+      <% } else { %>
+        <p>No selfie uploaded yet.</p>
+      <% } %>
+    </div>
+
+    <!-- ✅ Actions -->
+    <div class="actions">
+      <form id="completeForm" method="POST" action="/protect/complete">
+        <button type="submit" class="btn btn-primary">✔ Confirm & Save</button>
+      </form>
+      <a href="/dashboard" class="btn btn-outline">💾 Save & Continue Later</a>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('completeForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const token = localStorage.getItem('accessToken');
+  
+      const res = await fetch('/protect/complete', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+  
+      const data = await res.json();
+      if (res.ok) {
+        alert(data.message);
+        window.location.href = data.next;
+      } else {
+        alert('Error: ' + data.message);
+      }
+    });
+  </script>
+
+</body>
+</html>

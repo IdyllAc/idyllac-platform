@@ -1,6 +1,8 @@
 // routes/profile.js
 const express = require('express');
 const router = express.Router();
+const profileController = require('../controllers/profileController')
+const noCache = require("../middleware/noCache");
 const authenticateToken = require('../middleware/jwtMiddleware');
 const {
   getProfile,
@@ -10,12 +12,15 @@ const {
 } = require('../controllers/profileController');
 
 // Profile routes
-router.get('/profile', authenticateToken, getProfile);
-router.post('/profile', authenticateToken, updateProfile);
+router.get('/profile', authenticateToken, noCache, profileController.getProfile);
+router.post('/profile', authenticateToken, noCache, profileController.updateProfile);
+
 
 // Settings routes
-router.get('/settings', authenticateToken, getSettings);
-router.post('/settings', authenticateToken, updateSettings);
+router.get('/sittings', authenticateToken, noCache, profileController.getSittings);
+router.post('/sittings', authenticateToken, noCache, profileController.updateSettings);
+
 
 module.exports = router;
+
 

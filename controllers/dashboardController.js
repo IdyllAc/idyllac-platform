@@ -1,30 +1,74 @@
 // controllers/dashboardController.js
-const { User } = require('../models');
+const models = require('../models');
+const { User } = models;
 
-// shared function
+// shared function (optional, you can keep or remove)
 async function fetchDashboardData(userId) {
-  return await User.findByPk(userId, { attributes: ['id', 'name', 'email'] });
+  return await User.findByPk(userId, { attributes: ['id', 'name', 'email', 'isConfirmed'] });
 }
 
 // For session (EJS)
 exports.getDashboardPage = async (req, res) => {
   try {
+     // ensure req.user exists (session-based)
+     if (!req.user || !req.user.id) {
+      req.flash('error', 'Not authenticated');
+      return res.redirect('/login');
+    }
+
+     // Basic user info
     const user = await fetchDashboardData(req.user.id);
     if (!user) {
       req.flash('error', 'User not found');
       return res.redirect('/login');
     }
 
-    // Flash welcome message (only shown once)
-      req.flash('success', 'Welcome back!');
+    // Prepare optional model checks (if these models exist)
+    const PersonalInfo = models.PersonalInfo;
+    const Document = models.Document;
+    const Selfie = models.Selfie;
 
-      // Render dashboard directly with user data and flash messages
+    let personal = null;
+    let document = null;
+    let selfie = null;
+
+    try {
+      if (PersonalInfo) personal = await PersonalInfo.findOne({ where: { userId: user.id } });
+      if (Document) document = await Document.findOne({ where: { userId: user.id } });
+      if (Selfie) selfie = await Selfie.findOne({ where: { userId: user.id } });
+    } catch (err) {
+      // if optional models/queries fail, just warn and continue
+      console.warn('Dashboard optional model check failed:', err.message);
+    }
+
+     // Compute progress: 4 steps (email confirmed, personal info, documents, selfie)
+     const steps = [
+      !!user.isConfirmed,
+      !!personal,
+      !!document,
+      !!selfie
+    ];
+    const completed = steps.filter(Boolean).length;
+    const progress = Math.round((completed / steps.length) * 100);
+
+
+    // // Flash welcome message (only shown once)
+    //   req.flash('success', 'Welcome back!');
+
+    // // Render dashboard directly with user data and flash messages
+      // Render dashboard view — pass user, progress and any messages
       res.render('dashboard', {   // this triggers my /dashboard route
-        user: req.user || null,   // Passport user object
-        messages: req.flash() }); //  Flash messages if any
+        user, // user: req.user || null,   // Passport user object
+        progress,
+        personalInfo: personal || null,
+        documents: document || null,
+        selfie: selfie || null,
+        messages: req.flash()     //  Flash messages if any
+       }); 
   } catch (err) {
     console.error('Dashboard (EJS) error:', err);
-    res.status(500).render('error', { message: 'Failed to load dashboard' });
+    req.flash('error', 'Failed to load dashboard');
+    return res.status(500).render('error', { message: 'Failed to load dashboard' });
   }
 };
 

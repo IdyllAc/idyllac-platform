@@ -21,6 +21,51 @@
       width: 320px;
       height: 240px;
     }
+
+
+
+    .btn {
+  display: inline-block;
+  padding: 12px 25px;
+  margin: 10px;
+  font-size: 1rem;
+  font-weight: bold;
+  text-align: center;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease-in-out;
+  text-decoration: none;
+  border: none;
+}
+
+.btn-primary {
+  background-color: orange;
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: #e69500;
+}
+
+.btn-secondary {
+  background-color: #1f7d5f;
+  color: white;
+}
+
+.btn-secondary:hover {
+  background-color: #145c45;
+}
+
+.btn-outline {
+  background-color: transparent;
+  border: 2px solid orange;
+  color: orange;
+}
+
+.btn-outline:hover {
+  background-color: orange;
+  color: white;
+}
   </style>
 </head>
 <body>
@@ -36,6 +81,11 @@
 
   <input type="file" id="selfieInput" accept="image/*" />
   <button id="uploadBtn">Upload</button>
+
+  <div class="form-actions">
+    <p><a href="/protect/upload/document" class="btn btn-secondary">← Back</a>
+    <button type="submit" class="btn btn-primary">Next → Review & Complete</button></p>
+  </div>
 
   <script>
     const video = document.getElementById('video');
@@ -103,7 +153,7 @@
 
       const token = localStorage.getItem('accessToken');
     
-        const res = await fetch('/submit/upload/selfie', {
+        const res = await fetch('/protect/upload/selfie', {
           method: 'POST',
           headers: {
             Authorization: `Bearer ${token}`
@@ -114,7 +164,7 @@
         const result = await res.json();
         // Redirect to success page
         if (res.ok) {
-          window.location.href = '/selfie/success';
+          window.location.href = '/protect/selfie/success';
         } else {
           alert(result.message || 'Upload failed');
         }

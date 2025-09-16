@@ -27,7 +27,6 @@ const publicRoutes = require('./routes/public');        // EJS pages
 const authRoutes = require('./routes/auth');            // JSON API
 const userRoutes = require('./routes/user');            // Profile, settings
 const subscriptionRoutes = require('./routes/subscription');
-const personalRoutes = require('./routes/personal');    // Personal info
 const protectRoutes = require('./routes/protect');      // Docs, selfie
 
 /***********************
@@ -130,8 +129,7 @@ app.use('/', subscriptionRoutes); // subscription forms
 // JSON API
 app.use('/api/auth', authRoutes); // API Login/register/logout API
 app.use('/api/user', jwtMiddleware, userRoutes); // user API
-app.use('/submit/personal', jwtMiddleware, personalRoutes);
-app.use('/submit/protect', jwtMiddleware, protectRoutes);
+app.use('/protect', jwtMiddleware, protectRoutes);
 app.use('/dashboard', require('./routes/dashboard')); // dashboard (session protected)
 
 /***********************

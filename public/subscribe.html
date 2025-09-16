@@ -42,10 +42,10 @@
     <h2>📱 Social Login</h2>
     <p>:And so on / Et aussi de suite / وكذلك أيضاً</p>
     <p>Login via:</p>
-    <a href="https://anypay.cards/auth/facebook">🔵 Facebook</a>
+    <a href="/api/auth/facebook">🔵 Facebook</a>
     <h3>:Or via / Ou via / أو عبر</h3>
     <p>Login with:</p>
-    <a href="https://anypay.cards/auth/google">🟢 Google</a>
+    <a href="/api/auth/google">🟢 Google</a>
   </section>
 
   <hr>
@@ -70,7 +70,7 @@
   <p id="status"></p>
 
   <script>
-      const SUBSCRIBER_API = 'https://anypay.cards/submit';
+      const SUBSCRIBER_API = '/submit';
     // Handle async form submission only for the subscription form
     document.getElementById("message-form").addEventListener("submit", async (e) => {
       e.preventDefault();
