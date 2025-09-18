@@ -28,7 +28,7 @@ module.exports = (sequelize, DataTypes) => {
 
       hooks: {
         beforeCreate: (selfie) => {
-          if (!selfie.filePath) {
+          if (!selfie.selfie_path) {
             throw new Error("❌ Selfie file path is required");
           }
         },
