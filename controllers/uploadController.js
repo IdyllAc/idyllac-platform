@@ -33,20 +33,24 @@ exports.uploadSelfie = async (req, res) => {
   try {
     const userId = req.user.id;
     const userDir = path.join(__dirname, '..', 'uploads', String(userId));
-    const selfiePath = path.join(userDir, 'selfie.jpg');
+    const finalFile = 'selfie.jpg';
+    const finalPath = path.join(userDir, finalFile);
 
-    // Make sure directory exists
     fs.mkdirSync(userDir, { recursive: true });
 
-    // Compress + Resize image using sharp
+    // Resize + overwrite final file
     await sharp(req.file.path)
       .resize({ width: 600 })
-      .toFile(selfiePath);
+      .toFile(finalPath);
 
+    // Save to DB (relative filename)
     const existing = await Selfie.findOne({ where: { userId } });
-    if (existing) await existing.destroy();
-
-    await Selfie.create({ selfie_path: selfiePath, userId });
+    if (existing) {
+      existing.selfie_path = finalFile;
+      await existing.save();
+    } else {
+      await Selfie.create({ selfie_path: finalFile, userId });
+    }
 
     res.json({ message: 'Selfie uploaded successfully.' });
   } catch (err) {

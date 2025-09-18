@@ -55,7 +55,6 @@ exports.getDashboardPage = async (req, res) => {
     // // Flash welcome message (only shown once)
     //   req.flash('success', 'Welcome back!');
 
-    // // Render dashboard directly with user data and flash messages
       // Render dashboard view — pass user, progress and any messages
       res.render('dashboard', {   // this triggers my /dashboard route
         user, // user: req.user || null,   // Passport user object
