@@ -3,11 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
-  <title>Dashboard</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" 
+   <title>User Dashboard</title>
+  <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" 
     integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" 
-    crossorigin="anonymous" referrerpolicy="no-referrer"/> 
+    crossorigin="anonymous" referrerpolicy="no-referrer"/>  -->
 
   <style>
    body {
@@ -19,9 +18,48 @@
   color: #fff;
 }
 
-h1, h2, h3, h4, h6, p {
-  text-align: center;
+h1, h2, h3, h4, h6, p { text-align: center;
 }
+
+/* .container {
+      max-width: 700px;
+      margin: 60px auto;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      padding: 25px;
+      text-align: center;
+    } */
+
+
+    /* 🔄 Spinner styles */
+    #loading-spinner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 150px;
+      color: #777;
+      font-size: 1.1em;
+      gap: 12px;
+      opacity: 1;
+      transition: opacity 0.6s ease;
+    }
+
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid #ccc;
+      border-top: 4px solid #007bff;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
 
 #dashboard-content {
   margin: 2rem auto;
@@ -43,10 +81,13 @@ button {
   cursor: pointer;
 }
 
-footer {
-  margin-top: 3rem;
-  text-align: center;
+.a { 
+  color: #1f7d5f; 
+  text-decoration: none;
+  text-align: center; 
 }
+
+footer { margin-top: 3rem; text-align: center; }
 
 /* Unified button styles */
 .btn {
@@ -55,12 +96,12 @@ footer {
   margin: 10px;
   font-size: 1rem;
   font-weight: bold;
-  text-align: center;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.3s ease-in-out;
+  /* text-align: center; */
+  border-radius: 6px;
   text-decoration: none;
   border: none;
+  transition: all 0.3s ease-in-out;
+  cursor: pointer;
 }
 
 .btn-primary {
@@ -114,56 +155,51 @@ footer {
   width: 0%;
   transition: width .5s ease-in-out;
 }
-
-    /* .welcome-card {
-  background: linear-gradient(135deg, #4facfe, #00f2fe);
-  color: white;
-  padding: 20px;
-  border-radius: 12px;
-  text-align: center;
-  margin-bottom: 20px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-}
-.welcome-card h1 {
-  margin: 0;
-  font-size: 2rem;
-}
-.welcome-card p {
-  margin: 5px 0 0;
-  font-size: 1.1rem;
-} */
  
   </style>
 </head>
 
 <body> 
-  <!-- <h2 id="dashboard-content">Loading User info/profile...</h2>
-  -->
- 
-  <h1 class="text-3xl font-bold mb-2">👋 Welcome back, <%= user.name %>!</h1>
-  <!-- <p class="text-lg text-gray-600">Your personal dashboard is ready.</p> -->
+    <!-- 🔄 Spinner (initially visible) -->
+    <div id="loading-spinner" 
+    style="display: flex; align-items: center; justify-content: center; flex-direction: column; height: 100vh;">
+    <div class="spinner"
+    style="width: 40px; height: 40px; border: 4px solid #ccc; border-top-color: #0072ff; border-radius: 50%; animation: spin 1s linear infinite;">
+  </div>
+     <!-- ✅ Dashboard Content -->
+    <p style="margin-top: 12px; color: #555;">Loading your dashboard...</p>
+  </div>
+
+  <!-- ✅ Actual dashboard (hidden until data loads) -->
+  <div id="dashboard-content" style="display: none; text-align: center; padding: 1rem;">
+    <div id="user-info"></div>
+    <h1 class="text-3xl font-bold mb-2">👋 Welcome back, <%= user ? user.name : 'Guest' %>!</h1>
+ <!-- <p class="text-lg text-gray-600">Your personal dashboard is ready.</p> -->
   <p class="mt-2">You’re now securely logged in.</p>
- 
-  <!-- <p>How can I help you?</p> -->
-  <!-- <p>You are about to make an order of IdyllAc card.<br>
-      To do that: Provide your Personal Information and queries:<br>
-      Fill the form, upload documents, take selfie, and send.</p>  -->
       <p>We’re glad to see you. Let’s get started 🚀</p>
   <br>
 
   <p>Your profile completion: 
     <strong><%= typeof progress === 'number' ? progress : 0 %>%</strong>
+    <!-- <strong><%= progress || 0 %>%</strong> -->
   </p>
 
+  <section id="dashboard-main" style="text-align:center; margin-top:20px;">
+    <a href="/protect/profile" class="btn btn-primary">Go to Profile</a>
+  </section>
+  
   <!-- Progress bar -->
-<div class="progress-bar-bg" aria-hidden="true">
+<div class="progress-bar-bg" aria-hidden="true" style="margin-top: 1rem; background: #ddd; height: 10px; border-radius: 6px;">
   <!-- <p>DEBUG: "<%= progress %>"</p> -->
-  <div class="progress-bar-fill" style="width:<%= (typeof progress === 'number' ? progress : 0) + '%' %>";></div>
+       <div class="progress-bar-fill" 
+       style="background: #0072ff; height: 10px; border-radius: 6px; width:<%= (typeof progress !== 'undefined' && typeof progress === 'number' ? progress : 0) %>%">
+       <!-- <div class="progress-bar-fill"
+       style="background: #0072ff; height: 10px; border-radius: 6px; width:<%= progress || 0 %>%"></div> -->
+      </div>
 </div>
 
-
   <!-- Registration flow buttons -->
-  <div style="margin-top:12px; display:flex; gap:10px; flex-wrap:wrap;">
+  <div style="margin-top:12px; display:flex; gap:10px; flex-wrap:wrap; justify-content: center;">
     <% if (progress < 100) { %>
       <% let nextStep = '/protect/personal_info'; %>
       <% if (progress >= 25 && progress < 50) nextStep = '/protect/upload/document'; %>
@@ -173,151 +209,54 @@ footer {
       <a href="<%= nextStep %>" 
          class="btn btn-primary" 
          style="background:#0072ff; color:white; padding:10px 20px; border-radius:6px; text-decoration:none;">
-         <%= progress === 0 ? '🚀 Start Registration' : '➡ Continue Registration' %>
-      </a>
+        <%= progress === 0 ? '🚀 Start Registration' : '➡ Continue Registration' %>
+       </a> 
 
-      <a href="/protect/completed" 
-         class="btn btn-outline" 
+      <a href="/protect/completed" class="btn btn-outline" 
          style="border:1px solid #0072ff; color:#0072ff; padding:10px 20px; border-radius:6px; text-decoration:none;">
          Review Progress
       </a>
     <% } else { %>
-      <a href="/protect/completed" 
-         class="btn btn-success" 
+      <a href="/protect/completed" class="btn btn-success" 
          style="background:green; color:white; padding:10px 20px; border-radius:6px; text-decoration:none;">
-         ✅ View Completed Profile</a>
+         ✅ View Completed Profile
+        </a>
     <% } %>
   </div>
-    </div>
       <br>
      
-  <!-- <br><hr><br>
- 
-  <div class="welcome-card">
-    <h1>🌟 Hello <%= user.name %>!</h1>
-    <p>We’re glad to see you again. Let’s get started 🚀</p>
-  </div> -->
-
-  <!-- <br><hr><br>
-
-  <h2 class="text-2xl font-semibold">Welcome, <%= user.name %> 🎉</h2>
-<p class="mt-2">You’re now securely logged in to your IdyllAc dashboard.</p> -->
-
-<!-- <br><hr><br>
-
-  <h2>Welcome, <%= user.name %>!</h2>
-
-  <h1>Welcome to Your Dashboard</h1> 
-  <p>You're now securely logged in.</p>
-
-  <h2>How can I help you?</h2>
-  <h3>You are about to make an order of IdyllAc card.<br>
-      To do that: Provide your Personal Information and queries:<br>
-      Fill the form, upload documents, take selfie, and send.</h3>  -->
-
   <p><a href="/protect/personal_info" class="btn btn-primary">🚀 Start Registration</a></p>
-  
 
+  <!-- <button id="logout-btn">Log out</button> -->
+   
+  <!-- <form id="logout-btn" action="/logout" method="POST">
   <button id="logout-btn">Log out</button> 
-  
+  </form> -->
+
+  <!-- Server-side rendered logout link/button -->
+<% if (user) { %> <!-- Replace 'true' with your actual condition -->
+<a href="/logout" class="btn btn-logout" 
+style="display:inline-block; margin-top:20px; background:#ff4d4d; color:white; padding:10px 20px; border-radius:6px; text-decoration:none;">
+Log out
+</a>
+<% } %>
+</div>
+
+<!-- <% if (true) { %>  Replace 'true' with your actual condition 
+ <button id="logout-btn" class="btn btn-logout">Log out</button> 
+ <% } %> -->
+
+
   <footer>
     <span class="nowrap">&copy;<time id="year"></time> IdyllAc</span>
-  </footer>   
+  </footer>
 
+<!-- ✅ Place your script *at the very bottom*, right before </body> -->
+ <script id="user-data" type="application/json">
+  <%- JSON.stringify(user || {}) %>
+</script>
 
-  <script>
-    // ✅ Refresh access token using cookie refreshToken
-    async function refreshAccessToken() {
-      try {
-        const res = await fetch('/api/auth/refresh-token', {
-          method: 'POST',
-          credentials: 'include', // 👈 send/receive cookies
-          });
-  
-        if (!res.ok) throw new Error('Failed to refresh token');
-          const data = await res.json();
-           console.log('🔑 Refreshed access token');
-          return data.accessToken; // ✅ return only the new access token in JSON
-      } catch (err) {
-        console.error('Refresh request failed:', err);
-        window.location.href = '/login';
-      }
-    }
-  
-    // ✅ Load dashboard info info with fallback on expired access token
-    async function loadDashboard() {
-      try {
-      let res = await fetch('/api/auth/dashboard', {
-        method: 'GET',
-        credentials: 'include', // 👈 send cookies (access token in Authorization header if you use it)
-      });
+<script src="/js/dashboard.js"></script>
 
-       // Handle expired/invalid token
-      if (res.status === 401 || res.status === 403) {
-        console.log('⚠️ Access expired, refreshing...');
-        await refreshAccessToken();
-
-         // retry request after refreshing
-        res = await fetch('/api/auth/dashboard', {
-          method: 'GET',
-          credentials: 'include'
-        });
-      }
-  
-      if (!res.ok) throw new Error('Failed to load dashboard');
-      
-        const data = await res.json();
-        document.getElementById('dashboard-content').innerHTML = `
-          <h2>Hello, ${data.user.name}</h2>
-          <p>Email: ${data.user.email}</p>
-          <p>User ID: ${data.user.id}</p>
-          `;
-    } catch (err) {
-      console.error('Dashboard load error', err);
-      window.location.href = '/login';
-    }
-   }
-  
-    // Auto-refresh access token every 14 minutes
-    setInterval(refreshAccessToken, 14 * 60 * 1000);
-
-    // Logout
-   // public/js/dashboard.js
-const logoutBtn = document.getElementById("logout-btn");
-
-if (logoutBtn) {
-  logoutBtn.addEventListener("click", async () => {
-    try {
-      // Try JWT logout first
-      let res = await fetch("/api/auth/logout", {
-        method: "POST",
-        credentials: "include",
-      });
-
-      if (res.ok) {
-        // Expect JSON with redirect
-        const data = await res.json();
-        if (data.redirect) {
-          window.location.href = data.redirect;
-          return;
-        }
-      }
-
-      // If JWT logout failed, fallback to session logout
-      res = await fetch("/logout", { method: "GET", credentials: "include" });
-
-      if (res.redirected) {
-        window.location.href = res.url;
-      } else {
-        window.location.href = "/login"; // fallback
-      }
-    } catch (err) {
-      console.error("Logout error:", err);
-      window.location.href = "/login"; // ultimate fallback
-    }
-  });
-}
-  </script>
 </body>
 </html>
-

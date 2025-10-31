@@ -16,12 +16,24 @@ if (!config) {
 
 let sequelize;
 
-// ✅ Handle production vs dev/test gracefully
+// ✅ Prefer DATABASE_URL if explicitly configured
 if (config.use_env_variable) {
-  sequelize = new Sequelize(process.env[config.use_env_variable], config);
+  const url = process.env[config.use_env_variable];
+  if (!url) {
+    throw new Error(`❌ Environment variable "${config.use_env_variable}" is not set`);
+  }
+  sequelize = new Sequelize(url, config);
 } else {
   sequelize = new Sequelize(config.database, config.username, config.password, config);
 }
+
+
+// // ✅ Handle production vs dev/test gracefully
+// if (config.use_env_variable) {
+//   sequelize = new Sequelize(process.env[config.use_env_variable], config);
+// } else {
+//   sequelize = new Sequelize(config.database, config.username, config.password, config);
+// }
 
 // ✅ Load all model files
 fs.readdirSync(__dirname)

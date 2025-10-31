@@ -82,27 +82,32 @@
     <br>
     <h3 style="letter-spacing: 0.6;">:حمل ملفاتك من هنا وقم بالإرسال</h3>
 
-    
-  <form id="document" enctype="multipart/form-data">
-    <h3>Upload your files here and send.</h3>
-    <hr style="width: 30rem;">
-   <label>Passport:
-   <input type="file" name="passport_path" required>
-  </label><br>
-   <hr style="width: 30rem;">
-   <label>ID Identity:
-   <input type="file" name="id_card_path" required>
-  </label><br>
-   <hr style="width: 30rem;">
-   <label>Driving License:
-   <input type="file" name="license_path" required>
-  </label><br>
-   <hr style="width: 11.5rem; color: green;">
-   <button type="submit">Submit Documents</button>
-   <hr style="width: 30rem; text-decoration:#1f7d5f;">
-  
-   <br>
-  </form>
+
+    <form id="document-form" action="/protect/upload/document" method="POST" enctype="multipart/form-data">
+  <h3>Upload your files here and send.</h3>
+  <hr style="width: 30rem;">
+
+  <label>
+    Passport:
+    <input type="file" name="passport_path" required>
+  </label>
+  <hr style="width: 30rem;">
+
+  <label>
+    ID Identity:
+    <input type="file" name="id_card_path" required>
+  </label>
+  <hr style="width: 30rem;">
+
+  <label>
+    Driving License:
+    <input type="file" name="license_path" required>
+  </label>
+  <hr style="width: 11.5rem; color: green;">
+
+  <button type="submit">Submit Documents</button>
+  <hr style="width: 30rem; text-decoration:#1f7d5f;">
+</form>
 
   <p style="letter-spacing: 0.4px;">بعد التأكد من سلامة الإرسال سوف تتلقى رد حول سير الوصول وتمامه بنجاح</p>
     <p>After submiting, if every thing went correctly you should recieve a confirmation: "Transmitted
@@ -110,7 +115,7 @@
 <hr>
         <div class="form-actions">
           <p><a href="/protect/personal_info" class="btn btn-secondary">← Back</a>
-          <button type="submit" class="btn btn-primary">Next → Upload Selfie</button></p>
+          <a href="/protect/upload/selfie" class="btn btn-primary">Next → Upload Selfie</a></p>
         </div>
 
         <footer class="footer">
@@ -118,37 +123,10 @@
           <span class="nowrap">IdyllAc</span>
         </footer>
 
-        <script>
-          document.getElementById('document').addEventListener('submit', async (e) => {
-            e.preventDefault();
-      
-            const token = localStorage.getItem('accessToken'); // ✅ Gets JWT
-            const formData = new FormData(e.target); // ✅ Gathers all file inputs
-      
-            try {
-              const res = await fetch('/protect/upload/document', {
-                method: 'POST',
-                headers: {
-                  'Authorization': `Bearer ${token}`, // ✅ Correct use of Bearer token
-                },
-                body: formData // ✅ No Content-Type — browser handles multipart
-              });
-      
-              const data = await res.json();
-      
-              if (!res.ok) {
-                alert('Error: ' + data.message);
-                return;
-              }
-      
-              alert('Documents uploaded successfully!');
-              window.location.href = '/protect/upload/selfie'; // ✅ Redirect to selfie step
-            } catch (err) {
-              console.error('Upload failed:', err);
-              alert('Something went wrong.');
-            }
-          });
-        </script>
+     <script src="/js/document.js"></script>
+  </body>
+  </html>
 
-</body>
-</html>
+
+
+  

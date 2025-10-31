@@ -22,6 +22,7 @@ exports.uploadDocuments = async (req, res) => {
     await Document.create(docPaths);
 
     res.json({ message: 'Documents uploaded successfully.' });
+    // return res.redirect("/protect/upload/selfie");
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Document upload failed.' });

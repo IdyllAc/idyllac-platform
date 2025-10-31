@@ -17,6 +17,7 @@ module.exports = {
         onDelete: 'CASCADE',
       },
 
+      // 🔒 Fixed (required) fields
       first_name: {
         type: Sequelize.STRING(100),
         allowNull: false,
@@ -26,10 +27,16 @@ module.exports = {
         type: Sequelize.STRING(100),
         allowNull: false,
       },
-      
+
       date_of_birth: {
         type: Sequelize.DATEONLY,
         allowNull: false,
+      },
+
+      // 🟢 Optional or editable fields
+      gender: {
+        type: Sequelize.STRING(10),
+        allowNull: true,
       },
 
       nationality: {
@@ -42,8 +49,53 @@ module.exports = {
         allowNull: true,
       },
 
-      phone: {
+    phone: {
         type: Sequelize.STRING(20),
+        allowNull: true,
+      },
+
+      phone_alt: {
+        type: Sequelize.STRING(20),
+        allowNull: true,
+      },
+
+      telephone_fixe: {
+        type: Sequelize.STRING(20),
+        allowNull: true,
+      },
+
+      country_of_birth: {
+        type: Sequelize.STRING(100),
+        allowNull: true,
+      },
+
+      country_of_living: {
+        type: Sequelize.STRING(100),
+        allowNull: true,
+      },
+
+      state: {
+        type: Sequelize.STRING(100),
+        allowNull: true,
+      },
+
+      city: {
+        type: Sequelize.STRING(100),
+        allowNull: true,
+      },
+
+      address: {
+        type: Sequelize.STRING(255),
+        allowNull: true,
+      },
+
+      language_preference: {
+        type: Sequelize.STRING(50),
+        allowNull: true,
+      },
+
+      profile_photo: {
+        type: Sequelize.STRING, // URL or file path
         allowNull: true,
       },
 
@@ -63,5 +115,5 @@ module.exports = {
 
   down: async (queryInterface, Sequelize) => {
     await queryInterface.dropTable('user_profiles');
-  }
+  },
 };

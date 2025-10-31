@@ -3,39 +3,15 @@
 <head>
   <meta charset="UTF-8" />
   <title>Subscribe to News</title>
-  <link rel="stylesheet" href="/css/style.css">
-
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 2rem;
-      text-align: center;
-    }
-    input[type="email"], textarea {
-      padding: 0.5rem;
-      width: 300px;
-      margin-bottom: 1rem;
-    }
-    button, a {
-      padding: 0.5rem 1rem;
-      margin: 0.5rem;
-      display: inline-block;
-      text-decoration: none;
-    }
-    form {
-      margin: 2rem 0;
-    }
-    /* .facebook { background-color: #3b5998; }
-    .google { background-color: #db4437; } */
-  </style>
+  <link rel="stylesheet" href="CSS/subscribe.css">
 </head>
 <body>
   <h1>📬 Subscribe to our news</h1>
   <p>Choose how you want to subscribe:</p>
 
   <h2>📧 Subscribe via Email</h2>
-  <form id="email-form">
-    <input type="email" name="email" id="email" placeholder="Enter your email" required />
+  <form id="subscribeForm">
+    <input type="email" name="email" id="email" autocomplete="on" placeholder="Enter your email" required />
     <button type="submit">Subscribe</button>
   </form> 
 
@@ -44,64 +20,45 @@
   
   <section>
     <h2>📱 Social Login</h2>
-    <p>:And so on / Et aussi de suite / وكذلك أيضاً</p>
-    <p>Login via:</p>
-    <a href="/api/auth/facebook">🔵 Facebook</a>
-    <h3>:Or via / Ou via / أو عبر</h3>
-    <p>Login with:</p>
-    <a href="/api/auth/google">🟢 Google</a>
+    <p>Or login via:</p>
+    <!-- <p>Login via:</p> -->
+    <li><a href="/auth/facebook">🔵 Facebook</a></li>
+    <h3>And so via:</h3>
+    <li><a href="/auth/google">🟢 Google</a></li>
+    <!-- <h3>And/or</h3>
+    <li><a href="/auth/github">🟢 GitHub</a></li>
+    <h3>And/or</h3>
+    <li><a href="/auth/twitter">🟢 Twitter</a></li>
+    <h3>And/or</h3>
+    <li><a href="/auth/linkedin">🟢 Linkedin</a></li>
+    <h3>And/or</h3>
+    <li><a href="/auth/instagram">🟢 Instagram</a></li>-->
   </section>
 
-<!-- <ul>
-     <li><a href="/subscribe/facebook" style="background:#3b5998; color:white;">📘 Continue with Facebook</a></li> <br><br>
-    <li><a href="/subscribe/google" style="background:#db4437; color:white;">🔎 Continue with Google</a></li> <br> <br> 
-    <h1>Gmail Integration</h1>
-    <h3>Connect to Gmail</h3>
-    <li><a href="/auth">Connect Gmail</a></li>
-  </ul> -->
+
+
 
  <hr>
-
-<h5>.If you encounter any proplem at crossing any parier,  contact us. // Si vous rencontrez un problème lors du franchissement d'une barière, contactez nous. // .إذا واجهت اي مشكلة في تخطئ حاجر, إتصل بنا</h5>
+<!-- <h5>.If you encountered a proplem while crossing any parier, contact us.</h5>
 <h4 style="color: #333; text-align:center; margin-bottom: 0;">To get more information enter your email.</h4>
   
-<form id="message-form">
-  <!-- <label for="email" style="color: lime;" >Email:</label><br> -->
-   <input type="email" name="email" id="email" placeholder="Enter your email" required><br>
-  <!-- <label for="message" style="color: lime;" >Your Message:</label> -->
+<form id="messageForm">
+  <label for="email" style="color: lime;" >Email:</label><br> 
+   <input type="email" name="email" id="email" autocomplete="on" placeholder="Enter your email" required><br>
+  <label for="message" style="color: lime;" >Your Message:</label> 
   <h4 style="color:rgb(35, 35, 222); text-align: center; margin-bottom: 0;">Insert your question then proceed to send.</h4> <br> 
   <textarea type="text" name="message" id="message" placeholder="Write your message shortly here" cols="30" rows="10" required></textarea><br>
   <button type="submit">Submit</button> 
  </form>
 
-  <p id="status"></p>
+  <p id="status"></p> -->
 
-  <script>
-      const SUBSCRIBER_API = '/submit';
-    // Optional: handle response without page reload
-   document.getElementById("email-form").addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const form = e.target;
-      const formData = new FormData(form);
-      const status = document.getElementById("status");
-
-      try {
-      const res = await fetch(SUBSCRIBER_API, {
-        method: "POST",
-        body: formData
-      });
-
-      const text = await res.text();
-      status.textContent = text;
-    } catch (err) {
-      console.error("Error submitting form:", err);
-      status.textContent = "❌ Submission failed. Please try again.";
-    }
-    });
-  </script>
-
-<script src="./index.js"></script>
+<script src="./js/subscribe.js"></script>
 
 </body>
 </html>
+
+
+
+
 

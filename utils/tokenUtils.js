@@ -10,7 +10,7 @@ function generateAccessToken(user) {
   return jwt.sign(
     { id: user.id, email: user.email },
     process.env.ACCESS_TOKEN_SECRET,
-    { expiresIn: '15m' }
+    { expiresIn: '15m' } // short-lived access
   );
 }
 
@@ -24,7 +24,7 @@ async function generateRefreshToken(user) {
   const token = jwt.sign(
     { id: user.id, email: user.email },
     process.env.REFRESH_TOKEN_SECRET,
-    { expiresIn: '7d' }
+    { expiresIn: '1d' } // ✅ long-lived refresh token 1 day, same as session
   );
 
   // 🔑 Delete old refresh tokens for this user (rotate)
@@ -34,7 +34,7 @@ async function generateRefreshToken(user) {
   await RefreshToken.create({
     token,
     userId: user.id,
-    expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+    expires_at: new Date(Date.now() + 1000 * 60 * 60 * 24), // 1 days
   });
 
   return token;

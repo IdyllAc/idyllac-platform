@@ -4,7 +4,7 @@
   <title>Take a Selfie</title>
   <style>
     body {
-      display: flex;
+      display:flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
@@ -14,10 +14,7 @@
       background: #f9f9f9;
     }
 
-    h2 {
-      margin-bottom: 20px;
-      color: #333;
-    }
+    h2 { margin-bottom: 20px; color: #333; }
 
     video, img {
       border: 2px solid #333;
@@ -25,16 +22,7 @@
       margin-bottom: 10px;
     }
 
-    /* video, canvas, img {
-      width: 320px;
-      height: 240px;
-  }  */
-
-    #preview {
-      display: none;
-      margin-top: 10px;
-      /* border: 2px solid #333; */
-    }
+    #preview { display: none; margin-top: 10px; }
 
     /* ✅ Button styles */
     .btn {
@@ -43,7 +31,6 @@
       margin: 10px;
       font-size: 1rem;
       font-weight: bold;
-      text-align: center;
       border-radius: 8px;
       cursor: pointer;
       transition: all 0.3s ease-in-out;
@@ -51,138 +38,40 @@
       border: none;
     }
 
-    .btn-primary {
-      background-color: orange;
-      color: white;
-    }
+    .btn-primary { background-color: orange; color: white; }
+    .btn-primary:hover { background-color: #e69500; }
+    .btn-secondary { background-color: #1f7d5f; color: white; }
+    .btn-secondary:hover { background-color: #145c45; }
+    .btn-outline { background-color: transparent; border: 2px solid orange; color: orange; }
+    .btn-outline:hover { background-color: orange; color: white; }
 
-    .btn-primary:hover {
-      background-color: #e69500;
-    }
-
-    .btn-secondary {
-      background-color: #1f7d5f;
-      color: white;
-    }
-
-    .btn-secondary:hover {
-      background-color: #145c45;
-    }
-
-    .btn-outline {
-      background-color: transparent;
-      border: 2px solid orange;
-      color: orange;
-    }
-
-    .btn-outline:hover {
-      background-color: orange;
-      color: white;
-    }
-
-    .form-actions {
-      margin-top: 20px;
-    }
+    .form-actions { margin-top: 20px; }
   </style>
 </head>
 <body>
-  <h2>Take Your Selfie</h2>
+  <h2>📸 Take Your Selfie</h2>
 
-  <video id="video" width="320" height="240" autoplay playsinline></video>
-  <br />
-  <button id="snap" class="btn btn-outline">Snap Photo</button>
+  <form id="selfie-form" method="POST" enctype="multipart/form-data">
+    <video id="video" width="320" height="240" style="display: block; margin:auto;" autoplay playsinline></video><br />
+    <button id="snap" type="button" class="btn btn-outline">Snap Photo</button>
 
-  <canvas id="canvas" width="320" height="240" style="display:none;"></canvas>
-  <img id="preview" alt="Your selfie will appear here" width="320" height="240"/>
+    <canvas id="canvas" width="320" height="240" style="display:none;"></canvas>
+    <img id="preview" alt="Your selfie will appear here" width="320" height="240" style="display: none ;"/>
 
-  <input type="file" id="selfieInput" accept="image/*" />
-  <button id="uploadBtn" class="btn btn-primary">Upload</button>
+    <input type="file" id="selfieInput" accept="image/*" />
+    <button type="submit" id="uploadBtn" class="btn btn-primary">Upload</button>
+  </form>
 
   <div class="form-actions">
     <a href="/protect/upload/document" class="btn btn-secondary">← Back</a>
-    <button id="nextBtn" class="btn btn-primary">Next → Review & Complete</button>
+    <button id="nextBtn" class="btn btn-primary" type="button">Next → Review & Complete</button>
   </div>
 
-  <script>
-    const video = document.getElementById("video");
-    const canvas = document.getElementById("canvas");
-    const snapBtn = document.getElementById("snap");
-    const preview = document.getElementById("preview");
-    const uploadBtn = document.getElementById("uploadBtn");
-    const input = document.getElementById("selfieInput");
+        <script src="/js/selfie.js"></script>   
+    </body>
+    </html>
 
-    // Start camera
-    navigator.mediaDevices.getUserMedia({ video: true })
-      .then(stream => { video.srcObject = stream; })
-      .catch(err => {
-        console.error("Camera access denied:", err);
-        alert("Camera access is required to take a selfie.");
-      });
 
-    // Take snapshot
-    snapBtn.addEventListener("click", () => {
-      const context = canvas.getContext("2d");
-      context.drawImage(video, 0, 0, canvas.width, canvas.height);
-      const imageData = canvas.toDataURL("image/png");
-      preview.src = imageData;
-      preview.style.display = "block";
-    });
 
-    // Upload selfie
-    uploadBtn.addEventListener("click", async (e) => {
-      e.preventDefault();
 
-      const file = input.files[0];
-      const formData = new FormData();
-
-      if (file) {
-        // ✅ User selected a file
-        if (file.size > 10 * 1024 * 1024) {
-          alert("Image too large. Must be under 10MB.");
-          return;
-        }
-        formData.append("selfie", file);
-      } else if (preview.src) {
-        // ✅ Snapshot exists (convert to Blob)
-        const base64 = preview.src.split(",")[1];
-        const byteChars = atob(base64);
-        const byteNums = new Array(byteChars.length);
-        for (let i = 0; i < byteChars.length; i++) {
-          byteNums[i] = byteChars.charCodeAt(i);
-        }
-        const byteArray = new Uint8Array(byteNums);
-        const blob = new Blob([byteArray], { type: "image/png" });
-        formData.append("selfie", blob, "selfie.png");
-      } else {
-        alert("Please take a selfie or upload a file first.");
-        return;
-      }
-
-      const token = localStorage.getItem("accessToken");
-
-      try {
-        const res = await fetch("/protect/upload/selfie", {
-          method: "POST",
-          headers: { Authorization: `Bearer ${token}` },
-          body: formData
-        });
-
-        const result = await res.json();
-        if (res.ok) {
-          window.location.href = "/protect/selfie/success";
-        } else {
-          alert(result.message || "Upload failed");
-        }
-      } catch (err) {
-        console.error("Upload error:", err);
-        alert("Upload failed. Try again.");
-      }
-    });
-
-    // Handle "Next" button (go directly without upload)
-    document.getElementById("nextBtn").addEventListener("click", () => {
-      window.location.href = "/protect/selfie/success";
-    });
-  </script>
-</body>
-</html>
+   

@@ -1,27 +1,27 @@
 // utils/sendEmail.js
-const nodemailer = require('nodemailer');
+const nodemailer = require("nodemailer");
 
 function normalizeBase(url) {
-  return url ? url.replace(/\/+$/, '') : '';
+  return url ? url.replace(/\/+$/, "") : "";
 }
 
-const BASE_URL = normalizeBase(process.env.BASE_URL) || 'http://localhost:3000';
+const BASE_URL = normalizeBase(process.env.BASE_URL) || "http://localhost:3000";
 
 // Create transporter once (development)
 const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST || 'smtp.gmail.com',
-  port: parseInt(process.env.SMTP_PORT || '465', 10),
-  secure: (process.env.SMTP_PORT || '465') === '465', // true for 465, false for 587
+  host: process.env.SMTP_HOST || "smtp.gmail.com",
+  port: parseInt(process.env.SMTP_PORT || "465", 10),
+  secure: (process.env.SMTP_PORT || "465") === "465", // true for 465, false for 587
   auth: {
-    user: process.env.SMTP_USER, // e.g. your Gmail address
-    pass: process.env.SMTP_PASS, // app password
+    user: process.env.SMTP_USER, // Gmail address
+    pass: process.env.SMTP_PASS, // App Password
   },
 });
 
 // Send a confirmation email GIVEN a token (helper builds the URL)
 async function sendEmail(to, subject, token) {
-  if (typeof token !== 'string' || token.length < 10) {
-    throw new Error('sendEmail(token) must be a token string');
+  if (typeof token !== "string" || token.length < 10) {
+    throw new Error("sendEmail(token) must be a token string");
   }
 
   const confirmUrl = `${BASE_URL}/api/auth/confirm-email/${token}`;
@@ -45,11 +45,22 @@ async function sendEmail(to, subject, token) {
     `,
   };
 
-  const info = await transporter.sendMail(mailOptions);
-  console.log(`✅ Confirmation email sent to ${to} with subject "${subject}"`);
-  console.log(`📩 Confirmation link: ${confirmUrl}`);
-  console.log(`Message ID: ${info.messageId}`);
-  return info;
+  console.log("📧 Attempting to send email to:", to);
+
+  try {
+    const info = await transporter.sendMail(mailOptions);
+    console.log(`✅ Email sent to ${to} with subject "${subject}"`);
+    console.log(`📩 Confirmation link: ${confirmUrl}`);
+    console.log(`Message ID: ${info.messageId}`);
+    return info;
+  } catch (err) {
+    console.error("❌ Email sending failed:", err);
+    throw err;
+  }
 }
 
 module.exports = sendEmail;
+
+
+
+

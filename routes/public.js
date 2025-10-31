@@ -19,8 +19,15 @@ router.get('/login', checkNotAuthenticated, authController.getLogin);
 // Session login (Passport local)
 router.post('/login', checkNotAuthenticated, authController.postLogin);
 
-// Session logout (requires login)
-router.get('/logout', checkAuthenticated, authController.logoutSession);
+// // Session logout (requires login)
+// router.get('/logout', checkAuthenticated, authController.logoutSession);
+
+// EJS session logout (prefer POST)
+router.post('/logout', checkAuthenticated, authController.unifiedLogout); 
+
+// // Session logout (optional legacy GET)
+router.get('/logout', checkAuthenticated, authController.unifiedLogout); 
+
 
 // EJS session (Passport) dashboard
 router.get('/dashboard', checkAuthenticated, noCache, dashboardController.getDashboardPage);

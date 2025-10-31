@@ -3,7 +3,6 @@ node_modules/
 .env
 uploads/
 subscriber_emails.txt
-index.ejs
 
 
 # System/I

@@ -11,14 +11,17 @@ const flash = require('express-flash');
 const methodOverride = require('method-override');
 const session = require('express-session');
 const pgSession = require('connect-pg-simple')(session);
-const passport = require('passport');
+// const passport = require('passport');
+const passport = require('./config/passport-social');
+// require('./config/passport-facebook')(passport);
+// require('./config/passport-google')(passport);
 const { Pool } = require('pg');
 const { sequelize, User } = require('./models');
 const initializePassport = require('./config/passport');
 const jwtMiddleware = require('./middleware/jwtMiddleware');
+const combinedAuth = require('./middleware/combinedAuth');
 const cookieParser = require('cookie-parser');
-// const dashboardController = require('./controllers/dashboardController');
-
+const helmet = require('helmet');
 
 /***********************
  *  ROUTES
@@ -26,15 +29,21 @@ const cookieParser = require('cookie-parser');
 const publicRoutes = require('./routes/public');        // EJS pages
 const authRoutes = require('./routes/auth');            // JSON API
 const userRoutes = require('./routes/user');            // Profile, settings
-const subscriptionRoutes = require('./routes/subscription');
+const subscribeRoutes = require('./routes/subscribe');
+const messageRoutes = require('./routes/message');
 const protectRoutes = require('./routes/protect');      // Docs, selfie
+const profileRoutes = require('./routes/profile');
 
 /***********************
  *  APP INIT
  ***********************/
 const app = express();
 const PORT = process.env.PORT || 3000;
-app.set('trust proxy', 1);
+
+// Enable trust proxy ONLY in production (needed if you’re behind Nginx/Render/Heroku/Cloudflare)
+if (process.env.NODE_ENV === "production") {
+  app.set("trust proxy", 1);
+}
 
 /***********************
  *  PASSPORT INIT
@@ -47,12 +56,42 @@ initializePassport(passport);
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 
+
+
 /***********************
  *  MIDDLEWARE
  ***********************/
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
+// app.use('/protect', express.static('public'));
+app.use(helmet());
+// app.use(
+//   helmet.contentSecurityPolicy({
+//     directives: {
+//       defaultSrc: ["'self'"],
+//       scriptSrc: ["'self'", "'unsafe-inline'"],
+//     },
+//   })
+// );
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+
+
+app.use(
+  helmet.contentSecurityPolicy({
+    useDefaults: true,
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"], // only if you have inline <style>
+      imgSrc: ["'self'", "data:"], // allow base64 images (e.g. selfie preview)
+      connectSrc: ["'self'"], // allow fetch() to same origin
+    },
+  })
+);
+
+
 
 let pgPool;
 
@@ -60,7 +99,7 @@ if (process.env.NODE_ENV === 'production') {
   // Render/Postgres in production
   pgPool = new Pool({
     connectionString: process.env.DATABASE_URL,
-    ssl: { require: true, rejectUnauthorized: false },
+    ssl: { rejectUnauthorized: false },
   });
 } else {
   // Local development DB
@@ -70,29 +109,31 @@ if (process.env.NODE_ENV === 'production') {
     host: process.env.DB_HOST || "127.0.0.1",
     port: process.env.DB_PORT || 5432,
     database: process.env.DB_NAME || "idyllac_db_e081",
-    ssl: false, // explicitly off
+    ssl: false, // explicitly off in dev
   });
 }
 
 const store = new pgSession({
   pool: pgPool,
   tableName: "session",
-  createTableIfMissing: true,
+  createTableIfMissing: true,  // ✅ auto-create table if missing in dev but not prod (ensure it exists in prod) and should run a migration instead of auto-creating.
 });
 
 
-// ✅ Using the store defined above
+// ✅ Using the store defined above with session middleware plug into Express
 app.use(
   session({
-    store,
-    secret: process.env.SESSION_SECRET || "SuperSecretKey",
-    resave: false,
-    saveUninitialized: false,
+    store, // <-- your configured store (MySQL, Redis, PostgreSQL, etc.)
+    secret: process.env.SESSION_SECRET || "super-secret-key", // 🔑 required
+    resave: false,             // recommended
+    saveUninitialized: false,  // recommended
+    rolling: true, // 🔄 refresh cookie expiration on each request
     cookie: {
-      secure: process.env.NODE_ENV === "production", // HTTPS only in prod
-      httpOnly: true,
-      sameSite: "lax",
-      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+      maxAge: 1000 * 60 * 60 * 24, // 1 day (in ms)
+      secure: process.env.NODE_ENV === "production", // ✅ cookie only over HTTPS in prod on different domains this become true
+      httpOnly: true, // JS can’t touch cookies
+      sameSite: process.env.NODE_ENV === "production" ? "None" : "Strict", // 'None' for cross-site in prod (with HTTPS), 'Strict' in dev
+      // path: '/', // cookie valid for entire site
     },
   })
 );
@@ -100,11 +141,28 @@ app.use(
 
 app.use(flash());
 app.use(methodOverride('_method'));
-app.use(cors({ origin: process.env.BASE_URL, credentials: true }));
+
+app.use(cors({
+  origin: [
+    process.env.BASE_URL,
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+  ],
+  credentials: true,
+}));
+// app.use(cors({ origin: process.env.BASE_URL, credentials: true }));
+
 app.use(cookieParser()); // ✅ parse cookies into req.cookies
 
+// app.use(session({ /* ... */ }));
 app.use(passport.initialize());
 app.use(passport.session());
+
+// 👇 make req.user available to all EJS templates
+app.use((req, res, next) => {
+  res.locals.user = req.user;
+  next();
+});
 
 /***********************
  *  SESSION HELPERS
@@ -118,19 +176,6 @@ function checkNotAuthenticated(req, res, next) {
   if (req.isAuthenticated()) return res.redirect('/dashboard');
   next();
 }
-
-/***********************
- *  ROUTE MOUNTING
- ***********************/
-// Public HTML pages (EJS)
-app.use('/', publicRoutes); // EJS routes (login, register, static pages)
-app.use('/', subscriptionRoutes); // subscription forms
-
-// JSON API
-app.use('/api/auth', authRoutes); // API Login/register/logout API
-app.use('/api/user', jwtMiddleware, userRoutes); // user API
-app.use('/protect', jwtMiddleware, protectRoutes);
-app.use('/dashboard', require('./routes/dashboard')); // dashboard (session protected)
 
 /***********************
  *  SIMPLE PAGE ROUTES
@@ -157,17 +202,41 @@ app.get('/', (req, res) => {
 });
 
 // Public static pages
-app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
+app.get('/default', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 app.get('/ar', (req, res) => res.sendFile(path.join(__dirname, 'public', 'indexAr.html')));
 app.get('/fr', (req, res) => res.sendFile(path.join(__dirname, 'public', 'indexFr.html')));
-app.get('/en', (req, res) => res.sendFile(path.join(__dirname, 'puplic', 'indexEn.html')));
+app.get('/en', (req, res) => res.sendFile(path.join(__dirname, 'public', 'indexEn.html')));
+app.get('/subscribeAr', (req, res) => res.sendFile(path.join(__dirname, 'public', 'subscribeAr.html')));
+app.get('/subscribeEn', (req, res) => res.sendFile(path.join(__dirname,  'public', 'subscribeEn.html')));
+app.get('/subscribeFr', (req, res) => res.sendFile(path.join(__dirname, 'public', 'subscribeFr.html')));
+app.get('/local', (req, res) => res.sendFile(path.join(__dirname, 'public', 'local.html')));
+app.get('/international', (req, res) => res.sendFile(path.join(__dirname, 'public', 'international.html')));
+app.get('/about', (req, res) => res.sendFile(path.join(__dirname, 'public', 'about.html')));
+app.get('/contact', (req, res) => res.sendFile(path.join(__dirname, 'public', 'contact.html')));
+app.get('/hours', (req, res) => res.sendFile(path.join(__dirname, 'public', 'hours.html')));
 
 // Auth entry pages
-app.get('/subscribe', checkNotAuthenticated, (req, res) => res.render('subscribe.html'));
-app.get('/subscribeEn', checkNotAuthenticated, (req, res) => res.render('subscribeEn'));
-app.get('/subscribeFr', checkNotAuthenticated, (req, res) => res.render('subscribeFr'));
 app.get('/login', checkNotAuthenticated, (req, res) => res.render('login'));
 app.get('/register', checkNotAuthenticated, (req, res) => res.render('register'));
+
+
+/***********************
+ *  ROUTE MOUNTING
+ ***********************/
+// Public HTML pages (EJS)
+app.use('/', publicRoutes); // EJS routes (login, register, static pages)
+app.use('/subscribe', subscribeRoutes); // subscription forms (email/social)
+app.use('/auth', require('./routes/authSocial'));
+app.use('/message', messageRoutes); // contact/message forms 
+app.use('/profile', profileRoutes); // or app.use('/api', profileRoutes) depending on your structure
+
+
+
+// JSON API
+app.use('/api/auth', authRoutes); // API Login/register/logout API
+app.use('/api/user', jwtMiddleware, userRoutes); // user API
+app.use('/protect', combinedAuth, protectRoutes);
+app.use('/dashboard', require('./routes/dashboard')); // dashboard (session protected)
 
 
 /***********************
@@ -194,4 +263,6 @@ sequelize
 /***********************
  *  START SERVER
  ***********************/
-app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));
+app.listen(PORT, () => {
+  console.log(`✅ Server running on port ${PORT}`);
+});

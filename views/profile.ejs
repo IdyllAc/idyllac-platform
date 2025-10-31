@@ -1,78 +1,243 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>profile</title>
-    <style>
-      body {
-        background-color:darkgray;
-        margin: 0;
-        padding: 0;
-      }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Your Profile</title>
+  <!-- <script src="https://kit.fontawesome.com/cbdd759dc1.js" crossorigin="anonymous"></script> -->
+ <style>
+   body {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 1.1rem;
+      background-image: linear-gradient(#1f7d5f, whitesmoke);
+    }
+    h2 { text-align: center; color: orange; }
 
-      form {
-        text-align: center;
-      }
-      h2 {
-        text-align: center;
-      }
-      
-      p {
-        text-align: center;
-      }
-    </style>
+    .locked-field {
+        background-color: #f3f3f3;
+        color: #555;
+        cursor: not-allowed;
+    }
+
+    p { text-align: center; color: #555; margin-bottom: 2em; }
+    
+    .container {
+      width: 100%;
+      min-height: 85vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .profile-card {
+      width: 520px;
+      padding: 25px 35px;
+      border-radius: 6px;
+      background: #1f7d5f;
+      box-shadow: 10px 20px 20px rgba(0,0,0,0.4);
+      color: #fff;
+      position: relative;
+    }
+    .fa-user-circle {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: orange;
+      color: #1f7d5f;
+      font-size: 34px;
+      padding: 15px;
+      border-radius: 50%;
+      box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    }
+    .input-group {
+      margin: 15px 0;
+      text-align: left;
+    }
+    .input-group label {
+      display: block;
+      font-size: 14px;
+      color: #eee;
+      margin-bottom: 4px;
+    }
+    .input-group input,
+    .input-group select {
+      width: 100%;
+      padding: 8px 10px;
+      border: none;
+      border-bottom: 1px solid #999;
+      background: transparent;
+      font-size: 16px;
+      color: chartreuse;
+      outline: none;
+    }
+    ::placeholder { color: wheat; }
+    .btn {
+      display: inline-block;
+      padding: 12px 25px;
+      margin: 15px 5px 5px 0;
+      font-size: 1rem;
+      font-weight: bold;
+      text-align: center;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease-in-out;
+      text-decoration: none;
+      border: none;
+    }
+    .btn-primary {
+      background-color: orange;
+      color: white;
+    }
+    .btn-primary:hover { background-color: #e69500; }
+    .btn-outline {
+      background-color: transparent;
+      border: 2px solid orange;
+      color: orange;
+    }
+    .btn-outline:hover {
+      background-color: orange;
+      color: white;
+    }
+    footer {
+      text-align: center;
+      margin-top: 30px;
+      color: #1f7d5f;
+      font-size: 0.9em;
+    }
+    small.required { color: orange; } 
+  </style>
 </head>
 <body>
-<h2>This is your Profile information</h2>
-<p>Here your profile info's are securized. Please update them alway if necessary.<br> You can change your profile information to the tatest and stay in contact.</p>
+  <div class="container">
+    <div class="profile-card">
+      <i class="fa-solid fa-user-circle"></i>
+      <h2>Your Profile</h2>
+      <p>Keep your profile updated. Fields with <small class="required">*</small> are required.</p>
 
-<form id="profile-form">
-  <select name="gender">
-    <option value="">Select Gender</option>
-    <option>Male</option><option>Female</option><option>Other</option>
-  </select>
-  <br><br>
-  <input type="text" name="full_name" placeholder="Full Name" required />
-  <br><br>
-  <input type="number" name="age" placeholder="Age" />
-  <br><br>
-  <input type="text" name="nationality" placeholder="Nationality" />
-  <br><br>
-  <input type="text" name="occupation" placeholder="Occupation" />
-  <br> <br>
-  <input type="text" name="phone" placeholder="Phone" />
-  <br><br>
-  <button type="submit">Save Profile</button>
-</form>
+       <form id="profile-form" enctype="multipart/form-data">
+        <!-- Unchangeable -->
+       <div class="input-group">
+          <label for="first_name">First Name *</label>
+          <input type="text" id="first_name" name="first_name" autocomplete="on" readonly class="locked-field" />
+        </div>
+        <div class="input-group">
+          <label for="last_name">Last Name *</label>
+          <input type="text" id="last_name" name="last_name" autocomplete="on" readonly class="locked-field /> 
+        </div>
+        <div class="input-group">
+          <label for="date_of_birth">Date of Birth *</label>
+          <input type="date" id="date_of_birth" name="date_of_birth" autocomplete="on" readonly class="locked-field /> 
+        </div>
 
-<script>
-fetch('/profile', { headers: { Authorization: 'Bearer ' + localStorage.getItem('accessToken') } })
-  .then(res => res.json())
-  .then(data => {
-    for (const key in data) {
-      if (document.querySelector(`[name="${key}"]`)) {
-        document.querySelector(`[name="${key}"]`).value = data[key];
-      }
-    }
-  });
+        <!-- Editable -->
+        <div class="input-group">
+          <label for="gender">Gender *</label>
+          <select id="gender" name="gender" required>
+            <option value="">Select Gender</option>
+            <option>Monsieur</option>
+            <option>Madame</option>
+           <option>Other</option>
+          </select>
+        </div>
 
-document.querySelector('#profile-form').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const formData = Object.fromEntries(new FormData(e.target).entries());
+        <div class="input-group">
+          <label for="nationality">Nationality *</label>
+          <input type="text" id="nationality" name="nationality" autocomplete="on" placeholder="nationality" required />
+        </div>
+        <div class="input-group">
+          <label for="occupation">Occupation *</label>
+          <input type="text" id="occupation" name="occupation" autocomplete="on" placeholder="secter of work" required />
+        </div>
+        <div class="input-group">
+          <label for="phone">Phone (Primary Mobile) *</label>
+          <input type="tel" id="phone" name="phone" autocomplete="on" placeholder="+1 (234) 567890" required />
+        </div>
 
-  const res = await fetch('/profile', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: 'Bearer ' + localStorage.getItem('accessToken')
-    },
-    body: JSON.stringify(formData)
-  });
+        <div class="input-group">
+          <label for="phone_alt">Secondary Mobile (Optional)</label>
+          <input type="tel" id="phone_alt" name="phone_alt" placeholder="+1 (987) 654321" />
+        </div>
 
-  const msg = await res.json();
-  alert(msg.message);
-});
-</script>
+        <div class="input-group">
+          <label for="telephone_fixe">Telephone Fixe (Optional)</label>
+          <input type="tel" id="telephone_fixe" name="telephone_fixe" placeholder="+1 (111) 222333" />
+        </div>
+
+        <div class="input-group">
+          <label for="country_of_birth">Country of Birth *</label>
+          <input type="text" id="country_of_birth" name="country_of_birth" placeholder="Enter your country of birth" required />
+        </div>
+
+        <div class="input-group">
+          <label for="country_of_living">Country of Living *</label>
+          <input type="text" id="country_of_living" name="country_of_living" placeholder="Enter your country of living" required />
+        </div>
+
+        <div class="input-group">
+          <label for="state">State / Province / Town / Village <span class="optional">(optional)</span></label>
+          <input type="text" id="state" name="state" placeholder="Enter your state or local area" />
+        </div>
+
+        <div class="input-group">
+          <label for="city">City *</label>
+          <input type="text" id="city" name="city" placeholder="Enter your city" required />
+        </div>
+
+        <div class="input-group">
+          <label for="address">Address *</label>
+          <input type="text" id="address" name="address" autocomplete="on" placeholder="Street / House number" required />
+        </div>
+
+        <div class="input-group">
+          <label for="language_preference">Preferred Language for Contact *</label>
+          <select id="language_preference" name="language_preference" required>
+            <option value="">Select language</option>
+            <option>English</option>
+            <option>French</option>
+            <option>Arabic</option>
+            <option>Spanish</option>
+            <option>Other</option>
+        </select>
+        </div>
+
+        <div class="input-group">
+          <label for="profile_photo">Profile Photo</label>
+            <input type="file" id="profile_photo" name="profile_photo" accept="image/*" />
+           
+
+        <div id="photo-preview-container" style="margin-top: 10px;">
+           <img 
+           id="photo-preview" 
+           src="/uploads/default-avatar.png" 
+           alt="Profile photo preview"  width="100" height="100" 
+           style="border-radius: 50%; display:block; margin:auto;" 
+           />
+        </div>
+
+        <button type="submit" class="btn btn-primary">Save Changes</button>
+        <a href="/dashboard" class="btn btn-outline">← Back</a>
+      </form>
+    </div>
+  </div>
+
+  <footer>
+    <span>&copy; <time id="year"></time> IdyllAc</span>
+  </footer>
+
+  <script src="/js/profile.js"></script>
 </body>
-</html> 
+</html>
+
+
+
+
+
+ 
+ 
+ 
+ 
+ 
+ 

@@ -3,39 +3,15 @@
 <head>
   <meta charset="UTF-8" />
   <title>Subscribe to News</title>
-  <link rel="stylesheet" href="CSS/style.css">
-
-  <style>
-     body {
-      font-family: Arial, sans-serif;
-      padding: 2rem;
-      text-align: center;
-    }
-    input[type="email"], textarea {
-      padding: 0.5rem;
-      width: 300px;
-      margin-bottom: 1rem;
-    }
-    button, a {
-      padding: 0.5rem 1rem;
-      margin: 0.5rem;
-      display: inline-block;
-      text-decoration: none;
-    }
-    form {
-      margin: 2rem 0;
-    }
-    /* .facebook { background-color: #3b5998; }
-    .google { background-color: #db4437; } */
-  </style>
+  <link rel="stylesheet" href="CSS/subscribe.css">
 </head>
 <body>
   <h1>📬 Abonnez-vous à nos actualités.</h1>
   <p>Choisissez votre mode d’abonnement:</p>
 
   <h2>📧 Abonnez-vous par email.</h2>
-  <form id="email-form">
-    <input type="email" name="email" id="email" placeholder="Insérez votre email" required />
+  <form id="subscribeForm">
+    <input type="email" name="email" id="email" autocomplete="on" placeholder="Insérez votre email" required />
     <button type="submit">Envoyer</button>
   </form> 
 
@@ -43,64 +19,48 @@
 
   <section>
     <h2>📱 Social Login</h2>
-    <p>:And so on / Et aussi de suite / وكذلك أيضاً</p>
-    <p>Login via:</p>
-    <a href="/api/auth/facebook">🔵 Facebook</a>
-    <h3>:Or via / Ou via / أو عبر</h3>
-    <p>Login with:</p>
-    <a href="/api/auth/google">🟢 Google</a>
+    <p>:Et aussi de suite via</p>
+    <a href="/auth/facebook">🔵 Facebook</a>
+    <h3>:Ou via </h3>
+    <a href="/auth/google">🟢 Google</a>
+    <!-- <h3>And/or</h3>
+    <li><a href="/auth/github">🟢 GitHub</a></li>
+    <h3>Et/ou</h3>
+    <li><a href="/auth/twitter">🟢 Twitter</a></li>
+    <h3>Et/ou</h3>
+    <li><a href="/auth/linkedin">🟢 Linkedin</a></li>
+    <h3>Et/ou</h3>
+    <li><a href="/auth/instagram">🟢 Instagram</a></li>-->
   </section>
 
-  <hr>
 
-<h5 style="color: #333;">
-  If you have any proplem in crossing any parier,  contact us. // 
-  Si vous avez des difficultés à franchir une barière, contactez nous. // 
-  .إذا واجهت اي مشكلة في تخطئ حاجر, إتصل بنا
+
+
+  <hr>
+<!-- <h5 style="color: #333;">Si vous avez de difficultés à franchir une barière, contactez nous.
 </h5>
 
-<h4 style="color: #333; text-align:center; margin-bottom: 0;">
+ <h4 style="color: #333; text-align:center; margin-bottom: 0;">
   Pour obtenir plus d’informations saisissez votre adresse mail.".
-</h4>
+</h4> 
   
-<form id="message-form">
-  <!-- <label for="email" style="color: lime;" >Email:</label><br> -->
-   <input type="email" name="email" id="email" placeholder="Insérez votre email" required><br>
-  <!-- <label for="message" style="color: lime;" >Your Message:</label> -->
+<form id="messageForm">
+ <label for="email" style="color: lime;" >Email:</label><br> 
+   <input type="email" name="email" id="email" autocomplete="on" placeholder="Insérez votre email" required><br>
+  <label for="message" style="color: lime;" >Your Message:</label>
   <h4 style="color:rgb(44, 44, 232); text-align: center; margin-bottom: 0;">Insérez votre question puis procédez à l’envoi.</h4> <br> 
   
   <textarea type="text" name="message" id="message" placeholder="Rédigez brièvement votre message ici." id="textarea" cols="30" rows="10" required></textarea><br>
   <button type="submit">Envoyer</button> 
  </form>
 
-  <p id="status"></p>
+  <p id="status"></p> -->
 
-  <script>
-      const SUBSCRIBER_API = '/submit';
-    // Handle async form submission only for the subscription form
-    document.getElementById("email-form").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const form = e.target;
-      const formData = new FormData(form);
-      const status = document.getElementById("status");
-
-      try {
-      const res = await fetch(SUBSCRIBER_API, {
-        method: "POST",
-        body: formData
-      });
-
-      const text = await res.text();
-      status.textContent = text;
-    } catch (err) {
-      console.error("Error submitting form:", err);
-      status.textContent = "❌ Submission failed. Please try again.";
-    }
-    });
-  </script>
-
-<script src="./index.js"></script>
+<script src="./js/subscribe.js"></script>
 
 </body>
 </html>
+
+
+
 

@@ -18,52 +18,88 @@ exports.getRegister = (req, res) => res.render('register');
 // POST /register
 exports.postRegister = async (req, res) => {
   try {
-    const { name, email, cemail, password } = req.body;
+    console.log('📥 POST /register body:', req.body);
 
-    // 1️⃣ Input validation
-    if (!name || !email || !cemail || !password) {
-      req.flash('error', 'All fields are required.');
+    const { name, email, cemail, password } = req.body || {};
+
+    // 1️⃣ Basic validation
+    if (!name || !email || !password) {
+      const msg = 'All fields are required.';
+      if (req.headers.accept?.includes('application/json')) {
+        return res.status(400).json({ message: msg });
+      }
+      req.flash('error', msg);
       return res.redirect('/register');
     }
-    if (email.trim().toLowerCase() !== cemail.trim().toLowerCase()) {
-      req.flash('error', 'Emails do not match.');
+
+    if (cemail && email.trim().toLowerCase() !== cemail.trim().toLowerCase()) {
+      const msg = 'Emails do not match.';
+      if (req.headers.accept?.includes('application/json')) {
+        return res.status(400).json({ message: msg });
+      }
+      req.flash('error', msg);
       return res.redirect('/register');
     }
 
     // 2️⃣ Check existing user
     const existingUser = await User.findOne({ where: { email } });
     if (existingUser) {
-      req.flash('error', 'Email already registered.');
+      const msg = 'Email is already registered.';
+      if (req.headers.accept?.includes('application/json')) {
+        return res.status(409).json({ message: msg });
+      }
+      req.flash('error', msg);
       return res.redirect('/register');
     }
 
-    // 3️⃣ Hash password & create token
+    // 3️⃣ Hash password & create user
     const hashedPassword = await bcrypt.hash(password, 10);
-    // Build token & save user as you already do...
     const confirmationToken = uuidv4();
 
-    // 4️⃣ Save user
     const newUser = await User.create({
       name,
       email,
       password: hashedPassword,
-      confirmationToken,
-      isConfirmed: false
+      confirmationToken,  // Sequelize will save in DB as confirmation_token
+      isConfirmed: false, // Sequelize will save in DB as is_confirmed
     });
 
-    console.log(`✅ New user created: ID ${newUser.id}, token ${confirmationToken}`);
+    console.log(`✅ New user created: ID ${newUser.id}, email: ${newUser.email}`);
+    console.log(`📧 Preparing confirmation email with token ${confirmationToken}`);
 
-    // 6️⃣ Send confirmation email (only once,let sendEmail build the URL)
-      await sendEmail(email, 'Confirm your email', confirmationToken);
-      
-       req.flash('info', 'Registration successful! Please check your email to confirm.');
+    // 4️⃣ Send confirmation email (await so you SEE logs before redirect)
+    try {
+      await sendEmail(
+        newUser.email, 
+        'Confirm your email', confirmationToken);
+
+  //       newUser.email,
+  //   'Confirm your email',
+  //   `<p>Click to confirm: <a href="http://localhost:3000/confirm/${confirmationToken}">Confirm Email</a></p>`
+  // );
+    
+      console.log(`📩 Confirmation email sent successfully to ${newUser.email}`);
+    } catch (mailErr) {
+      console.error('❌ sendEmail() failed:', mailErr.message || mailErr);
+    }
+
+    // 5️⃣ Decide response
+    if (req.headers.accept?.includes('application/json')) {
+      return res
+        .status(201)
+        .json({ message: 'Registration successful. Please check your email to confirm.' });
+    } else {
+      req.flash('info', 'Registration successful! Please check your email to confirm.');
       return res.redirect('/login');
-   
+    }
   } catch (err) {
     console.error('❌ Registration error:', err);
+    if (req.headers.accept?.includes('application/json')) {
+      return res.status(500).json({ message: 'Registration failed', error: err.message });
+    }
     req.flash('error', 'Something went wrong. Please try again.');
     return res.redirect('/register');
-   }
+  }
 };
 
 
@@ -80,59 +116,114 @@ exports.getLogin = (req, res) => {
 
 
 // POST /login (for both EJS + API style)
-exports.postLogin = (req, res, next) => {
-  passport.authenticate('local', async (err, user, info) => {
-    if (err) return next(err);
+exports.postLogin = async (req, res) => {
+  try {
+    console.log('📥 POST /login body:', req.body);
+
+    const { email, password } = req.body;
+
+    console.log('🟢 Login attempt for:', email);
+
+    // Basic validation
+    if (!email || !password) {
+      const msg = 'Email and password are required';
+      if (req.headers.accept?.includes('application/json')) {
+        return res.status(400).json({ error: msg });
+      }
+      req.flash('error', msg);
+      return res.redirect('/login');
+    }
+
+    // Find user
+    const user = await User.findOne({ where: { email } });
     if (!user) {
-      req.flash('error', 'Invalid email or password');
+      const msg = 'Invalid email or password';
+      if (req.headers.accept?.includes('application/json')) {
+        return res.status(401).json({ error: msg });
+      }
+      req.flash('error', msg);
+      return res.redirect('/login');
+    }
+
+    // Confirm email
+    if (!user.isConfirmed) {
+      const msg = 'Please confirm your email first';
+      if (req.headers.accept?.includes('application/json')) {
+        return res.status(403).json({ error: msg });
+      }
+      req.flash('error', msg);
+      return res.redirect('/login');
+    }
+
+    // Validate password
+    const validPassword = await bcrypt.compare(password, user.password);
+    if (!validPassword) {
+      const msg = 'Invalid email or password';
+      if (req.headers.accept?.includes('application/json')) {
+        return res.status(401).json({ error: msg });
+      }
+      req.flash('error', msg);
       return res.redirect('/login');
     }
 
     req.login(user, async (err) => {
-      if (err) return next(err);
-
-      try {
-        // ✅ Generate tokens
-        const accessToken = generateAccessToken(user);
-        const refreshToken = await generateRefreshToken(user);
-
-       // // ✅ Save access token in HttpOnly cookie
-        res.cookie('accessToken', accessToken, {
-          httpOnly: false, // frontend JS needs access
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: 'Strict',
-          maxAge: 15 * 60 * 1000, // 15 min
-        });
-
-        res.cookie('refreshToken', refreshToken, {
-          httpOnly: true, // refresh stays hidden from JS
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: 'Strict',
-          maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-        });
-        
-
-        // Check if request expects JSON (API) or HTML (EJS form submit)
-        if (req.headers.accept && req.headers.accept.includes('application/json')) {
-          // API client → send tokens in JSON
-          return res.json({
-            message: 'Login successful',
-            accessToken,
-            refreshToken
-          });
-        } else {
-          // Browser form → use session + redirect
-          req.flash('success', 'Welcome back!');
-          return res.redirect('/dashboard');
-        }
-
-      } catch (tokenErr) {
-        console.error("❌ Token generation failed:", tokenErr);
-        return res.status(500).json({ message: "Login failed, token error" });
+      if (err) {
+        console.error('🔥 req.login error:', err)
+        return next(err);
       }
+      
+    // ✅ Generate JWT tokens using utils
+    const accessToken = generateAccessToken(user);
+    const refreshToken = await generateRefreshToken(user);
+
+    console.log(`✅ User ${email} logged in successfully`);
+    console.log(`📌 Access token length (15): ${accessToken.length}`);
+    console.log(`📌 Refresh token length (7d): ${refreshToken.length}`);
+
+    // ✅ Store tokens as cookies (optional)
+    res.cookie('accessToken', accessToken, {
+      httpOnly: false, // readable by frontend if you want
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax', // 'None' for cross-site in prod (with HTTPS), 'Lax' in dev
+      path: "/",
+      maxAge: 15 * 60 * 1000,  // 15 min
     });
-  })(req, res, next);
+    
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true, // only backend can read this
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax', // 'None' for cross-site in prod (with HTTPS), 'Lax' in dev
+      maxAge: 1000 * 60 * 60 * 24,  // 1 days
+      path: "/",
+    });
+    
+
+    // ✅ 👉 Decide response depending on request type
+    // Check if request expects JSON (API) or HTML (EJS form submit)
+    if (req.headers.accept?.includes('application/json')) {
+      // For fetch / API client (fetch/AJAX)
+      return res.status(200).json({
+        message: 'Login successful',
+        accessToken,
+        refreshToken,
+      });
+    } else {
+      // Browser form → use session + redirect (HTML/EJS) for normal EJS form submission
+      req.flash('success', 'Welcome back!');
+      return res.redirect('/dashboard');
+    }
+  });
+
+  } catch (err) {
+    console.error('🔥 Login error:', err);
+    if (req.headers.accept?.includes('application/json')) {
+      return res.status(500).json({ error: 'Internal server error'  });
+    }
+    req.flash('error', 'Something went wrong. Please try again.');
+    return res.redirect('/login');
+  }
 };
+
 
 
 // Refresh token controller
@@ -155,10 +246,11 @@ exports.refreshToken = async (req, res) => {
 
       // Send new refresh token as HttpOnly cookie
     res.cookie('refreshToken', newRefreshToken, {
-      httpOnly: true,
+      httpOnly: true, // only backend can read this
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'Strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000
+      sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Strict',
+      maxAge: 1000 * 60 * 60 * 24,  // 1 days
+      path: "/",
     });
 
    return res.json({ accessToken: newAccessToken });
@@ -168,47 +260,65 @@ exports.refreshToken = async (req, res) => {
   }
 };
 
-
-// SESSION LOGOUT
-exports.logoutSession = (req, res) => {
-  req.logout(err => {
-    if (err) {
-      console.error("Logout error:", err);
-      return res.status(500).send("Logout failed");
-    }
-    req.session.destroy(() => {
-      res.clearCookie("connect.sid"); // clear session cookie
-      console.log("✅ Session destroyed & cookie cleared");
-      return res.redirect("/login");  // redirect
-    });
-  });
-};
-
-
-// POST /logout
-exports.logoutJWT = async (req, res) => {
+// Unified logout - handles both session + JWT
+exports.unifiedLogout = async (req, res) => {
   try {
-  const refreshToken = req.cookies.refreshToken;
-  if (!refreshToken) {
-    return res.status(400).json({ message: 'No refresh token found.' });
-  }
+    // --- SESSION LOGOUT ---
+    if (req.isAuthenticated && req.isAuthenticated()) {
+      console.log("🔒 Logging out Session user...");
+      await new Promise((resolve) => {
+        req.logout((err) => {
+          if (err) console.error("Session logout error:", err);
 
-    // ✅ Use utility to revoke token from DB
-    await revokeRefreshToken(refreshToken);
+          req.session.destroy(() => {
+            res.clearCookie("connect.sid", {
+              path: "/", // <= MUST match session cookie path
+              secure: process.env.NODE_ENV === "production",
+              httpOnly: true, // JS can’t touch cookies
+              sameSite: process.env.NODE_ENV === "production" ? "None" : "Strict", // 'None' for cross-site in prod (with HTTPS), 'Strict' in dev
+            });
+            console.log("✅ Session destroyed & cookie cleared & user logged out");
+            resolve();
+          });
+        });
+      });
+    }
 
-      // Clear cookie
-    res.clearCookie('refreshToken', {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'Strict'
-   });
+    // --- JWT LOGOUT ---
+    const refreshToken = req.cookies?.refreshToken;
+    if (refreshToken) {
+      console.log("🔑 Revoking JWT refresh token...");
+      try {
+        await revokeRefreshToken(refreshToken);
+      } catch (e) {
+        console.warn("❌ Failed to revoke token:", e);
+      }
+    }
 
-   return res.json({ message: 'Logged out successfully.', redirect: '/login' });
+    // Clear cookie regardless (match path & options used when setting it)
+    res.clearCookie("refreshToken", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "None" : "Strict",
+      path: "/",
+    });
+    console.log("✅ JWT cookie cleared");
+
+    // --- RESPONSE ---
+    if (req.headers.accept?.includes("application/json")) {
+      return res.json({ message: "Logged out successfully", redirect: "/login" });
+    }
+    return res.redirect("/login");
+
   } catch (err) {
-    console.error('Logout error:', err);
-    return res.status(500).json({ message: 'Logout failed.' });
+    console.error("Unified logout error:", err);
+    if (req.headers.accept?.includes("application/json")) {
+      return res.status(500).json({ message: "Logout failed." });
+    }
+    return res.redirect("/login");
   }
 };
+
 
 
 // GET /api/auth/confirm-email/:token
@@ -262,5 +372,3 @@ exports.confirmEmail = async (req, res) => {
     return res.redirect('/register');
   }
 };
-
-  

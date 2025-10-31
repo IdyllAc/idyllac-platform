@@ -1,16 +1,14 @@
 // routes/user.js
 const express = require('express');
 const router = express.Router();
-const authenticateToken = require('../middleware/jwtMiddleware'); // ✅ Correct: import as a function
-// const checkAuthenticated = require('../middleware/authMiddleware'); // for session login
-// const dashboardController = require('../controllers/dashboardController');
+const jwtMiddleware = require('../middleware/jwtMiddleware'); // ✅ Correct: import as a function
 
 
 // ✅ Add your Sequelize models here:
 const { User, PersonalInfo, Document, Selfie } = require('../models'); // Adjust if path is different
 
 // GET /profile
-router.get('/profile', authenticateToken, async (req, res) => {
+router.get('/profile', jwtMiddleware, async (req, res) => {
   try {
     const user = await User.findByPk(req.user.id, {
       attributes: ['id', 'name', 'email'],
@@ -26,7 +24,7 @@ router.get('/profile', authenticateToken, async (req, res) => {
 });
 
 // GET /settings
-router.get('/settings', authenticateToken, async (req, res) => {
+router.get('/settings', jwtMiddleware, async (req, res) => {
   try {
     const user = await User.findByPk(req.user.id, {
       attributes: ['name', 'email', 'isConfirmed']

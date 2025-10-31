@@ -94,89 +94,46 @@
             </div>
          </div>
       </div> 
-            <% } %>
-       
-                        <h1 style="font-family: cursive;">Sign in here:</h1>
+      <% } %>
+            <h1 style="font-family: cursive;">Sign in here:</h1>
 
-    
-                        <form id="register-form">
-                            <label for="name">Name:</label>
-                            <input type="text" name="name" id="name" autocomplete="on" placeholder="Enter your name" required>
+              <!-- <form id="register-form"> -->  
+              <form action="/register" method="POST">
+                <label for="name">Name:</label>
+                <input type="text" name="name" id="name" autocomplete="on" placeholder="Enter your name" required>
                           
-                            <label for="email">Email:</label>
-                            <input type="email" name="email" id="email" maxlength="150" autocomplete="on" placeholder="Enter your email" required>
+                <label for="email">Email:</label>
+                <input type="email" name="email" id="email" maxlength="150" autocomplete="on" placeholder="Enter your email" required>
                           
-                            <label for="cemail">Confirmation email:</label>
-                            <input type="email" name="cemail" id="cemail" maxlength="150" autocomplete="on" placeholder="Re-enter confirmation email" required>
+                <label for="cemail">Confirmation email:</label>
+                <input type="email" name="cemail" id="cemail" maxlength="150" autocomplete="on" placeholder="Re-enter confirmation email" required>
                           
-                            <label for="password">Password:</label>
-                            <input type="password" name="password" id="password" maxlength="150" autocomplete="off" placeholder="Enter strong password and remember it" required>
+                <label for="password">Password:</label>
+                <input type="password" name="password" id="password" maxlength="150" autocomplete="off" placeholder="Enter strong password and remember it" required>
                           
-                            <br><br>
-                            <button type="submit">Submit</button>
-                          </form>
+                <br><br>
+                <button type="submit">Register</button>
+              </form>
                           
-                          <p><small>Password 8 characters minimum. Must include uppercase and one of: <strong># @ & ! $ % ?</strong></small></p>
+                 <p><small>Password 8 characters minimum. Must include uppercase and one of: <strong># @ & ! $ % ?</strong></small></p>
                           
-                          <h3>
-                            <p style="background-color:green;">
-                              Have an account, <a href="/login" style="color: orange;">Login</a>
-                            </p>
-                          </h3>
+                  <h3>
+                      <p style="background-color:green;">
+                        Have an account, <a href="/login" style="color: orange;">Login</a>
+                      </p>
+                  </h3>
                           
-                          <footer class="footer">
-                            <span class="nowrap">Copyrights &copy; <time id="year"></time></span>
-                            <span class="nowrap">IdyllAc</span>
-                          </footer>
-                          
-                          <script>
-                          document.addEventListener("DOMContentLoaded", () => {
-                          const form = document.getElementById('register-form');
-                          const name = document.getElementById('name');
-                          const email = document.getElementById('email');
-                          const cemail = document.getElementById('cemail');
-                          const password = document.getElementById('password');
+                <footer class="footer">
+                  <span class="nowrap">Copyrights &copy; <time id="year"></time></span>
+                  <span class="nowrap">IdyllAc</span>
+                </footer>
 
-                            // ✅ Email confirmation validation (live check)
-                          cemail.addEventListener('keyup', () => {
-                          if (cemail.value !== email.value) {
-                          cemail.style.border = "2px solid red";
-                          } else {
-                          cemail.style.border = "2px solid green";
-                           }
-                          });
+                  <!-- <script src="https://kit.fontawesome.com/283a7ae800.js" crossorigin="anonymous"></script> -->  
 
-                          // ✅ Handle form submission via fetch
-                         form.addEventListener('submit', async function (e) {
-                            e.preventDefault();
+                  <script src="/js/register.js"></script> 
+              </body>
+              </html> 
+  
 
-                            const formData = {
-                            name: document.getElementById('name').value,
-                            email: document.getElementById('email').value,
-                            cemail: cemail.value,
-                            password: document.getElementById('password').value,
-                            };
 
-                         try {
-                              const res = await fetch('/api/auth/register', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify(formData)
-                              });
-                          
-                              if (res.ok) {
-                                alert('✅ Registration successful! Please check your email for confirmation.');
-                                window.location.href = '/login';
-                              } else {
-                                const data = await res.text();
-                                alert('❌ Registration failed: ' + data);
-                              }
-                            } catch (error) {
-                              alert('❌ Network error occurred: ' + error.message);
-                            }
-                          });
-                        });
-                          </script>      
-                <!-- <script src="https://kit.fontawesome.com/283a7ae800.js" crossorigin="anonymous"></script> -->
-   </body>
- </html> 
+                  

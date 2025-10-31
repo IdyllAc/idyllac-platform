@@ -28,7 +28,7 @@ module.exports = passport => {
           return done(null, false);
         }
 
-        if (!user.is_confirmed) {
+        if (!user.isConfirmed) {
           console.warn('❌ User not confirmed:', user.email);
           return done(null, false);
         }

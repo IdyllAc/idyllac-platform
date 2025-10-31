@@ -1,22 +1,37 @@
+// /config/passport.js
+
 const { configureLocalStrategy } = require('./passport-config');
 const { User } = require('../models');
+
 function initializePassport(passport) {
-   // Set up LocalStrategy
+  // Attach LocalStrategy
   configureLocalStrategy(passport);
 
-    // Set up session support
-    passport.serializeUser((user, done) => {
-        done(null, user.id);
-    });
+  // Serialize user (store only ID in session cookie)
+  passport.serializeUser((user, done) => {
+    console.log('🔑 serializeUser -> user.id:', user.id);
+    done(null, user.id);
+  });
 
-    passport.deserializeUser(async (id, done) => {
-        try {
-            const user = await User.findByPk(id);
-            done(null, user);
-        } catch (err) {
-            done(err);
-        }
-    });
+  // Deserialize user (fetch from DB on each request)
+  passport.deserializeUser(async (id, done) => {
+    try {
+      const user = await User.findByPk(id, {
+        attributes: ['id', 'name', 'email', 'isConfirmed'], // 👈 safe fields only
+      });
+
+      if (!user) {
+        console.warn('⚠️ User not found during deserializeUser:', id);
+        return done(null, false);
+      }
+
+      console.log('📦 deserializeUser -> req.user:', user.email);
+      done(null, user);
+    } catch (err) {
+      console.error('🔥 Error in deserializeUser:', err);
+      done(err);
+    }
+  });
 }
 
 module.exports = initializePassport;

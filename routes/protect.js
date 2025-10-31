@@ -1,18 +1,25 @@
+// routes/protect.js
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 
-const authenticateToken = require('../middleware/jwtMiddleware');
+const jwtMiddleware = require('../middleware/jwtMiddleware');
 const noCache = require('../middleware/noCache');
 
+const combinedAuth = require('../middleware/combinedAuth');
 const uploadController = require('../controllers/uploadController');
 const personalInfoController = require('../controllers/personalInfoController');
 const { completeRegistration, showCompletedPage } = require('../controllers/registrationController');
+const progressController = require('../controllers/progressController');
+const { personalValidator } = require('../validators/personalValidator');
+const { documentValidator } = require('../validators/documentValidator');
+const { selfieValidator } = require('../validators/selfieValidator');
+const profileController = require('../controllers/profileController');
 
 
-// Multer config
+// Configure multer storage for file uploads
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     const userId = req.user.id;
@@ -31,15 +38,20 @@ const upload = multer({
 });
 
 // ✅ Show Personal Info form
-router.get('/personal_info', authenticateToken, noCache, (req, res) => {
+router.get('/personal_info', combinedAuth, noCache, (req, res) => {
   res.render('personal', { user: req.user });
 });
 
 // ✅ Submit Personal Info form
-router.post('/personal_info', authenticateToken, noCache, personalInfoController.submitPersonalInfo);
+router.post(
+  '/personal_info', 
+  combinedAuth,        // ✅ replaces jwtMiddleware
+  noCache, 
+  personalValidator,   // <---- added
+  personalInfoController.submitPersonalInfo);
 
 // ✅ Show Upload Document form
-router.get('/upload/document', authenticateToken, noCache, (req, res) => {
+router.get('/upload/document', combinedAuth, noCache, (req, res) => {
     res.render('document', { user: req.user });
   });
 
@@ -47,19 +59,20 @@ router.get('/upload/document', authenticateToken, noCache, (req, res) => {
 // ✅ Upload Documents
 router.post(
   '/upload/document',
-  authenticateToken,
+  combinedAuth,  // replaces jwtMiddleware
   noCache, 
   upload.fields([
     { name: 'passport_path', maxCount: 1 },
     { name: 'id_card_path', maxCount: 1 },
     { name: 'license_path', maxCount: 1 }
   ]),
+  documentValidator,   // <---- added
   uploadController.uploadDocuments
 );
 
 
 // ✅ Show Upload Selfie form
-router.get('/upload/selfie', authenticateToken, noCache, (req, res) => {
+router.get('/upload/selfie', combinedAuth, noCache, (req, res) => {
     res.render('selfie', { user: req.user });
   }
 );
@@ -68,41 +81,36 @@ router.get('/upload/selfie', authenticateToken, noCache, (req, res) => {
 // ✅ Upload Selfie
 router.post(
   '/upload/selfie', 
-  authenticateToken, 
+  combinedAuth,  // replaces jwtMiddleware
   noCache, 
   upload.single('selfie'),
+  selfieValidator,   // <---- added
   uploadController.uploadSelfie
 );
 
 
 // ✅ Completed Page (from controller)
-router.get('/completed', authenticateToken, showCompletedPage);
+router.get('/completed', jwtMiddleware, showCompletedPage);
 
 // ✅ Final step: Complete Registration
-router.post('/complete', authenticateToken, completeRegistration);
+router.post('/complete', jwtMiddleware, completeRegistration);
 
-// ✅ Review Progress
-router.get('/review-progress', authenticateToken, async (req, res) => {
-  try {
-    const { PersonalInfo, Document, Selfie } = require('../models');
-    const userId = req.user.id;
 
-    const personalInfo = await PersonalInfo.findOne({ where: { userId } });
-    const documents = await Document.findOne({ where: { userId } });
-    const selfie = await Selfie.findOne({ where: { userId } });
+// ✅ Review Progress (moved logic into controller)
+router.get('/review-progress', jwtMiddleware, progressController.reviewProgress);
 
-    // 4 steps (25% each)
-    let progress = 0;
-    if (req.user.isConfirmed) progress += 25; // optional if I track email confirmation
-    if (personalInfo) progress += 25;
-    if (documents) progress += 25;
-    if (selfie) progress += 25;
 
-    res.json({ progress });
-  } catch (err) {
-    console.error('💥 Error in review-progress:', err);
-    res.status(500).json({ error: 'Failed to calculate progress' });
-  }
+// ✅ Route for success page
+router.get("/selfie/success", (req, res) => {
+  res.render("success"); // looks for views/success.ejs
+});
+
+// Dashboard page
+router.get("/dashboard", (req, res) => {
+  res.render("dashboard", {   // views/dashboard.ejs
+    user: req.user,
+  progress: 0  // 👈 default value (or compute dynamically)
+   }); 
 });
 
 

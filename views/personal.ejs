@@ -1,4 +1,173 @@
 <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Personal Information</title>
+  <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" /> 
+  <!-- <script src="https://kit.fontawesome.com/cbdd759dc1.js" crossorigin="anonymous"></script>  -->
+  <style> 
+    body {
+      margin: 0; 
+      padding: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: linear-gradient(#1f7d5f, whitesmoke);
+    }
+    .container {
+      max-width: 500px;
+      margin: 60px auto;
+      padding: 30px;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+      position: relative;
+    }
+    .container h2 { text-align: center; color: #1f7d5f; margin-bottom: 10px; }
+    .container h5 { text-align: center; color:o; margin-bottom: 25px; }
+    
+    .fa-paper-plane {
+      position: absolute;
+      top: -25px; left: 50%;
+      transform: translateX(-50%);
+      background: orange;
+      color: #fff;
+      font-size: 28px;
+      padding: 12px;
+      border-radius: 50%;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+    form { 
+      display: flex; 
+      flex-direction: column; 
+    }
+    .input-group { 
+      margin-bottom: 15px; 
+    }
+    .input-group label { 
+      font-weight: bold; 
+      display: block; 
+      margin-bottom: 5px; 
+      color: #333; 
+    }
+      
+    .input-group input {
+      width: 100%; padding: 10px;
+      border: 1px solid #ccc; 
+      border-radius: 6px;
+      font-size: 15px;
+    }
+    .genderContainer { 
+      margin-bottom: 20px; 
+      color: #333; 
+    }
+    .genderContainer label {
+      margin-right: 15px;
+      cursor: pointer;
+    }
+    .genderContainer input { 
+      margin-left: 10px; 
+      margin-right: 15px; 
+    }
+    button {
+      background: orange; 
+      color: #fff;
+      border: none; border-radius: 6px;
+      padding: 12px; cursor: pointer;
+      font-size: 16px; transition: 0.3s;
+    }
+    button:hover { background: #e69500; }
+    .form-actions {
+      margin-top: 20px; text-align: center;
+    }
+    .btn { 
+      padding: 10px 20px; 
+      border-radius: 6px; 
+      text-decoration: none; 
+      margin: 5px; display: 
+      inline-block; 
+    }
+    .btn-outline { 
+      border: 2px solid orange; 
+      color: orange; 
+      background: transparent; 
+    }
+    .btn-outline:hover { 
+      background: orange; 
+      color: #fff; 
+    }
+    footer {
+      text-align: center; margin-top: 30px; font-size: 14px; color: #555;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <i class="fa-regular fa-paper-plane"></i>
+    <h2>📝 Personal Information</h2>
+    <h5>Please provide your information to complete registration.</h5> 
+
+   
+   <form id="personal" action="/protect/personal_info" method="POST">
+      <div class="genderContainer">
+        <label for="genderMadame">Gender: 
+          <input type="radio" id="genderMadame" name="gender" value="Madame"> Madame
+         </label>
+         <label for="genderMonsieur">
+          <input type="radio" id="genderMonsieur" name="gender" value="Monsieur"> Monsieur
+        </label>
+      </div>
+
+      <div class="input-group">
+        <label for="first_name">First Name:</label>
+        <input type="text" id="first_name" name="first_name" autocomplete="on" placeholder="Enter firstname" required />
+      </div>
+
+      <div class="input-group">
+        <label for="last_name">Last Name:</label>
+        <input type="text" id="last_name" name="last_name" placeholder="Enter lastname" required />
+      </div>
+
+      <div class="input-group">
+        <label for="date_of_birth">Date of birth:</label>
+        <input type="date" id="date_of_birth" name="date_of_birth" required />
+      </div>
+
+      <div class="input-group">
+        <label for="phone">Phone:</label>
+        <input type="tel" id="phone" name="phone" autocomplete="on" placeholder="+1 (234) 567890" required />
+      </div>
+
+      <div class="input-group">
+        <label for="nationality">Nationality:</label>
+        <input type="text" id="nationality" name="nationality" placeholder="Enter nationality" required />
+      </div>
+
+      <div class="input-group">
+        <label for="occupation">Occupation</label>
+        <input type="text" id="occupation" name="occupation" placeholder="Enter occupation" required />
+      </div>
+
+      <button type="submit" class="btn btn-primary">Save & Continue</button>
+    </form>
+
+    <div class="form-actions">
+      <a href="/protect/dashboard" class="btn btn-outline">← Back</a>
+      <a href="/protect/upload/document" class="btn btn-outline">Next → Upload Documents</a>
+    </div>
+  </div>
+
+  <footer>
+    <span>&copy; <time id="year">IdyllAc</time></span>
+  </footer>
+    
+     <script src="/js/personal.js"></script>
+</body>
+</html> 
+
+
+
+
+ <!-- <!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8" />
@@ -119,8 +288,6 @@
       font-size: 0.9em;
       color: #1f7d5f;
     }
-
-
 
      .btn {
   display: inline-block;
@@ -290,45 +457,7 @@
       });
       </script>
 </body>
-</html>
+</html> -->
 
 
-<!-- <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      const form = document.getElementById('personalInfoForm');
-
-      form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-
-        const formData = new FormData(form);
-        const data = Object.fromEntries(formData);
-
-        const token = localStorage.getItem('accessToken');
-        if (!token) {
-          alert("Access token missing. Please log in.");
-          return;
-        }
-
-        try {
-          const res = await fetch('https://anypay.cards/submit/personal_info', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify(data)
-          });
-
-          if (res.ok) {
-            window.location.href = '/upload/document';
-          } else {
-            const error = await res.json();
-            alert(error.message || 'Submission failed.');
-          }
-        } catch (err) {
-          console.error(err);
-          alert('Network error. Please try again.');
-        }
-      });
-    });
-  </script> -->
+  

@@ -4,7 +4,9 @@ const { User } = models;
 
 // shared function (optional, you can keep or remove)
 async function fetchDashboardData(userId) {
-  return await User.findByPk(userId, { attributes: ['id', 'name', 'email', 'isConfirmed'] });
+  return await User.findByPk(userId, { 
+    attributes: ['id', 'name', 'email', 'isConfirmed'] 
+  });
 }
 
 // For session (EJS)
@@ -17,21 +19,23 @@ exports.getDashboardPage = async (req, res) => {
     }
 
      // Basic user info
-    const user = await fetchDashboardData(req.user.id);
-    if (!user) {
+    const userModel = await fetchDashboardData(req.user.id);
+    if (!userModel) {
       req.flash('error', 'User not found');
       return res.redirect('/login');
     }
 
-    // Prepare optional model checks (if these models exist)
+    // Convert model -> plain object to avoid EJS issues
+    const user = (userModel && typeof userModel.get === 'function')
+      ? userModel.get({ plain: true })
+      : userModel;
+
+    // Prepare optional models checks (if these models exist)
     const PersonalInfo = models.PersonalInfo;
     const Document = models.Document;
     const Selfie = models.Selfie;
 
-    let personal = null;
-    let document = null;
-    let selfie = null;
-
+    let personal = null, document = null, selfie = null;
     try {
       if (PersonalInfo) personal = await PersonalInfo.findOne({ where: { userId: user.id } });
       if (Document) document = await Document.findOne({ where: { userId: user.id } });
@@ -59,11 +63,12 @@ exports.getDashboardPage = async (req, res) => {
       res.render('dashboard', {   // this triggers my /dashboard route
         user, // user: req.user || null,   // Passport user object
         progress,
-        personalInfo: personal || null,
-        documents: document || null,
-        selfie: selfie || null,
+        personalInfo: personal ? (personal.get ? personal.get({ plain: true }) : personal) : null,
+        documents: document ? (document.get ? document.get({ plain: true }) : document) : null,
+        selfie: selfie ? (selfie.get ? selfie.get({ plain: true }) : selfie) : null,
         messages: req.flash()     //  Flash messages if any
        }); 
+       
   } catch (err) {
     console.error('Dashboard (EJS) error:', err);
     req.flash('error', 'Failed to load dashboard');

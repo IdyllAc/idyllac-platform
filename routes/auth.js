@@ -6,7 +6,7 @@ if (process.env.NODE_ENV !== 'production') {
 const express = require('express');
 const router = express.Router();
 const authController = require('../controllers/authController');
-const authenticateToken = require('../middleware/jwtMiddleware');
+const jwtMiddleware = require('../middleware/jwtMiddleware');
 const dashboardController = require('../controllers/dashboardController');
 
 // API: Register (JSON)
@@ -18,11 +18,15 @@ router.post('/login', authController.postLogin);
 // API: Refresh token
 router.post('/refresh-token', authController.refreshToken);
 
-// API: Logout (invalidate refresh token)
-router.post('/logout', authController.logoutJWT);
+// // API: Logout (invalidate refresh token)
+// router.post('/logout', authController.logoutJWT);
+
+// API: Logout (session + JWT unified)
+router.post('/logout', authController.unifiedLogout);
+
 
 // API: Dashboard (JWT protected)
-router.get('/dashboard', authenticateToken, dashboardController.getDashboardApi);
+router.get('/dashboard', jwtMiddleware, dashboardController.getDashboardApi);
 
 // API: Email confirmation
 router.get('/confirm-email/:token', authController.confirmEmail);

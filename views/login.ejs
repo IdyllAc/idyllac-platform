@@ -87,7 +87,7 @@
        </head>
        <body> 
         <h1 class="mb-3 h3">Login</h1>  
-        <p style="margin-top: 15vh; background-color: green">Have account signin.</p> 
+        <p style="margin-top: 15vh; background-color: green">Have account signin?</p> 
         
         <!-- login.ejs -->
         <% if (messages.error && messages.error.length > 0) { %>
@@ -124,7 +124,7 @@
         <h1 style="font-family: cursive;">Log in here</h1>
 
 
-      <form id="login-form">
+        <form action="/login" method="POST">
         <label for="email">Email</label>
         <input type="email" name="email" id="email" autocomplete="off" required></input>
         <label for="password">Password</label>
@@ -137,60 +137,19 @@
     <br>   
     
     <div id="message"><p style="background-color: green;">haven't yet account? Clic here to
-      <a href="./views/register.ejs" style= "color: orange;">Register</a></p>
+      <a href="/register" style= "color: orange;">Register</a></p>
       </div>
 
       <footer class="footer">
         <span class="nowrap">Copyrights &copy; <time id="year"></time></span>
         <span class="nowrap">IdyllAc</span>  
       </footer> 
+   
+      <!-- <script src="https://kit.fontawesome.com/283a7ae800.js" crossorigin="anonymous"></script> -->
 
-      <script>
-        document.getElementById('login-form').addEventListener('submit', async function (e) {
-          e.preventDefault(); // Stop form from reloading the page
-    
-         // ✅ FIX: Actually grab email and password values from form inputs
-          const email = document.getElementById('email').value;
-          const password = document.getElementById('password').value;
-
-          try {
-            const res = await fetch('/api/auth/login', {
-              method: 'POST',
-              headers: { 
-                'Content-Type': 'application/json', 
-                'Accept': 'application/json'  
-              },
-              body: JSON.stringify({ email, password })
-            });
-
-            const data = await res.json();
-
-            
-            console.log('Refresh Token:', data.refreshToken);
-
-            if (res.ok) { 
-              console.log('✅ Access Token:', data.accessToken); // 👈 SHOW IN CONSOLE
-
-            // Save access token (in memory/localStorage)
-            localStorage.setItem('accessToken', data.accessToken);
-
-           
-            // Redirect to dashboard
-            window.location.href = '/dashboard';
-          } else {
-            alert(data.message || 'Login failed');
-          }
-        } catch (error) {
-            console.error('Error during login:', error);
-            alert('Something went wrong. Please try again.');
-          }
-        });
-      </script>
-
-      <script src="https://kit.fontawesome.com/283a7ae800.js" crossorigin="anonymous"></script>
+      <script src="/js/login.js"></script>
 
    </body>
 </html> 
-
 
 

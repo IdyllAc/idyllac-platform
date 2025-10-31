@@ -6,7 +6,5 @@ const { checkAuthenticated } = require('../middleware/authMiddleware'); // Adjus
 
 // EJS session (passport) dashboard 
 router.get('/', checkAuthenticated, dashboardController.getDashboardPage);
-// router.get('/profile', checkAuthenticated, dashboardController.renderProfile);
-// router.get('/settings', checkAuthenticated, dashboardController.renderSettings);
 
 module.exports = router;
