@@ -91,85 +91,85 @@ passport.use(
   )
 );
 
-// ✅ TWITTER
-passport.use(
-  new TwitterStrategy(
-    {
-      consumerKey: process.env.TWITTER_CONSUMER_KEY,
-      consumerSecret: process.env.TWITTER_CONSUMER_SECRET,
-      callbackURL: '/auth/twitter/callback',
-    },
-    async (token, tokenSecret, profile, done) => {
-      try {
-        const [user] = await SocialUser.findOrCreate({
-          where: { provider_id: profile.id },
-          defaults: {
-            provider: 'twitter',
-            name: profile.displayName,
-            avatar_url: profile.photos?.[0]?.value || null,
-          },
-        });
-        done(null, user);
-      } catch (err) {
-        done(err, null);
-      }
-    }
-  )
-);
+// // ✅ TWITTER
+// passport.use(
+//   new TwitterStrategy(
+//     {
+//       consumerKey: process.env.TWITTER_CONSUMER_KEY,
+//       consumerSecret: process.env.TWITTER_CONSUMER_SECRET,
+//       callbackURL: '/auth/twitter/callback',
+//     },
+//     async (token, tokenSecret, profile, done) => {
+//       try {
+//         const [user] = await SocialUser.findOrCreate({
+//           where: { provider_id: profile.id },
+//           defaults: {
+//             provider: 'twitter',
+//             name: profile.displayName,
+//             avatar_url: profile.photos?.[0]?.value || null,
+//           },
+//         });
+//         done(null, user);
+//       } catch (err) {
+//         done(err, null);
+//       }
+//     }
+//   )
+// );
 
-// ✅ LINKEDIN
-passport.use(
-  new LinkedInStrategy(
-    {
-      clientID: process.env.LINKEDIN_CLIENT_ID,
-      clientSecret: process.env.LINKEDIN_CLIENT_SECRET,
-      callbackURL: '/auth/linkedin/callback',
-      scope: ['r_emailaddress', 'r_liteprofile'],
-    },
-    async (accessToken, refreshToken, profile, done) => {
-      try {
-        const [user] = await SocialUser.findOrCreate({
-          where: { provider_id: profile.id },
-          defaults: {
-            provider: 'linkedin',
-            name: profile.displayName,
-            email: profile.emails?.[0]?.value || null,
-            avatar_url: profile.photos?.[0]?.value || null,
-          },
-        });
-        done(null, user);
-      } catch (err) {
-        done(err, null);
-      }
-    }
-  )
-);
+// // ✅ LINKEDIN
+// passport.use(
+//   new LinkedInStrategy(
+//     {
+//       clientID: process.env.LINKEDIN_CLIENT_ID,
+//       clientSecret: process.env.LINKEDIN_CLIENT_SECRET,
+//       callbackURL: '/auth/linkedin/callback',
+//       scope: ['r_emailaddress', 'r_liteprofile'],
+//     },
+//     async (accessToken, refreshToken, profile, done) => {
+//       try {
+//         const [user] = await SocialUser.findOrCreate({
+//           where: { provider_id: profile.id },
+//           defaults: {
+//             provider: 'linkedin',
+//             name: profile.displayName,
+//             email: profile.emails?.[0]?.value || null,
+//             avatar_url: profile.photos?.[0]?.value || null,
+//           },
+//         });
+//         done(null, user);
+//       } catch (err) {
+//         done(err, null);
+//       }
+//     }
+//   )
+// );
 
-// ✅ INSTAGRAM
-passport.use(
-  new InstagramStrategy(
-    {
-      clientID: process.env.INSTAGRAM_CLIENT_ID,
-      clientSecret: process.env.INSTAGRAM_CLIENT_SECRET,
-      callbackURL: '/auth/instagram/callback',
-    },
-    async (accessToken, refreshToken, profile, done) => {
-      try {
-        const [user] = await SocialUser.findOrCreate({
-          where: { provider_id: profile.id },
-          defaults: {
-            provider: 'instagram',
-            name: profile.displayName,
-            avatar_url: profile.photos?.[0]?.value || null,
-          },
-        });
-        done(null, user);
-      } catch (err) {
-        done(err, null);
-      }
-    }
-  )
-);
+// // ✅ INSTAGRAM
+// passport.use(
+//   new InstagramStrategy(
+//     {
+//       clientID: process.env.INSTAGRAM_CLIENT_ID,
+//       clientSecret: process.env.INSTAGRAM_CLIENT_SECRET,
+//       callbackURL: '/auth/instagram/callback',
+//     },
+//     async (accessToken, refreshToken, profile, done) => {
+//       try {
+//         const [user] = await SocialUser.findOrCreate({
+//           where: { provider_id: profile.id },
+//           defaults: {
+//             provider: 'instagram',
+//             name: profile.displayName,
+//             avatar_url: profile.photos?.[0]?.value || null,
+//           },
+//         });
+//         done(null, user);
+//       } catch (err) {
+//         done(err, null);
+//       }
+//     }
+//   )
+// );
 
 passport.serializeUser((user, done) => done(null, user.id));
 passport.deserializeUser(async (id, done) => {
