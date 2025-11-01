@@ -7,6 +7,11 @@ const passport = require("passport");
 const { User, RefreshToken } = require('../models');
 const sendEmail = require('../utils/sendEmail'); // adjust path if needed
 const { verifyRefreshToken, generateAccessToken, generateRefreshToken, revokeRefreshToken } = require('../utils/tokenUtils');
+// (async () => {
+//   const { v4: uuidv4 } = await import('uuid');
+//   // your code using uuidv4 here
+// })();
+
 
 const SECRET = process.env.ACCESS_TOKEN_SECRET || 'your_jwt_secret';
 const REFRESH_SECRET = process.env.REFRESH_TOKEN_SECRET || 'your_refresh_secret';
