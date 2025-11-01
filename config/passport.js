@@ -1,11 +1,13 @@
 // /config/passport.js
-
+const passport = require('passport');
 const { configureLocalStrategy } = require('./passport-config');
+const configureSocialStrategies = require('./passport-social');
 const { User } = require('../models');
 
-function initializePassport(passport) {
+function initializePassport() {
   // Attach LocalStrategy
   configureLocalStrategy(passport);
+  configureSocialStrategies(passport);
 
   // Serialize user (store only ID in session cookie)
   passport.serializeUser((user, done) => {
