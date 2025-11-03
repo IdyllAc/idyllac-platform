@@ -21,6 +21,9 @@ function initializePassport() {
       const user = await User.findByPk(id, {
         attributes: ['id', 'name', 'email', 'isConfirmed'], // 👈 safe fields only
       });
+      if (user && process.env.NODE_ENV !== 'production') {
+        console.log('📦 deserializeUser ->', user.email);
+      }
 
       if (!user) {
         console.warn('⚠️ User not found during deserializeUser:', id);
@@ -28,7 +31,7 @@ function initializePassport() {
       }
 
       console.log('📦 deserializeUser -> req.user:', user.email);
-      done(null, user);
+      done(null, user || false);
     } catch (err) {
       console.error('🔥 Error in deserializeUser:', err);
       done(err);

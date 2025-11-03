@@ -120,29 +120,17 @@ exports.getLogin = (req, res) => {
 };
 
 
-// POST /login (for both EJS + API style)
-exports.postLogin = async (req, res) => {
-  try {
-    console.log('📥 POST /login body:', req.body);
+exports.postLogin = (req, res, next) => {
+  console.log('📥 POST /login attempt:', req.body.email);
 
-    const { email, password } = req.body;
-
-    console.log('🟢 Login attempt for:', email);
-
-    // Basic validation
-    if (!email || !password) {
-      const msg = 'Email and password are required';
-      if (req.headers.accept?.includes('application/json')) {
-        return res.status(400).json({ error: msg });
-      }
-      req.flash('error', msg);
-      return res.redirect('/login');
+  passport.authenticate('local', async (err, user, info) => {
+    if (err) {
+      console.error('🔥 Passport error:', err);
+      return next(err);
     }
 
-    // Find user
-    const user = await User.findOne({ where: { email } });
     if (!user) {
-      const msg = 'Invalid email or password';
+      const msg = info?.message || 'Invalid email or password';
       if (req.headers.accept?.includes('application/json')) {
         return res.status(401).json({ error: msg });
       }
@@ -150,84 +138,169 @@ exports.postLogin = async (req, res) => {
       return res.redirect('/login');
     }
 
-    // Confirm email
-    if (!user.isConfirmed) {
-      const msg = 'Please confirm your email first';
-      if (req.headers.accept?.includes('application/json')) {
-        return res.status(403).json({ error: msg });
-      }
-      req.flash('error', msg);
-      return res.redirect('/login');
-    }
-
-    // Validate password
-    const validPassword = await bcrypt.compare(password, user.password);
-    if (!validPassword) {
-      const msg = 'Invalid email or password';
-      if (req.headers.accept?.includes('application/json')) {
-        return res.status(401).json({ error: msg });
-      }
-      req.flash('error', msg);
-      return res.redirect('/login');
-    }
-
+    // Now establish a session for this user
     req.login(user, async (err) => {
       if (err) {
-        console.error('🔥 req.login error:', err)
+        console.error('🔥 req.login error:', err);
         return next(err);
       }
-      
-    // ✅ Generate JWT tokens using utils
-    const accessToken = generateAccessToken(user);
-    const refreshToken = await generateRefreshToken(user);
 
-    console.log(`✅ User ${email} logged in successfully`);
-    console.log(`📌 Access token length (15): ${accessToken.length}`);
-    console.log(`📌 Refresh token length (7d): ${refreshToken.length}`);
+      console.log('✅ Session created for user:', user.email);
 
-    // ✅ Store tokens as cookies (optional)
-    res.cookie('accessToken', accessToken, {
-      httpOnly: false, // readable by frontend if you want
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax', // 'None' for cross-site in prod (with HTTPS), 'Lax' in dev
-      path: "/",
-      maxAge: 15 * 60 * 1000,  // 15 min
-    });
-    
-    res.cookie('refreshToken', refreshToken, {
-      httpOnly: true, // only backend can read this
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax', // 'None' for cross-site in prod (with HTTPS), 'Lax' in dev
-      maxAge: 1000 * 60 * 60 * 24,  // 1 days
-      path: "/",
-    });
-    
+      // Generate JWT tokens
+      const accessToken = generateAccessToken(user);
+      const refreshToken = await generateRefreshToken(user);
 
-    // ✅ 👉 Decide response depending on request type
-    // Check if request expects JSON (API) or HTML (EJS form submit)
-    if (req.headers.accept?.includes('application/json')) {
-      // For fetch / API client (fetch/AJAX)
-      return res.status(200).json({
-        message: 'Login successful',
-        accessToken,
-        refreshToken,
+      console.log(`✅ User ${user.email} logged in successfully`);
+      console.log(`📌 Access token length (15): ${accessToken.length}`);
+      console.log(`📌 Refresh token length (7d): ${refreshToken.length}`);
+
+      // Set cookies
+      res.cookie('accessToken', accessToken, {
+        httpOnly: false,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
+        path: "/",
+        maxAge: 15 * 60 * 1000,
       });
-    } else {
-      // Browser form → use session + redirect (HTML/EJS) for normal EJS form submission
-      req.flash('success', 'Welcome back!');
-      return res.redirect('/dashboard');
-    }
-  });
 
-  } catch (err) {
-    console.error('🔥 Login error:', err);
-    if (req.headers.accept?.includes('application/json')) {
-      return res.status(500).json({ error: 'Internal server error'  });
-    }
-    req.flash('error', 'Something went wrong. Please try again.');
-    return res.redirect('/login');
-  }
+      res.cookie('refreshToken', refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
+        path: "/",
+        maxAge: 1000 * 60 * 60 * 24,
+      });
+
+      // Respond accordingly
+      if (req.headers.accept?.includes('application/json')) {
+        return res.status(200).json({
+          message: 'Login successful',
+          accessToken,
+          refreshToken,
+        });
+      } else {
+        req.flash('success', 'Welcome back!');
+        return res.redirect('/dashboard');
+      }
+    });
+  })(req, res, next);
 };
+
+
+
+// // POST /login (for both EJS + API style)
+// exports.postLogin = async (req, res, next) => {
+//   try {
+//     console.log('📥 POST /login body:', req.body);
+
+//     const { email, password } = req.body;
+
+//     console.log('🟢 Login attempt for:', email);
+
+//     // Basic validation
+//     if (!email || !password) {
+//       const msg = 'Email and password are required';
+//       if (req.headers.accept?.includes('application/json')) {
+//         return res.status(400).json({ error: msg });
+//       }
+//       req.flash('error', msg);
+//       return res.redirect('/login');
+//     }
+
+//     // Find user
+//     const user = await User.findOne({ where: { email } });
+//     if (!user) {
+//       const msg = 'Invalid email or password';
+//       if (req.headers.accept?.includes('application/json')) {
+//         return res.status(401).json({ error: msg });
+//       }
+//       req.flash('error', msg);
+//       return res.redirect('/login');
+//     }
+
+//     // Confirm email
+//     if (!user.isConfirmed) {
+//       const msg = 'Please confirm your email first';
+//       if (req.headers.accept?.includes('application/json')) {
+//         return res.status(403).json({ error: msg });
+//       }
+//       req.flash('error', msg);
+//       return res.redirect('/login');
+//     }
+
+//     // Validate password
+//     const validPassword = await bcrypt.compare(password, user.password);
+//     if (!validPassword) {
+//       const msg = 'Invalid email or password';
+//       if (req.headers.accept?.includes('application/json')) {
+//         return res.status(401).json({ error: msg });
+//       }
+//       req.flash('error', msg);
+//       return res.redirect('/login');
+//     }
+
+//     // --- SESSION LOGIN ---
+//      req.login(user, async (err) => {
+//       if (err) {
+//         console.error('🔥 req.login error:', err)
+//         return next(err);
+//       }
+
+//       console.log('✅ Session created for user:', user.email);
+      
+//     // ✅ Generate JWT tokens using utils
+//     const accessToken = generateAccessToken(user);
+//     const refreshToken = await generateRefreshToken(user);
+
+//     console.log(`✅ User ${email} logged in successfully`);
+//     console.log(`📌 Access token length (15): ${accessToken.length}`);
+//     console.log(`📌 Refresh token length (7d): ${refreshToken.length}`);
+
+//     // ✅ Store tokens as cookies (optional)
+//     res.cookie('accessToken', accessToken, {
+//       httpOnly: false, // readable by frontend if you want
+//       secure: process.env.NODE_ENV === 'production',
+//       sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax', // 'None' for cross-site in prod (with HTTPS), 'Lax' in dev
+//       path: "/",
+//       maxAge: 15 * 60 * 1000,  // 15 min
+//     });
+    
+//     res.cookie('refreshToken', refreshToken, {
+//       httpOnly: true, // only backend can read this
+//       secure: process.env.NODE_ENV === 'production',
+//       sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax', // 'None' for cross-site in prod (with HTTPS), 'Lax' in dev
+//       maxAge: 1000 * 60 * 60 * 24,  // 1 days
+//       path: "/",
+//     });
+
+//     console.log(`✅ ${user.email} logged in successfully`);
+
+//     // ✅ 👉 Decide response depending on request type
+//     // Check if request expects JSON (API) or HTML (EJS form submit)
+//     if (req.headers.accept?.includes('application/json')) {
+//       // For fetch / API client (fetch/AJAX)
+//       return res.status(200).json({
+//         message: 'Login successful',
+//         accessToken,
+//         refreshToken,
+//       });
+//     } else {
+//       // Browser form → use session + redirect (HTML/EJS) for normal EJS form submission
+//       req.flash('success', 'Welcome back!');
+//       return res.redirect('/dashboard');
+//     }
+//   });
+
+//   } catch (err) {
+//     console.error('🔥 Login error:', err);
+//     if (req.headers.accept?.includes('application/json')) {
+//       return res.status(500).json({ error: 'Internal server error'  });
+//     }
+//     req.flash('error', 'Something went wrong. Please try again.');
+//     return res.redirect('/login');
+//   }
+// };
 
 
 
@@ -264,6 +337,7 @@ exports.refreshToken = async (req, res) => {
     return res.status(403).json({ error: 'Invalid or expired token' });
   }
 };
+
 
 // Unified logout - handles both session + JWT
 exports.unifiedLogout = async (req, res) => {

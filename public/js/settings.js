@@ -1,5 +1,6 @@
 // public/js/settings.js  (rename file from sittings.js -> settings.js)
-fetch('/profile/settings', { headers: { Authorization: 'Bearer ' + localStorage.getItem('accessToken') } })
+fetch('/profile/settings', { 
+  headers: { Authorization: 'Bearer ' + localStorage.getItem('accessToken') } })
   .then(res => res.json())
   .then(data => {
     if (data.email_notifications) document.querySelector('[name="email_notifications"]').checked = true;

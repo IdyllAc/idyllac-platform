@@ -55,6 +55,7 @@ exports.getProfile = async (req, res) => {
   }
 };
 
+
 /**
  * POST /profile
  * Create or update user profile (whitelisted fields only).

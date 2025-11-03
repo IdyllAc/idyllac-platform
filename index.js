@@ -7,13 +7,13 @@ console.log('✅ Environment:', process.env.NODE_ENV || 'development');
 const express = require('express');
 const path = require('path');
 const cors = require('cors');
-const flash = require('express-flash');
 const methodOverride = require('method-override');
 const session = require('express-session');
 const pgSession = require('connect-pg-simple')(session);
 const passport = require('passport');
+const flash = require('connect-flash');
 const { Pool } = require('pg');
-const { sequelize, User } = require('./models');
+const { sequelize} = require('./models');
 const initializePassport = require('./config/passport');
 const jwtMiddleware = require('./middleware/jwtMiddleware');
 const combinedAuth = require('./middleware/combinedAuth');
@@ -30,6 +30,8 @@ const subscribeRoutes = require('./routes/subscribe');
 const messageRoutes = require('./routes/message');
 const protectRoutes = require('./routes/protect');      // Docs, selfie
 const profileRoutes = require('./routes/profile');
+const dashboardRoutes = require('./routes/dashboard');
+const socialAuthRoutes = require('./routes/authSocial');
 
 /***********************
  *  APP INIT
@@ -56,21 +58,12 @@ app.set('view engine', 'ejs');
 
 
 /***********************
- *  MIDDLEWARE
+ *  MIDDLEWARE, SECURITY + STATIC FILES
  ***********************/
+app.use(helmet());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
-// app.use('/protect', express.static('public'));
-app.use(helmet());
-// app.use(
-//   helmet.contentSecurityPolicy({
-//     directives: {
-//       defaultSrc: ["'self'"],
-//       scriptSrc: ["'self'", "'unsafe-inline'"],
-//     },
-//   })
-// );
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 
@@ -89,7 +82,9 @@ app.use(
 );
 
 
-
+/***********************
+ *  SESSION STORE
+ ***********************/
 let pgPool;
 
 if (process.env.NODE_ENV === 'production') {
@@ -116,10 +111,13 @@ const store = new pgSession({
   createTableIfMissing: true,  // ✅ auto-create table if missing in dev but not prod (ensure it exists in prod) and should run a migration instead of auto-creating.
 });
 
+/***********************
+ *  CORE MIDDLEWARES
+ ***********************/
+app.use(cookieParser()); // ✅ parse cookies into req.cookies
 
 // ✅ Using the store defined above with session middleware plug into Express
-app.use(
-  session({
+app.use(session({
     store, // <-- your configured store (MySQL, Redis, PostgreSQL, etc.)
     secret: process.env.SESSION_SECRET || "super-secret-key", // 🔑 required
     resave: false,             // recommended
@@ -132,13 +130,32 @@ app.use(
       sameSite: process.env.NODE_ENV === "production" ? "None" : "Strict", // 'None' for cross-site in prod (with HTTPS), 'Strict' in dev
       // path: '/', // cookie valid for entire site
     },
-  })
-);
+  }));
 
-
+// 3️⃣ Passport (after session)
+app.use(passport.initialize());
+app.use(passport.session());
 app.use(flash());
 app.use(methodOverride('_method'));
 
+/***********************
+ *  GLOBAL LOCALS
+ ***********************/
+// 👇 make req.user available to all EJS templates
+app.use((req, res, next) => {
+  res.locals.user = req.user || null;
+  next();
+});
+
+// Make flash messages available in all templates
+app.use((req, res, next) => {
+  res.locals.messages = req.flash();
+  next();
+});
+
+/***********************
+ *  CORS
+ ***********************/
 app.use(cors({
   origin: [
     process.env.BASE_URL,
@@ -147,19 +164,6 @@ app.use(cors({
   ],
   credentials: true,
 }));
-// app.use(cors({ origin: process.env.BASE_URL, credentials: true }));
-
-app.use(cookieParser()); // ✅ parse cookies into req.cookies
-
-// app.use(session({ /* ... */ }));
-app.use(passport.initialize());
-app.use(passport.session());
-
-// 👇 make req.user available to all EJS templates
-app.use((req, res, next) => {
-  res.locals.user = req.user;
-  next();
-});
 
 /***********************
  *  SESSION HELPERS
@@ -180,22 +184,23 @@ function checkNotAuthenticated(req, res, next) {
 // Auto language detection for root route
 app.get('/', (req, res) => {
   const lang = req.acceptsLanguages('ar', 'en', 'fr') || 'en';
+  const fileMap = { ar: 'indexAr.html', fr: 'indexFr.html', en: 'indexEn.html' };
 
-  let fileName;
-  switch (lang) {
-    case 'ar':
-      fileName = 'indexAr.html';
-      break;
-    case 'fr':
-      fileName = 'indexFr.html';
-      break;
-    case 'en':
-    default:
-      fileName = 'indexEn.html';
-      break;
-  }
+  // let fileName;
+  // switch (lang) {
+  //   case 'ar':
+  //     fileName = 'indexAr.html';
+  //     break;
+  //   case 'fr':
+  //     fileName = 'indexFr.html';
+  //     break;
+  //   case 'en':
+  //   default:
+  //     fileName = 'indexEn.html';
+  //     break;
+  // }
 
-  res.sendFile(path.join(__dirname, 'public', fileName));
+  res.sendFile(path.join(__dirname, 'public', fileMap[lang] || 'indexEn.html'));
 });
 
 // Public static pages
@@ -223,7 +228,7 @@ app.get('/register', checkNotAuthenticated, (req, res) => res.render('register')
 // Public HTML pages (EJS)
 app.use('/', publicRoutes); // EJS routes (login, register, static pages)
 app.use('/subscribe', subscribeRoutes); // subscription forms (email/social)
-app.use('/auth', require('./routes/authSocial'));
+app.use('/auth', socialAuthRoutes);
 app.use('/message', messageRoutes); // contact/message forms 
 app.use('/profile', profileRoutes); // or app.use('/api', profileRoutes) depending on your structure
 
@@ -232,8 +237,8 @@ app.use('/profile', profileRoutes); // or app.use('/api', profileRoutes) dependi
 // JSON API
 app.use('/api/auth', authRoutes); // API Login/register/logout API
 app.use('/api/user', jwtMiddleware, userRoutes); // user API
-app.use('/protect', combinedAuth, protectRoutes);
-app.use('/dashboard', require('./routes/dashboard')); // dashboard (session protected)
+app.use('/protact', combinedAuth, protectRoutes);
+app.use('/dashboard', dashboardRoutes); // dashboard (session protected)
 
 
 /***********************
@@ -247,15 +252,13 @@ app.use((err, req, res, next) => {
 /***********************
  *  DATABASE CONNECT
  ***********************/
-sequelize
-  .sync()
-  .then(() => console.log('✅ ALL models synced'))
-  .catch(err => console.error('❌ Sync error:', err));
-
-sequelize
-  .authenticate()
+sequelize.authenticate()
   .then(() => console.log('✅ Database connected'))
   .catch(err => console.error('❌ DB connection error:', err));
+
+sequelize.sync()
+  .then(() => console.log('✅ ALL models synced'))
+  .catch(err => console.error('❌ Sync error:', err));
 
 /***********************
  *  START SERVER
