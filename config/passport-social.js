@@ -7,12 +7,12 @@ const instagramStrategy = require('./passport-instagram');
 const linkedinStrategy = require('./passport-linkedin');
 
 function configureSocialStrategies(passport) {
-  facebookStrategy(passport);
-  googleStrategy(passport);
-  githubStrategy(passport);
-  twitterStrategy(passport);
-  instagramStrategy(passport);
-  linkedinStrategy(passport);
+  require('./passport-google')(passport);
+  require('./passport-facebook')(passport);
+  require('./passport-github')(passport);
+  require('./passport-twitter')(passport);
+  require('./passport-instagram')(passport);
+  require('./passport-linkedin')(passport);
 }
 
 module.exports = configureSocialStrategies;

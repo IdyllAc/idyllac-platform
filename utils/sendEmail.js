@@ -46,6 +46,8 @@ async function sendEmail(to, subject, token) {
   };
 
   console.log("📧 Attempting to send email to:", to);
+  console.log('SMTP host:', process.env.SMTP_HOST, 'port:', process.env.SMTP_PORT);
+
 
   try {
     const info = await transporter.sendMail(mailOptions);
