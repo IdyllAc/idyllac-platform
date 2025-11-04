@@ -1,22 +1,41 @@
 // utils/sendEmail.js
 const nodemailer = require("nodemailer");
 
-function normalizeBase(url) {
-  return url ? url.replace(/\/+$/, "") : "";
+function requireEnv(name) {
+  if (!process.env[name]) {
+    console.error(`⚠️ Missing ENV variable: ${name}`);
+  }
+  return process.env[name];
 }
 
-const BASE_URL = normalizeBase(process.env.BASE_URL) || "http://localhost:3000";
+const BASE_URL = (requireEnv("BASE_URL") || "http://localhost:3000").replace(/\/+$/, "");
 
-// Create reusable transporter (auto-detect secure mode from port)
 const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST || "smtp.gmail.com",
-  port: parseInt(process.env.SMTP_PORT || "465", 10),
-  secure: process.env.SMTP_SECURE === "true" || process.env.SMTP_PORT === "465", // true for 465, false for 587
+  host: requireEnv("SMTP_HOST"),
+  port: parseInt(requireEnv("SMTP_PORT") || "465", 10),
+  secure: process.env.SMTP_SECURE === "true" || process.env.SMTP_PORT === "465",
   auth: {
-    user: process.env.SMTP_USER, // Gmail address
-    pass: process.env.SMTP_PASS, // App Password
+    user: requireEnv("SMTP_USER"),
+    pass: requireEnv("SMTP_PASS"),
   },
 });
+
+// function normalizeBase(url) {
+//   return url ? url.replace(/\/+$/, "") : "";
+// }
+
+// const BASE_URL = normalizeBase(process.env.BASE_URL) || "http://localhost:3000";
+
+// // Create reusable transporter (auto-detect secure mode from port)
+// const transporter = nodemailer.createTransport({
+//   host: process.env.SMTP_HOST || "smtp.gmail.com",
+//   port: parseInt(process.env.SMTP_PORT || "465", 10),
+//   secure: process.env.SMTP_SECURE === "true" || process.env.SMTP_PORT === "465", // true for 465, false for 587
+//   auth: {
+//     user: process.env.SMTP_USER, // Gmail address
+//     pass: process.env.SMTP_PASS, // App Password
+//   },
+// });
 
 // Send a confirmation email GIVEN a token (helper builds the URL)
 async function sendEmail(to, subject, token) {
