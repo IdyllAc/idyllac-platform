@@ -50,6 +50,7 @@ if (process.env.NODE_ENV === "production") {
 /***********************
  *  PASSPORT INIT
  ***********************/
+// Initialize all strategies (local + social)
 initializePassport(passport);
 
 /***********************

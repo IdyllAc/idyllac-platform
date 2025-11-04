@@ -1,12 +1,7 @@
 // /config/passport-social.js
-const facebookStrategy = require('./passport-facebook');
-const googleStrategy = require('./passport-google');
-const githubStrategy = require('./passport-github');
-const twitterStrategy = require('./passport-twitter');
-const instagramStrategy = require('./passport-instagram');
-const linkedinStrategy = require('./passport-linkedin');
 
 function configureSocialStrategies(passport) {
+  // Dynamically load each provider config
   require('./passport-facebook')(passport);
   require('./passport-google')(passport);
   require('./passport-github')(passport);
@@ -15,4 +10,5 @@ function configureSocialStrategies(passport) {
   require('./passport-linkedin')(passport);
 }
 
+// ✅ Export as an object (so passport.js can destructure it)
 module.exports = { configureSocialStrategies };
