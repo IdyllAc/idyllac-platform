@@ -11,7 +11,7 @@ module.exports = {
     port: process.env.DB_PORT || 5432,
     logging: false,
     dialectOptions: {
-      ssl: false, // 👈 no SSL locally
+      ssl: false, // 👈 no SSL local dev
     },
   },
 
@@ -32,11 +32,11 @@ module.exports = {
     use_env_variable: "DATABASE_URL",
     dialect: "postgres",
     dialectOptions: {
-      ssl: true,
-      // {
-      //   // require: true,
-      //   rejectUnauthorized: false, // Render self-signed certs
-      // },
+      ssl: {
+         require: true,
+         rejectUnauthorized: false, // ✅ Render self-signed certs
+       },
     },
+    logging: false,
   },
 };

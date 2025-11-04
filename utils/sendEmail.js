@@ -7,11 +7,11 @@ function normalizeBase(url) {
 
 const BASE_URL = normalizeBase(process.env.BASE_URL) || "http://localhost:3000";
 
-// Create transporter once (development)
+// Create reusable transporter (auto-detect secure mode from port)
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST || "smtp.gmail.com",
   port: parseInt(process.env.SMTP_PORT || "465", 10),
-  secure: (process.env.SMTP_PORT || "465") === "465", // true for 465, false for 587
+  secure: process.env.SMTP_SECURE === "true" || process.env.SMTP_PORT === "465", // true for 465, false for 587
   auth: {
     user: process.env.SMTP_USER, // Gmail address
     pass: process.env.SMTP_PASS, // App Password
@@ -20,14 +20,18 @@ const transporter = nodemailer.createTransport({
 
 // Send a confirmation email GIVEN a token (helper builds the URL)
 async function sendEmail(to, subject, token) {
+  if (!to || !subject) {
+    throw new Error("sendEmail() requires 'to' and 'subject'");
+  }
+
   if (typeof token !== "string" || token.length < 10) {
-    throw new Error("sendEmail(token) must be a token string");
+    throw new Error("sendEmail(token) must be a valid token string");
   }
 
   const confirmUrl = `${BASE_URL}/api/auth/confirm-email/${token}`;
 
   const mailOptions = {
-    from: process.env.SMTP_FROM || process.env.SMTP_USER,
+    from: process.env.SMTP_FROM || `"AnyPay" <${process.env.SMTP_USER}>`,
     to,
     subject,
     text: `Please confirm your email by clicking this link: ${confirmUrl}`,
@@ -40,23 +44,25 @@ async function sendEmail(to, subject, token) {
           Confirm Email
         </a>
       </p>
-      <p>Or copy and paste this link into your browser:</p>
+      <p>If the button doesn’t work, copy and paste this link:</p>
       <p><a href="${confirmUrl}">${confirmUrl}</a></p>
     `,
   };
 
-  console.log("📧 Attempting to send email to:", to);
-  console.log('SMTP host:', process.env.SMTP_HOST, 'port:', process.env.SMTP_PORT);
-
-
+  console.log(`📧 Preparing to send email:
+    To: ${to}
+    SMTP: ${process.env.SMTP_HOST}:${process.env.SMTP_PORT}
+    Secure: ${process.env.SMTP_SECURE}
+    BASE_URL: ${BASE_URL}
+  `);
+  
   try {
     const info = await transporter.sendMail(mailOptions);
-    console.log(`✅ Email sent to ${to} with subject "${subject}"`);
+    console.log(`✅ Email sent to ${to} ${info.messageId}`);
     console.log(`📩 Confirmation link: ${confirmUrl}`);
-    console.log(`Message ID: ${info.messageId}`);
     return info;
   } catch (err) {
-    console.error("❌ Email sending failed:", err);
+    console.error("❌ Email sending failed:", err.message);
     throw err;
   }
 }
