@@ -1,4 +1,3 @@
-require('dotenv').config();
 const sequelize = require('./config/database');
 
 sequelize.authenticate()

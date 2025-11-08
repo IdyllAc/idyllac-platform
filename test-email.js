@@ -11,7 +11,7 @@
 //   }
 // })();
 
-require('dotenv').config();
+// test-email.js
 const nodemailer = require('nodemailer');
 
 function normalizeBase(url) {
