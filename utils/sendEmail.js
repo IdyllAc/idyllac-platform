@@ -37,6 +37,7 @@ if (USE_SENDGRID) {
 async function sendEmail(to, subject, token) {
   if (!to || !subject) {
     throw new Error("sendEmail() requires 'to' and 'subject'");
+
   }
 
   if (typeof token !== "string" || token.length < 10) {
@@ -68,9 +69,10 @@ async function sendEmail(to, subject, token) {
     if (USE_SENDGRID) {
       await sgMail.send({
         to,
-        from: process.env.SMTP_FROM || "AnyPay <no-reply@anypay.cards>",
+        from: process.env.SMTP_FROM || "no-reply@anypay.cards",
         subject,
         html,
+        text: `Please confirm your email by visiting: ${confirmUrl}`,
       });
       console.log(`✅ Email sent via SendGrid to ${to}`);
     } else {
