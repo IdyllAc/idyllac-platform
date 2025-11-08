@@ -145,6 +145,11 @@ exports.postLogin = (req, res, next) => {
         return next(err);
       }
 
+      if (!req.user) {
+        console.warn('⚠️ req.user not set after req.login, forcing manual attach');
+        req.user = user; // Fallback (rarely needed)
+      }
+
       console.log('✅ Session created for user:', user.email);
 
       // Generate JWT tokens

@@ -34,9 +34,6 @@ const protectRoutes = require('./routes/protect');      // Docs, selfie
 const profileRoutes = require('./routes/profile');
 const dashboardRoutes = require('./routes/dashboard');
 const socialAuthRoutes = require('./routes/authSocial');
-require('./config/passport-config').configureLocalStrategy(passport);
-require('./config/passport-social').configureSocialStrategies(passport); // ✅ Add this line
-
 
 /***********************
  *  APP INIT
