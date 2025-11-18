@@ -22,7 +22,7 @@
       margin-bottom: 10px;
     }
 
-    #preview { display: none; margin-top: 10px; }
+    /* #preview { display: none; margin-top: 10px; } */
 
     /* ✅ Button styles */
     .btn {
@@ -51,15 +51,22 @@
 <body>
   <h2>📸 Take Your Selfie</h2>
 
-  <form id="selfie-form" method="POST" enctype="multipart/form-data">
-    <video id="video" width="320" height="240" style="display: block; margin:auto;" autoplay playsinline></video><br />
+  <form id="selfie-form">
+    <div class="camera-container">
+    <video id="video" width="320" height="240" style="display: block; margin:auto;" autoplay playsinline></video>
+    <canvas id="canvas" width="320" height="240" style="display:none;"></canvas>
+    <img id="preview" alt="Your selfie will appear here" width="320" height="240" style="display: none;" />
+  </div>
+
     <button id="snap" type="button" class="btn btn-outline">Snap Photo</button>
 
-    <canvas id="canvas" width="320" height="240" style="display:none;"></canvas>
-    <img id="preview" alt="Your selfie will appear here" width="320" height="240" style="display: none ;"/>
 
-    <input type="file" id="selfieInput" accept="image/*" />
-    <button type="submit" id="uploadBtn" class="btn btn-primary">Upload</button>
+    <div class="file-upload">
+      <label>Or select image:</label>
+    <input type="file" id="selfieInput" name="selfie" accept="image/*" capture="user" />  
+    </div>
+
+    <button id="uploadBtn" type="submit" class="btn btn-primary">Upload Silfie</button>
   </form>
 
   <div class="form-actions">

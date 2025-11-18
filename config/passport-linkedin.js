@@ -8,25 +8,34 @@ module.exports = (passport) => {
     return;
   }
 
-  passport.use(new LinkedInStrategy({
+  console.log('✅ Linkedin OAuth strategy loaded');
+
+  passport.use(
+    new LinkedInStrategy(
+    {
     clientID: process.env.LINKEDIN_CLIENT_ID,
     clientSecret: process.env.LINKEDIN_CLIENT_SECRET,
-    callbackURL: '/auth/linkedin/callback',
+    callbackURL: `${process.env.NODE_URL}/auth/linkedin/callback`,
     scope: ['r_emailaddress', 'r_liteprofile']
-  }, async (accessToken, refreshToken, profile, done) => {
+  }, 
+  async (accessToken, refreshToken, profile, done) => {
     try {
+      const email = profile.emails?.[0]?.value || `${profile.id}@linkedin.temp`;
+      const avatar = profile.photos?.[0]?.value || null;
+
       const [user] = await SocialUser.findOrCreate({
-        where: { provider_id: profile.id },
+        where: { email },
         defaults: {
+          name: profile.displayName || profile.username,
           provider: 'linkedin',
-          name: profile.displayName,
-          email: profile.emails?.[0]?.value || null,
-          avatar_url: profile.photos?.[0]?.value || null,
+          isConfirmed: true,
         },
       });
-      done(null, user);
+
+     return done(null, user);
     } catch (err) {
-      done(err, null);
+      console.error('❌ Linkedin OAuth error:', err);
+      return done(err, null);
     }
   }));
 };

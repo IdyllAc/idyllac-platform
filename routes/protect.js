@@ -16,7 +16,7 @@ const progressController = require('../controllers/progressController');
 const { personalValidator } = require('../validators/personalValidator');
 const { documentValidator } = require('../validators/documentValidator');
 const { selfieValidator } = require('../validators/selfieValidator');
-const profileController = require('../controllers/profileController');
+// const profileController = require('../controllers/profileController');
 
 
 // Configure multer storage for file uploads
@@ -105,13 +105,9 @@ router.get("/selfie/success", (req, res) => {
   res.render("success"); // looks for views/success.ejs
 });
 
-// Dashboard page
-router.get("/dashboard", (req, res) => {
-  res.render("dashboard", {   // views/dashboard.ejs
-    user: req.user,
-  progress: 0  // 👈 default value (or compute dynamically)
-   }); 
-});
+// // Dashboard page
+ //    ... 
+// });
 
 
 module.exports = router;

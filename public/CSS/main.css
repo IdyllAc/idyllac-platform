@@ -1,5 +1,5 @@
-@import url("fontawesome-all.min.css");
-@import url("https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,300italic,600,600italic");
+/* @import url("fontawesome-all.min.css");
+@import url("https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,300italic,600,600italic"); */
 
 /*
 	IdyllAc workspace of the mean page
@@ -241,21 +241,22 @@
 
 				#nav > ul > li > ul {
 					display: none;
-				} 
+				}  
+				  
 
   /* Banner */
 
   #banner {
 		background-image: url("../img/banner.jpg");
 		background-position: center;
-		background-size: cover;
-		height: 48em;
+		background-size:cover;
+		height:20em;
 		text-align: center;
 		position: relative;
 	}
 
 		  #banner header {
-			position:absolute;
+			position: absolute;
 			bottom: 0;
 			left: 0;
 			width: 100%;
@@ -273,13 +274,13 @@
 		}
 
 			
-		 #banner header h2 {
+		 /* #banner header h2 {
 			 display: inline-block;
 			 margin: 0;
 			 font-size: 1.5em;
 			 vertical-align: middle;
 			 color:#37c0fb;
-			}
+			} */
 
 		  #banner  header  h3 { 
 				display: inline-block;
@@ -382,9 +383,9 @@
 
 		/* Banner */
 
-			#banner {
+			/* #banner {
 				height: 24em;
-			}
+			} */
 
 	}
 
@@ -394,39 +395,37 @@
 
 		/* Basic */
 
-			body{
+			/* body{
 				font-size: 14pt;
 				line-height: 1.5em;
-			}
+			} */
 
 
     	/* Icons */
 
-			ul.icons li a, ul.icons li span {
+			/* ul.icons li a, ul.icons li span {
 				font-size: 1.5em;
-			}
+			} */
 
    /* Header */
 
-			#header {
+			/* #header {
 				padding: 2em 0 0 0;
-			}
+			} */
 
-				#header h1 {
-					padding: 0 0 1.75em 0;
-				}
+				
 
     /* Banner */
 
-			#banner {
+			/* #banner {
 				height: 22em;
-			}
+			} */
 
    /* Wrapper */
 
-			.wrapper {
+			/* .wrapper {
 				padding: 3em 0 1em 0;
-			}
+			} */
 
 	}
 

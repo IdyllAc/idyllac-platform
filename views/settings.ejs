@@ -1,6 +1,338 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Settings — IdyllAc</title>
+  <style>
+    :root{--bg:#111827;--card:#1f2937;--muted:#9ca3af;--accent:#0072ff;--soft:#111}
+    body{margin:0;font-family:Inter,system-ui,Arial; background:var(--bg);color:#fff}
+    .shell{max-width:1100px;margin:28px auto;padding:18px}
+    h1{font-size:1.6rem;margin:0 0 14px}
+    .grid{display:grid;grid-template-columns:300px 1fr;gap:18px}
+    aside.card{background:var(--card);padding:16px;border-radius:10px}
+    main.card{background:var(--card);padding:18px;border-radius:10px}
+    .section{margin-bottom:18px}
+    .section h2{font-size:1rem;margin:0 0 10px;color:#fff}
+    label{display:block;font-size:.9rem;color:var(--muted);margin-bottom:6px}
+    .row{display:flex;gap:12px;align-items:center;margin-bottom:12px}
+    input[type="text"], input[type="number"], select{width:100%;padding:8px;border-radius:6px;border:1px solid #2b2f3a;background:#0f1720;color:#fff}
+    .controls{display:flex;flex-wrap:wrap;gap:10px}
+    .btn{background:var(--accent);color:#fff;padding:10px 14px;border-radius:8px;border:none;cursor:pointer}
+    .muted{color:var(--muted);font-size:.9rem}
+    .checkbox-label{display:flex;gap:8px;align-items:center}
+    .group{background:#0b1220;padding:12px;border-radius:8px;margin-bottom:12px}
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
+      <h1>Settings</h1>
+      <div class="muted">Signed in as <strong><%= user?.email %></strong></div>
+    </header>
+
+    <div class="grid">
+      <!-- Sidebar -->
+      <aside class="card">
+        <nav>
+          <ul style="list-style:none;padding:0;margin:0">
+            <li style="margin-bottom:8px"><a href="#general" class="muted">General</a></li>
+            <li style="margin-bottom:8px"><a href="#notifications" class="muted">Notifications</a></li>
+            <li style="margin-bottom:8px"><a href="#security" class="muted">Security & Login</a></li>
+            <li style="margin-bottom:8px"><a href="#privacy" class="muted">Privacy & Visibility</a></li>
+            <li style="margin-bottom:8px"><a href="#interface" class="muted">Interface & Display</a></li>
+            <li style="margin-bottom:8px"><a href="#account" class="muted">Account Preferences</a></li>
+          </ul>
+        </nav>
+      </aside>
+
+      <!-- Main -->
+      <main class="card">
+        <form id="settings-form" action="/profil/settings" method="POST">
+          <!-- General -->
+          <div id="general" class="section group">
+            <h2>General</h2>
+            <div class="row">
+              <label for="language">Preferred UI language</label>
+              <select id="language" name="language">
+                <option value="en">English</option>
+                <option value="fr">French</option>
+                <option value="ar">Arabic</option>
+                <option value="es">Spanish</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <div class="row">
+              <label for="timezone">Timezone</label>
+              <input type="text" id="timezone" name="timezone" placeholder="e.g. Europe/Paris" />
+            </div>
+          </div>
+
+          <!-- Notifications -->
+          <div id="notifications" class="section group">
+            <h2>Notifications</h2>
+            <div class="row checkbox-label">
+              <input type="checkbox" id="email_notifications" name="email_notifications" />
+              <label for="email_notifications">Email notifications</label>
+            </div>
+            <div class="row checkbox-label">
+              <input type="checkbox" id="sms_notifications" name="sms_notifications" />
+              <label for="sms_notifications">SMS notifications</label>
+            </div>
+            <div class="row checkbox-label">
+              <input type="checkbox" id="marketing_emails" name="marketing_emails" />
+              <label for="marketing_emails">Marketing & updates (email)</label>
+            </div>
+            <div class="row checkbox-label">
+              <input type="checkbox" id="app_notifications" name="app_notifications" />
+              <label for="app_notifications">In-app notifications</label>
+            </div>
+          </div>
+
+          <!-- Security -->
+          <div id="security" class="section group">
+            <h2>Security & Login</h2>
+            <div class="row checkbox-label">
+              <input type="checkbox" id="two_factor_enabled" name="two_factor_enabled" />
+              <label for="two_factor_enabled">Two-factor authentication (2FA)</label>
+            </div>
+
+            <div style="display:flex;gap:12px;align-items:center">
+              <div style="flex:0 0 220px">
+                <label for="auto_logout_minutes">Auto logout after (minutes)</label>
+                <input type="number" id="auto_logout_minutes" name="auto_logout_minutes" min="1" step="1" />
+              </div>
+              <div class="muted">Auto-logout keeps inactive sessions safe</div>
+            </div>
+          </div>
+
+          <!-- Privacy -->
+          <div id="privacy" class="section group">
+            <h2>Privacy & Visibility</h2>
+
+            <div class="row">
+              <label for="profile_visibility">Profile visibility</label>
+              <select id="profile_visibility" name="profile_visibility">
+                <option value="public">Public</option>
+                <option value="friends">Friends</option>
+                <option value="private">Private</option>
+              </select>
+            </div>
+
+            <div class="row checkbox-label">
+              <input type="checkbox" id="show_email" name="show_email" />
+              <label for="show_email">Show email on my profile</label>
+            </div>
+
+            <div class="row checkbox-label">
+              <input type="checkbox" id="show_phone" name="show_phone" />
+              <label for="show_phone">Show phone on my profile</label>
+            </div>
+
+            <div class="row checkbox-label">
+              <input type="checkbox" id="data_collection_opt_in" name="data_collection_opt_in" />
+              <label for="data_collection_opt_in">Allow anonymous data collection to improve service</label>
+            </div>
+
+            <div class="row checkbox-label">
+              <input type="checkbox" id="allow_tagging" name="allow_tagging" />
+              <label for="allow_tagging">Allow others to tag me</label>
+            </div>
+          </div>
+
+          <!-- Interface / Display -->
+          <div id="interface" class="section group">
+            <h2>Interface & Display</h2>
+            <div class="row checkbox-label">
+              <input type="checkbox" id="dark_mode" name="dark_mode" />
+              <label for="dark_mode">Enable dark mode</label>
+            </div>
+
+            <div class="row checkbox-label">
+              <input type="checkbox" id="auto_play_media" name="auto_play_media" />
+              <label for="auto_play_media">Auto-play media</label>
+            </div>
+
+            <div class="row checkbox-label">
+              <input type="checkbox" id="save_activity_history" name="save_activity_history" />
+              <label for="save_activity_history">Save activity history</label>
+            </div>
+          </div>
+
+          <!-- Account -->
+          <div id="account" class="section group">
+            <h2>Account Preferences</h2>
+            <div class="row">
+              <label for="content_language">Content language preference</label>
+              <select id="content_language" name="content_language">
+                <option value="en">English</option>
+                <option value="fr">French</option>
+                <option value="ar">Arabic</option>
+                <option value="es">Spanish</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:12px;align-items:center;margin-top:12px">
+            <button class="btn" type="submit">Save settings</button>
+            <button type="button" id="resetBtn" style="background:#666;color:#fff;padding:10px 12px;border-radius:8px;border:none;cursor:pointer">Reset</button>
+            <div class="muted" style="margin-left:auto">Settings are saved securely</div>
+          </div>
+        </form>
+      </main>
+    </div>
+  </div>
+
+  <script src="/js/settings.js"></script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+<!-- <!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Settings</title>
+  <style>
+    /* minimal styling to make controls readable */
+    body { font-family: Arial, sans-serif; background:#f7f8fb; color:#222; padding:20px; }
+    .card { max-width:820px; margin:28px auto; background:#fff; padding:18px; border-radius:8px; box-shadow:0 6px 18px rgba(0,0,0,.06); }
+    .row{ display:flex; gap:12px; align-items:center; margin:8px 0; }
+    label { min-width:170px; }
+    input[type="checkbox"]{ transform:scale(1.15); margin-right:8px; }
+    .btn{ padding:10px 16px; background:#0072ff; color:#fff; border-radius:6px; text-decoration:none; cursor:pointer; border:none; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>User Settings</h1>
+    <form id="settings-form" action="/profile/settings" method="POST">
+     #### server injects settings variable when rendering ####
+      <input type="hidden" id="user-id" value="<%= user?.id %>" />
+
+      <h3>Notifications</h3>
+      <div class="row">
+        <label for="email_notifications">Email notifications</label>
+        <input type="checkbox" id="email_notifications" name="email_notifications" <%= settings.email_notifications ? 'checked' : '' %> />
+      </div>
+
+      <div class="row">
+        <label for="sms_notifications">SMS notifications</label>
+        <input type="checkbox" id="sms_notifications" name="sms_notifications" <%= settings.sms_notifications ? 'checked' : '' %> />
+      </div>
+
+      <div class="row">
+        <label for="marketing_notifications">Marketing emails</label>
+        <input type="checkbox" id="marketing_notifications" name="marketing_notifications" <%= settings.marketing_notifications ? 'checked' : '' %> />
+      </div>
+
+      <div class="row">
+        <label for="security_alerts">Security alerts</label>
+        <input type="checkbox" id="security_alerts" name="security_alerts" <%= settings.security_alerts ? 'checked' : '' %> />
+      </div>
+
+      <h3>Security</h3>
+      <div class="row">
+        <label for="two_factor_enabled">Two-factor authentication</label>
+        <input type="checkbox" id="two_factor_enabled" name="two_factor_enabled" <%= settings.two_factor_enabled ? 'checked' : '' %> />
+        <select id="two_factor_method" name="two_factor_method">
+          <option value="email" <%= settings.two_factor_method === 'email' ? 'selected' : '' %>>Email</option>
+          <option value="sms" <%= settings.two_factor_method === 'sms' ? 'selected' : '' %>>SMS</option>
+          <option value="app" <%= settings.two_factor_method === 'app' ? 'selected' : '' %>>Authenticator App</option>
+        </select>
+      </div>
+
+      <h3>Localization</h3>
+      <div class="row">
+        <label for="language">Language</label>
+        <select id="language" name="language">
+          <option value="en" <%= settings.language === 'en' ? 'selected' : '' %>>English</option>
+          <option value="fr" <%= settings.language === 'fr' ? 'selected' : '' %>>Français</option>
+          <option value="ar" <%= settings.language === 'ar' ? 'selected' : '' %>>Arabic</option>
+        </select>
+      </div>
+
+      <div class="row">
+        <label for="timezone">Timezone</label>
+        <input id="timezone" name="timezone" value="<%= settings.timezone %>" />
+      </div>
+
+      <div class="row">
+        <label for="currency">Currency</label>
+        <input id="currency" name="currency" value="<%= settings.currency %>" />
+      </div>
+
+      <div class="row">
+        <label for="date_format">Date format</label>
+        <select id="date_format" name="date_format">
+          <option value="YYYY-MM-DD" <%= settings.date_format === 'YYYY-MM-DD' ? 'selected' : '' %>>YYYY-MM-DD</option>
+          <option value="DD-MM-YYYY" <%= settings.date_format === 'DD-MM-YYYY' ? 'selected' : '' %>>DD-MM-YYYY</option>
+          <option value="MM-DD-YYYY" <%= settings.date_format === 'MM-DD-YYYY' ? 'selected' : '' %>>MM-DD-YYYY</option>
+        </select>
+        <label style="margin-left:20px;">24h</label>
+        <input type="checkbox" id="time_format_24h" name="time_format_24h" <%= settings.time_format_24h ? 'checked' : '' %> />
+      </div>
+
+      <h3>Appearance</h3>
+      <div class="row">
+        <label for="dark_mode">Dark mode</label>
+        <input type="checkbox" id="dark_mode" name="dark_mode" <%= settings.dark_mode ? 'checked' : '' %> />
+      </div>
+
+      <div class="row">
+        <label for="text_size">Text size</label>
+        <select id="text_size" name="text_size">
+          <option value="small" <%= settings.text_size === 'small' ? 'selected' : '' %>>Small</option>
+          <option value="medium" <%= settings.text_size === 'medium' ? 'selected' : '' %>>Medium</option>
+          <option value="large" <%= settings.text_size === 'large' ? 'selected' : '' %>>Large</option>
+        </select>
+      </div>
+
+      <div class="row">
+        <label for="color_theme">Color theme</label>
+        <select id="color_theme" name="color_theme">
+          <option value="blue" <%= settings.color_theme === 'blue' ? 'selected' : '' %>>Blue</option>
+          <option value="green" <%= settings.color_theme === 'green' ? 'selected' : '' %>>Green</option>
+          <option value="purple" <%= settings.color_theme === 'purple' ? 'selected' : '' %>>Purple</option>
+        </select>
+      </div>
+
+      <h3>Other</h3>
+      <div class="row">
+        <label for="preferred_contact_method">Preferred contact</label>
+        <select id="preferred_contact_method" name="preferred_contact_method">
+          <option value="email" <%= settings.preferred_contact_method === 'email' ? 'selected' : '' %>>Email</option>
+          <option value="sms" <%= settings.preferred_contact_method === 'sms' ? 'selected' : '' %>>SMS</option>
+          <option value="phone" <%= settings.preferred_contact_method === 'phone' ? 'selected' : '' %>>Phone</option>
+        </select>
+      </div>
+
+      <div style="margin-top:18px;">
+        <button type="submit" class="btn">Save settings</button>
+        <a href="/dashboard" class="btn" style="background:#666; margin-left:8px;">Back</a>
+      </div>
+    </form>
+  </div>
+
+  <script src="/js/settings.js"></script>
+</body>
+</html> -->
+
+
+
+
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Settings</title>
@@ -71,7 +403,7 @@
 <body>
   <div class="settings-container">
     <h1>Settings</h1>
-    <form id="settings-form" action="sittings">
+    <form id="settings-form" action="protect/sittings" method="POST">
       <label><input type="checkbox" id="email_notifications" name="email_notifications"> Email Notifications</label>
       <label><input type="checkbox" id="dark_mode" name="dark_mode"> Dark Mode</label>
       <label>
@@ -90,7 +422,7 @@
   <script src="/js/settings.js"></script>
 
 </body>
-</html>
+</html> -->
 
 
 

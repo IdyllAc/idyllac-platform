@@ -8,24 +8,40 @@ module.exports = (passport) => {
     return;
   }
 
-  passport.use(new GitHubStrategy({
+  console.log('✅ GitHub OAuth strategy loaded');
+
+  passport.use(
+    new GitHubStrategy(
+    {
     clientID: process.env.GITHUB_CLIENT_ID,
     clientSecret: process.env.GITHUB_CLIENT_SECRET,
-    callbackURL: '/auth/github/callback'
-  }, async (accessToken, refreshToken, profile, done) => {
+    callbackURL: `${process.env.NODE_URL}/auth/github/callback`,
+  }, 
+  async (accessToken, refreshToken, profile, done) => {
     try {
+       const email = profile.emails?.[0]?.value || `${profile.id}@github.temp`;
+       const avatar = profile.photos?.[0]?.value || null; // add avatar_url as an optional column
+
+      // const email = 
+      // profile.emails && profile.emails.length 
+      // ? profile.emails[0].value 
+      // : `${profile.id}@github.temp`;
+      
       const [user] = await SocialUser.findOrCreate({
-        where: { provider_id: profile.id },
+        where: { email },
         defaults: {
-          provider: 'github',
           name: profile.displayName || profile.username,
-          email: profile.emails?.[0]?.value || null,
-          avatar_url: profile.photos?.[0]?.value || null,
+          provider: 'github',
+          isConfirmed: true,
+          // email: profile.emails?.[0]?.value || null,
+          // avatar_url: profile.photos?.[0]?.value || null,
         },
       });
-      done(null, user);
+
+     return done(null, user);
     } catch (err) {
-      done(err, null);
+      console.error('❌ GitHub OAuth error:', err);
+      return done(err, null);
     }
   }));
 };

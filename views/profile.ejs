@@ -117,7 +117,7 @@
       <h2>Your Profile</h2>
       <p>Keep your profile updated. Fields with <small class="required">*</small> are required.</p>
 
-       <form id="profile-form" enctype="multipart/form-data">
+       <form id="profile-form" action="profile" method="POST" enctype="multipart/form-data">
         <!-- Unchangeable -->
        <div class="input-group">
           <label for="first_name">First Name *</label>
@@ -125,11 +125,11 @@
         </div>
         <div class="input-group">
           <label for="last_name">Last Name *</label>
-          <input type="text" id="last_name" name="last_name" autocomplete="on" readonly class="locked-field /> 
+          <input type="text" id="last_name" name="last_name" autocomplete="on" readonly class="locked-field" /> 
         </div>
         <div class="input-group">
           <label for="date_of_birth">Date of Birth *</label>
-          <input type="date" id="date_of_birth" name="date_of_birth" autocomplete="on" readonly class="locked-field /> 
+          <input type="date" id="date_of_birth" name="date_of_birth" autocomplete="on" readonly class="locked-field" />
         </div>
 
         <!-- Editable -->

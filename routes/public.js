@@ -14,10 +14,10 @@ router.get('/register', checkNotAuthenticated, authController.getRegister);
 router.post('/register', checkNotAuthenticated, authController.postRegister);
 
 // Render login page
-router.get('/login', checkNotAuthenticated, authController.getLogin);
+router.get('/login', checkNotAuthenticated, authController.getLoginForm);
 
 // Session login (Passport local)
-router.post('/login', checkNotAuthenticated, authController.postLogin);
+router.post('/login', checkNotAuthenticated, authController.postLoginForm);
 
 // // Session logout (requires login)
 // router.get('/logout', checkAuthenticated, authController.logoutSession);
@@ -27,10 +27,6 @@ router.post('/logout', checkAuthenticated, authController.unifiedLogout);
 
 // // Session logout (optional legacy GET)
 router.get('/logout', checkAuthenticated, authController.unifiedLogout); 
-
-
-// EJS session (Passport) dashboard
-router.get('/dashboard', checkAuthenticated, noCache, dashboardController.getDashboardPage);
 
 
 module.exports = router;

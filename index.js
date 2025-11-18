@@ -11,8 +11,8 @@ const path = require('path');
 const cors = require('cors');
 const methodOverride = require('method-override');
 const session = require('express-session');
-const pgSession = require('connect-pg-simple')(session);
 const passport = require('passport');
+const pgSession = require('connect-pg-simple')(session);
 const flash = require('connect-flash');
 const { Pool } = require('pg');
 const { sequelize} = require('./models');
@@ -120,7 +120,7 @@ const store = new pgSession({
 app.use(cookieParser()); // ✅ parse cookies into req.cookies
 
 // ✅ Using the store defined above with session middleware plug into Express
-app.use(session({
+app.use(require('express-session')({
     store, // <-- your configured store (MySQL, Redis, PostgreSQL, etc.)
     secret: process.env.SESSION_SECRET || "super-secret-key", // 🔑 required
     resave: false,             // recommended
@@ -130,7 +130,7 @@ app.use(session({
       maxAge: 1000 * 60 * 60 * 24, // 1 day (in ms)
       secure: process.env.NODE_ENV === "production", // ✅ cookie only over HTTPS in prod on different domains this become true
       httpOnly: true, // JS can’t touch cookies
-      sameSite: process.env.NODE_ENV === "production" ? "None" : "Strict", // 'None' for cross-site in prod (with HTTPS), 'Strict' in dev
+      sameSite: process.env.NODE_ENV === "production" ? "None" : "lax", // 'None' for cross-site in prod (with HTTPS), 'lax' in dev
       // path: '/', // cookie valid for entire site
     },
   }));
@@ -233,15 +233,15 @@ app.use('/', publicRoutes); // EJS routes (login, register, static pages)
 app.use('/subscribe', subscribeRoutes); // subscription forms (email/social)
 app.use('/auth', socialAuthRoutes);
 app.use('/message', messageRoutes); // contact/message forms 
-app.use('/profile', profileRoutes); // or app.use('/api', profileRoutes) depending on your structure
-
 
 
 // JSON API
 app.use('/api/auth', authRoutes); // API Login/register/logout API
 app.use('/api/user', jwtMiddleware, userRoutes); // user API
-app.use('/protact', combinedAuth, protectRoutes);
-app.use('/dashboard', dashboardRoutes); // dashboard (session protected)
+app.use('/', dashboardRoutes); // dashboard (session protected)
+app.use('/protect', combinedAuth, protectRoutes);
+app.use('/profile', combinedAuth, profileRoutes); // or app.use('/api', profileRoutes) depending on your structure
+
 
 
 /***********************

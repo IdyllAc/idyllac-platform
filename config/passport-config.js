@@ -5,20 +5,20 @@ const { User } = require('../models');
 
 function configureLocalStrategy(passport) {
   passport.use(
-    new LocalStrategy(
-      { usernameField: 'email', passwordField: 'password' },
-      async (email, password, done) => {
+    new LocalStrategy({ 
+      usernameField: 'email', 
+      passwordField: 'password'
+     }, async (email, password, done) => {
         try {
           console.log('🔍 LocalStrategy attempt - email:', email);
 
-          const user = await User.findOne({
-            where: { email },
+          const user = await User.findOne({ where: { email },
             attributes: ['id', 'email', 'password', 'isConfirmed'], // ✅ force include
           });
 
           if (!user) {
             console.warn('❌ No user found with email:', email);
-            return done(null, false, { message: 'No user found with this email' });
+            return done(null, false, { message: 'No user found with this email' }); // Invalid email or password
           }
 
           console.log('✅ User found:', {
@@ -27,15 +27,15 @@ function configureLocalStrategy(passport) {
             isConfirmed: user.isConfirmed, // ✅ correct property
           });
 
-          if (!user.isConfirmed) {
-            console.warn('❌ User email not confirmed:', user.email);
-            return done(null, false, { message: 'Please confirm your email before logging in' });
-          }
-
           const isMatch = await bcrypt.compare(password, user.password);
           if (!isMatch) {
             console.warn('❌ Invalid password for user:', user.email);
-            return done(null, false, { message: 'Incorrect password' });
+            return done(null, false, { message: 'Incorrect password' }); // Invalid email or password
+          }
+
+          if (!user.isConfirmed) {
+            console.warn('❌ User email not confirmed:', user.email);
+            return done(null, false, { message: 'Please confirm your email before logging in' });
           }
 
           console.log('✅ Password valid, login success for:', user.email);

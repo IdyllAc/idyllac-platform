@@ -21,7 +21,7 @@
 h1, h2, h3, h4, h6, p { text-align: center;
 }
 
-/* .container {
+.container {
       max-width: 700px;
       margin: 60px auto;
       background: #fff;
@@ -29,7 +29,7 @@ h1, h2, h3, h4, h6, p { text-align: center;
       box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
       padding: 25px;
       text-align: center;
-    } */
+    }
 
 
     /* 🔄 Spinner styles */
@@ -163,13 +163,13 @@ footer { margin-top: 3rem; text-align: center; }
     <!-- 🔄 Spinner (initially visible) -->
     <div id="loading-spinner" 
     style="display: flex; align-items: center; justify-content: center; flex-direction: column; height: 100vh;">
-    <div class="spinner"
-    style="width: 40px; height: 40px; border: 4px solid #ccc; border-top-color: #0072ff; border-radius: 50%; animation: spin 1s linear infinite;">
-  </div>
+      <div class="spinner"
+      style="width: 40px; height: 40px; border: 4px solid #ccc; border-top-color: #0072ff; border-radius: 50%; animation: spin 1s linear infinite;">
+      </div>
+    </div>
+
      <!-- ✅ Dashboard Content -->
     <p style="margin-top: 12px; color: white;">Loading your dashboard...</p>
-  </div>
-
 
   <!-- ✅ Actual dashboard (hidden until data loads) -->
   <div id="dashboard-content" style="display: none; text-align: center; padding: 1rem;">
@@ -182,28 +182,25 @@ footer { margin-top: 3rem; text-align: center; }
 
   <p>Your profile completion: 
     <strong><%= typeof progress === 'number' ? progress : 0 %>%</strong>
-    <!-- <strong><%= progress || 0 %>%</strong> -->
   </p>
 
-  <p><a href="/protact/personal_info" class="btn btn-primary">🚀 Start Registration</a></p>
+  <p><a href="/protect/personal_info" class="btn btn-primary">🚀 Start Registration</a></p>
   
   <!-- Progress bar -->
 <div class="progress-bar-bg" aria-hidden="true" style="margin-top: 1rem; background: #ddd; height: 10px; border-radius: 6px;">
   <!-- <p>DEBUG: "<%= progress %>"</p> -->
-       <div class="progress-bar-fill" 
+        <div class="progress-bar-fill" 
        style="background: #0072ff; height: 10px; border-radius: 6px; width:<%= (typeof progress !== 'undefined' && typeof progress === 'number' ? progress : 0) %>%">
-       <!-- <div class="progress-bar-fill"
-       style="background: #0072ff; height: 10px; border-radius: 6px; width:<%= progress || 0 %>%"></div> -->
-      </div>
+      </div> 
 </div>
 
   <!-- Registration flow buttons -->
   <div style="margin-top:12px; display:flex; gap:10px; flex-wrap:wrap; justify-content: center;">
     <% if (progress < 100) { %>
-      <% let nextStep = '/protact/personal_info'; %>
-      <% if (progress >= 25 && progress < 50) nextStep = '/protact/upload/document'; %>
-      <% if (progress >= 50 && progress < 75) nextStep = '/protact/upload/selfie'; %>
-      <% if (progress >= 75 && progress < 100) nextStep = '/protact/completed'; %>
+      <% let nextStep = '/protect/personal_info'; %>
+      <% if (progress >= 25 && progress < 50) nextStep = '/protect/upload/document'; %>
+      <% if (progress >= 50 && progress < 75) nextStep = '/protect/upload/selfie'; %>
+      <% if (progress >= 75 && progress < 100) nextStep = '/protect/completed'; %>
 
       <a href="<%= nextStep %>" 
          class="btn btn-primary" 
@@ -211,12 +208,12 @@ footer { margin-top: 3rem; text-align: center; }
         <%= progress === 0 ? '🚀 Start Registration' : '➡ Continue Registration' %>
        </a> 
 
-      <a href="/protact/completed" class="btn btn-outline" 
+      <a href="/protect/completed" class="btn btn-outline" 
          style="border:1px solid #0072ff; color:#0072ff; padding:10px 20px; border-radius:6px; text-decoration:none;">
          Review Progress
       </a>
     <% } else { %>
-      <a href="/protact/completed" class="btn btn-success" 
+      <a href="/protect/completed" class="btn btn-success" 
          style="background:green; color:white; padding:10px 20px; border-radius:6px; text-decoration:none;">
          ✅ View Completed Profile
         </a>
@@ -228,15 +225,9 @@ footer { margin-top: 3rem; text-align: center; }
   </section>
   
       <br>
-     
-  <!-- <button id="logout-btn">Log out</button> -->
-   
-  <!-- <form id="logout-btn" action="/logout" method="POST">
-  <button id="logout-btn">Log out</button> 
-  </form> -->
 
   <!-- Server-side rendered logout link/button -->
-<% if (user) { %> <!-- Replace 'true' with your actual condition -->
+<% if (user) { %> 
 <a href="/logout" class="btn btn-logout" 
 style="display:inline-block; margin-top:20px; background:#ff4d4d; color:white; padding:10px 20px; border-radius:6px; text-decoration:none;">
 Log out
@@ -244,21 +235,32 @@ Log out
 <% } %>
 </div>
 
-<!-- <% if (true) { %>  Replace 'true' with your actual condition 
- <button id="logout-btn" class="btn btn-logout">Log out</button> 
- <% } %> -->
-
-
   <footer>
     <span class="nowrap">&copy;<time id="year"></time> IdyllAc</span>
   </footer>
 
-<!-- ✅ Place your script *at the very bottom*, right before </body> -->
+
+  <!-- ✅ Inject server-side user object. Place your script *at the very bottom*, right before </body> -->
  <script id="user-data" type="application/json">
   <%- JSON.stringify(user || {}) %>
 </script>
 
+<!-- ✅ Place your JS file LAST -->
 <script src="/js/dashboard.js"></script>
 
 </body>
 </html>
+
+
+
+<!-- <button id="logout-btn">Log out</button> -->
+
+  <!-- <form id="logout-btn" action="/logout" method="POST">
+  <button id="logout-btn">Log out</button> 
+  </form> -->
+
+
+
+<!-- <% if (true) { %>  Replace 'true' with your actual condition 
+ <button id="logout-btn" class="btn btn-logout">Log out</button> 
+ <% } %> -->

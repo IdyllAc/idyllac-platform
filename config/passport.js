@@ -19,6 +19,8 @@ function initializePassport() {
     done(null, user.id);
   });
 
+  let deserializedOnce = false;
+
   // Deserialize user: fetch from DB by ID
   passport.deserializeUser(async (id, done) => {
     try {
@@ -31,10 +33,10 @@ function initializePassport() {
         return done(null, false);
       }
 
-      if (process.env.NODE_ENV !== 'production') {
+      if (!deserializedOnce && process.env.NODE_ENV !== 'production') {
         console.log('📦 deserializeUser ->', user.email);
+        deserializedOnce = true;
       }
-
       done(null, user || false);
     } catch (err) {
       console.error('🔥 Error in deserializeUser:', err);

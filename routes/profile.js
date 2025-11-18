@@ -48,7 +48,7 @@ router.get('/data', combinedAuth, profileController.getProfile);
 // 🟢 Profile routes 
 // Update or create profile
 router.post(
-  '/',
+  '/api',
   combinedAuth,
   noCache,
   upload.single('profile_photo'),
@@ -73,7 +73,7 @@ router.get('/settings', combinedAuth, noCache, (req,res) => {
 });
 
 // Get settings data (JSON)
-router.get('/profile/settings/data', combinedAuth, profileController.getSettings);
+router.get('/settings/data', combinedAuth, noCache, profileController.getSettingsData);
 
 
 // Update settings

@@ -99,10 +99,17 @@ module.exports = (sequelize, DataTypes) => {
 
     hooks: {
       beforeCreate: (profile) => {
-        if (!profile.first_name || !profile.last_name || !profile.date_of_birth) {
-          throw new Error("❌ first_name, last_name, and date_of_birth are required");
+        // Accept "" (empty strings) because controller uses them for auto-fill
+        const missing =
+          profile.first_name === undefined ||
+          profile.last_name === undefined ||
+          profile.date_of_birth === undefined;
+    
+        if (missing) {
+          throw new Error("❌ first_name, last_name, and date_of_birth cannot be null or undefined");
         }
       },
+    
       afterCreate: (profile) => {
         console.log(`✅ New profile created for user ${profile.userId}`);
       }

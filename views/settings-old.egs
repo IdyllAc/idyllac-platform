@@ -1,0 +1,97 @@
+ <!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Settings</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to right, #ece9e6, #ffffff);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .settings-container {
+      background: #fff;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 400px;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 1rem;
+      color: #333;
+    }
+    label {
+      display: block;
+      margin: 0.5rem 0;
+      font-size: 1rem;
+    }
+    select {
+      width: 100%;
+      padding: 0.6rem;
+      margin-top: 0.5rem;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 1rem;
+    }
+    button {
+      width: 70%;
+      padding: 0.6rem;
+      border-radius: 8px;
+      background: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-size: 1rem;
+      margin-top: 1rem;
+    }
+    button:hover {
+      background: #45a049;
+    }
+    .btn-outline {
+      background-color: transparent;
+      border: 2px solid  #4CAF50;
+      color:#4CAF50;
+      padding: 0.45rem;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .btn-outline:hover {
+      background-color: #45a049;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <div class="settings-container">
+    <h1>Settings</h1>
+    <form id="settings-form" action="pofile/settings" method="POST">
+      <label><input type="checkbox" id="email_notifications" name="email_notifications"> Email Notifications</label>
+      <label><input type="checkbox" id="dark_mode" name="dark_mode"> Dark Mode</label>
+      <label>
+        Preferred Language
+        <select name="language">
+          <option value="">Select Language</option>
+          <option value="ar">Arabic</option>
+          <option value="fr">French</option>
+          <option value="en">English</option>
+        </select>
+      </label>
+      <button type="submit">Save Settings</button>
+      <a href="/dashboard" class="btn btn-outline">← Back</a>
+    </form>
+  </div>
+  <script src="/js/settings.js"></script>
+
+</body>
+</html>
+
+
+
+ -->

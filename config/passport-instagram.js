@@ -1,5 +1,5 @@
 // config/passport-instagram.js
-const InstagramStrategy = require('passport-instagram').Strategy;
+const { Strategy: InstagramStrategy } = require('passport-instagram');
 const { SocialUser } = require('../models');
 
 module.exports = (passport) => {
@@ -8,24 +8,38 @@ module.exports = (passport) => {
     return;
   }
 
-  passport.use(new InstagramStrategy({
-    clientID: process.env.INSTAGRAM_CLIENT_ID,
-    clientSecret: process.env.INSTAGRAM_CLIENT_SECRET,
-    callbackURL: '/auth/instagram/callback'
-  }, async (accessToken, refreshToken, profile, done) => {
-    try {
-      const [user] = await SocialUser.findOrCreate({
-        where: { provider_id: profile.id },
-        defaults: {
-          provider: 'instagram',
-          name: profile.displayName || profile.username,
-          email: profile.emails?.[0]?.value || null,
-          avatar_url: profile.photos?.[0]?.value || null,
-        },
-      });
-      done(null, user);
-    } catch (err) {
-      done(err, null);
-    }
-  }));
+  console.log('✅ Instagram OAuth strategy loaded');
+
+  passport.use(
+    new InstagramStrategy(
+      {
+        clientID: process.env.INSTAGRAM_CLIENT_ID,
+        clientSecret: process.env.INSTAGRAM_CLIENT_SECRET,
+        callbackURL: `${process.env.NODE_URL}/auth/instagram/callback`,
+      },
+      async (accessToken, refreshToken, profile, done) => {
+        try {
+          // Instagram does not return email, create a placeholder
+          const email = `${profile.id}@instagram.temp`;
+          const avatar = profile.photos?.[0]?.value || null;
+
+          const [user] = await SocialUser.findOrCreate({
+            where: { provider_id: profile.id },
+            defaults: {
+              name: profile.displayName || profile.username,
+              email,
+              avatar_url: avatar,
+              provider: 'instagram',
+              isConfirmed: true,
+            },
+          });
+
+          return done(null, user);
+        } catch (err) {
+          console.error('❌ Instagram OAuth error:', err);
+          return done(err, null);
+        }
+      }
+    )
+  );
 };

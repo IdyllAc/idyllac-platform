@@ -8,6 +8,8 @@ function configureSocialStrategies(passport) {
   require('./passport-twitter')(passport);
   require('./passport-instagram')(passport);
   require('./passport-linkedin')(passport);
+  // require('./passport-youtube')(passport);
+  require('./passport-tiktok')(passport);
 }
 
 // ✅ Export as an object (so passport.js can destructure it)

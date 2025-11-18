@@ -7,7 +7,7 @@ const router = express.Router();
 router.get('/facebook', passport.authenticate('facebook', { scope: ['email'] }));
 router.get(
   '/facebook/callback',
-  passport.authenticate('facebook', { failureRedirect: '/subscribe.html' }),
+  passport.authenticate('facebook', { failureRedirect: '/subscribe.html', session: false }),
   (req, res) => res.redirect('/default')
 );
 
@@ -15,7 +15,7 @@ router.get(
 router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
 router.get(
   '/google/callback',
-  passport.authenticate('google', { failureRedirect: '/subscribe.html' }),
+  passport.authenticate('google', { failureRedirect: '/subscribe.html', session: false }),
   (req, res) => res.redirect('/default')
 );
 
@@ -23,7 +23,7 @@ router.get(
 router.get('/github', passport.authenticate('github', { scope: ['user:email'] }));
 router.get(
   '/github/callback',
-  passport.authenticate('github', { failureRedirect: '/subscribe.html' }),
+  passport.authenticate('github', { failureRedirect: '/subscribe.html', session: false }),
   (req, res) => res.redirect('/default')
 );
 
@@ -31,7 +31,7 @@ router.get(
 router.get('/twitter', passport.authenticate('twitter'));
 router.get(
   '/twitter/callback',
-  passport.authenticate('twitter', { failureRedirect: '/subscribe.html' }),
+  passport.authenticate('twitter', { failureRedirect: '/subscribe.html', session: false }),
   (req, res) => res.redirect('/default')
 );
 
@@ -39,7 +39,7 @@ router.get(
 router.get('/linkedin', passport.authenticate('linkedin', { scope: ['r_emailaddress', 'r_liteprofile'] }));
 router.get(
   '/linkedin/callback',
-  passport.authenticate('linkedin', { failureRedirect: '/subscribe.html' }),
+  passport.authenticate('linkedin', { failureRedirect: '/subscribe.html', session: false }),
   (req, res) => res.redirect('/default')
 );
 
@@ -47,7 +47,7 @@ router.get(
 router.get('/instagram', passport.authenticate('instagram'));
 router.get(
   '/instagram/callback',
-  passport.authenticate('instagram', { failureRedirect: '/subscribe.html' }),
+  passport.authenticate('instagram', { failureRedirect: '/subscribe.html', session: false }),
   (req, res) => res.redirect('/default')
 );
 

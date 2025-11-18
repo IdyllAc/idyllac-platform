@@ -1,30 +1,34 @@
 // routes/auth.js
 const express = require('express');
 const router = express.Router();
-const authController = require('../controllers/authController');
+const apiAuthController = require('../controllers/authController');
 const jwtMiddleware = require('../middleware/jwtMiddleware');
 const dashboardController = require('../controllers/dashboardController');
+const noCache = require('../middleware/noCache');
 
 // API: Register (JSON)
-router.post('/register', authController.postRegister);
+router.post('/register', apiAuthController.postRegister);
 
-// API: Login (returns JWTs)
-router.post('/login', authController.postLogin);
+// API: Login (JSON)
+router.post('/api/auth/login', apiAuthController.postLoginApi);
 
 // API: Refresh token
-router.post('/refresh-token', authController.refreshToken);
+router.post('/refresh-token', apiAuthController.refreshToken);
 
 // // API: Logout (invalidate refresh token)
 // router.post('/logout', authController.logoutJWT);
 
 // API: Logout (session + JWT unified)
-router.post('/logout', authController.unifiedLogout);
+router.post('/logout', apiAuthController.unifiedLogout);
 
 
 // API: Dashboard (JWT protected)
-router.get('/dashboard', jwtMiddleware, dashboardController.getDashboardApi);
+router.get('/dashboard', jwtMiddleware, noCache, dashboardController.getDashboardApi);
+
+// API: Session fallback (for users authenticated via Passport)
+router.get('/session', dashboardController.getSessionApi);
 
 // API: Email confirmation
-router.get('/confirm-email/:token', authController.confirmEmail);
+router.get('/confirm-email/:token', apiAuthController.confirmEmail);
 
 module.exports = router;
