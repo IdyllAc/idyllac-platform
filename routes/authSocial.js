@@ -33,13 +33,13 @@ router.get(
   '/twitter/callback',
   passport.authenticate('twitter', { failureRedirect: '/subscribe.html', session: false }),
   (req, res) => {
-    // Twitter OAuth successful
-    // req.user contains the SocialUser record
+    // // Twitter OAuth successful
+    // // req.user contains the SocialUser record
 
-    console.log("🐦 Twitter login success:", req.user?.email || req.user?.id);
+    // console.log("🐦 Twitter login success:", req.user?.email || req.user?.id);
 
-    // Redirect to dashboard or your unified login success page
-    return res.redirect('/default');
+    // // Redirect to dashboard or your unified login success page
+   res.redirect('/default');
   }
 );
 
