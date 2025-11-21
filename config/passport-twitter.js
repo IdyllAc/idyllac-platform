@@ -15,7 +15,7 @@ module.exports = (passport) => {
       {
     clientID: process.env.TWITTER_CLIENT_ID,
     clientSecret: process.env.TWITTER_CLIENT_SECRET,
-    callbackURL: `${process.env.NODE_URL}/auth/twitter/callback`,
+    callbackURL: `${process.env.BASE_URL}/auth/twitter/callback`,
     scope: ['tweet.read', 'users.read', 'offline.access'],
   }, 
   async (accessToken, refreshToken, profile, done) => {

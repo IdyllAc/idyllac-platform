@@ -15,7 +15,7 @@ module.exports = (passport) => {
     {
     clientID: process.env.LINKEDIN_CLIENT_ID,
     clientSecret: process.env.LINKEDIN_CLIENT_SECRET,
-    callbackURL: `${process.env.NODE_URL}/auth/linkedin/callback`,
+    callbackURL: `${process.env.BASE_URL}/auth/linkedin/callback`,
     scope: ['r_emailaddress', 'r_liteprofile']
   }, 
   async (accessToken, refreshToken, profile, done) => {

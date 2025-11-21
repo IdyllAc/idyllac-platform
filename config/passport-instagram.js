@@ -15,7 +15,7 @@
 //       {
 //         clientID: process.env.INSTAGRAM_CLIENT_ID,
 //         clientSecret: process.env.INSTAGRAM_CLIENT_SECRET,
-//         callbackURL: `${process.env.NODE_URL}/auth/instagram/callback`,
+//         callbackURL: `${process.env.BASE_URL}/auth/instagram/callback`,
 //       },
 //       async (accessToken, refreshToken, profile, done) => {
 //         try {

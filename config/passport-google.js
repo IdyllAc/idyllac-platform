@@ -15,7 +15,7 @@ module.exports = (passport) => {
       {
         clientID: process.env.GOOGLE_CLIENT_ID,
         clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-        callbackURL: `${process.env.NODE_URL}/auth/google/callback`, // use full URL in prod
+        callbackURL: `${process.env.BASE_URL}/auth/google/callback`, // use full URL in prod
 
         // 👇 Add this line here for YouTube data access:
       scope: ['profile', 'email', 'https://www.googleapis.com/auth/youtube.readonly'],

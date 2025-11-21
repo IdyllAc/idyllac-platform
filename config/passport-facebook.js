@@ -15,7 +15,7 @@ module.exports = (passport) => {
       {
         clientID: process.env.FACEBOOK_CLIENT_ID,
         clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
-        callbackURL: `${process.env.NODE_URL}/auth/facebook/callback`,
+        callbackURL: `${process.env.BASE_URL}/auth/facebook/callback`,
         profileFields: ['id', 'emails', 'name', 'photos'], // important for getting name/email
       },
       async (accessToken, refreshToken, profile, done) => {

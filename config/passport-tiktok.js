@@ -10,7 +10,7 @@
 //   passport.use(new TikTokStrategy({
 //     clientID: process.env.TIKTOK_CLIENT_ID,
 //     clientSecret: process.env.TIKTOK_CLIENT_SECRET,
-//     callbackURL: `${process.env.NODE_URL}/auth/tiktok/callback`,
+//     callbackURL: `${process.env.BASE_URL}/auth/tiktok/callback`,
 //     scope: ['user.info.basic'],
 //   }, async (accessToken, refreshToken, profile, done) => {
 //     try {
