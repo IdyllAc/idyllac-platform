@@ -1,58 +1,3 @@
-// // config/passport-twitter.js
-// const TwitterStrategy = require('passport-twitter').Strategy;
-// const { SocialUser } = require('../models');
-
-// module.exports = (passport) => {
-//   if (!process.env.TWITTER_CLIENT_ID || !process.env.TWITTER_CLIENT_SECRET) {
-//     console.warn('⚠️ Skipping Twitter OAuth: missing TWITTER_CLIENT_ID or TWITTER_CLIENT_SECRET');
-//     return;
-//   }
-
-//   console.log('✅ Twitter OAuth 1.0a strategy loaded');
-
-//   passport.use(
-//     new TwitterStrategy(
-//       {
-//         consumerKey: process.env.TWITTER_CLIENT_ID,
-//         consumerSecret: process.env.TWITTER_CLIENT_SECRET,
-//         callbackURL: process.env.TWITTER_CALLBACK_URL || `${process.env.BASE_URL}/auth/twitter/callback`,
-//         includeEmail: true, // IMPORTANT!
-//       },
-//       async (token, tokenSecret, profile, done) => {
-//         try {
-//           const email =
-//             profile.emails?.length
-//               ? profile.emails[0].value
-//               : `${profile.id}@twitter.temp`;
-
-//           const [user] = await SocialUser.findOrCreate({
-//             where: { email },
-//             defaults: {
-//               name: profile.displayName || profile.username,
-//               provider: 'twitter',
-//               isConfirmed: true,
-//             },
-//           });
-
-//           return done(null, user);
-//         } catch (err) {
-//           console.error('❌ Twitter OAuth 1.0a error:', err);
-//           return done(err, null);
-//         }
-//       }
-//     )
-//   );
-// };
-
-
-
-
-
-
-
-
-
-
 // config/passport-twitter.js
 const TwitterStrategy = require('passport-twitter-oauth2').Strategy;
 const { SocialUser } = require('../models');
@@ -100,25 +45,11 @@ module.exports = (passport) => {
 
 
 
-//   passport.use(new TwitterStrategy({
-//     consumerKey: process.env.TWITTER_CLIENT_ID,
-//     consumerSecret: process.env.TWITTER_CLIENT_SECRET,
-//     callbackURL: '/auth/twitter/callback',
-//     includeEmail: true
-//   }, async (token, tokenSecret, profile, done) => {
-//     try {
-//       const [user] = await SocialUser.findOrCreate({
-//         where: { provider_id: profile.id },
-//         defaults: {
-//           provider: 'twitter',
-//           name: profile.displayName || profile.username,
-//           email: profile.emails?.[0]?.value || null,
-//           avatar_url: profile.photos?.[0]?.value || null,
-//         },
-//       });
-//       done(null, user);
-//     } catch (err) {
-//       done(err, null);
-//     }
-//   }));
-// };
+
+
+
+
+
+
+
+
