@@ -43,12 +43,12 @@ router.get('/', combinedAuth, noCache, (req, res) => {
 });
 
 // 🧠 Get profile data (JSON)
-router.get('/data', combinedAuth, profileController.getProfile);
+router.get('/profile/data', combinedAuth, profileController.getProfile);
 
 // 🟢 Profile routes 
 // Update or create profile
 router.post(
-  '/api',
+  '/profile/api',
   combinedAuth,
   noCache,
   upload.single('profile_photo'),
