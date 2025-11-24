@@ -12,6 +12,7 @@ const combinedAuth = require('../middleware/combinedAuth');
 const uploadController = require('../controllers/uploadController');
 const personalInfoController = require('../controllers/personalInfoController');
 const { completeRegistration, showCompletedPage } = require('../controllers/registrationController');
+const registrationController = require('../controllers/registrationController');
 const progressController = require('../controllers/progressController');
 const { personalValidator } = require('../validators/personalValidator');
 const { documentValidator } = require('../validators/documentValidator');
@@ -90,10 +91,10 @@ router.post(
 
 
 // ✅ Completed Page (from controller)
-router.get('/completed', combinedAuth, noCache, showCompletedPage);
+router.get('/completed', combinedAuth, noCache, registrationController.showCompletedPage);
 
 // ✅ Final step: Complete Registration
-router.post('/complete', combinedAuth, noCache, completeRegistration);
+router.post('/complete', combinedAuth, noCache, registrationController.completeRegistration);
 
 
 // ✅ Review Progress (moved logic into controller)
