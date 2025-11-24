@@ -93,7 +93,7 @@ router.post(
 router.get('/completed', combinedAuth, noCache, showCompletedPage);
 
 // ✅ Final step: Complete Registration
-router.post('/complete', combinedAuth, noCache, completeRegistration);
+router.post('/completed', combinedAuth, noCache, completeRegistration);
 
 
 // ✅ Review Progress (moved logic into controller)
