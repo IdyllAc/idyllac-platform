@@ -90,14 +90,14 @@ router.post(
 
 
 // ✅ Completed Page (from controller)
-router.get('/completed', jwtMiddleware, showCompletedPage);
+router.get('/completed', combinedAuth, noCache, showCompletedPage);
 
 // ✅ Final step: Complete Registration
-router.post('/complete', jwtMiddleware, completeRegistration);
+router.post('/complete', combinedAuth, noCache, completeRegistration);
 
 
 // ✅ Review Progress (moved logic into controller)
-router.get('/review-progress', jwtMiddleware, progressController.reviewProgress);
+router.get('/review-progress', combinedAuth, noCache, progressController.reviewProgress);
 
 
 // ✅ Route for success page

@@ -321,7 +321,7 @@ exports.updateSettings = async (req, res) => {
       settings = await UserSettings.create({ userId, ...payload });
     }
 
-    return res.json({ message: 'Settings saved', settings });
+    return res.json({ message: '✅ ✅ Settings saved', settings });
   } catch (err) {
     console.error('❌ updateSettings error:', err);
     return res.status(500).json({ error: 'Failed to save settings' });
