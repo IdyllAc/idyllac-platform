@@ -51,8 +51,21 @@ router.post(
   '/api',
   combinedAuth,
   noCache,
-  upload.single('profile_photo'),
-  // 🧩 Middleware to flatten fields that arrive as arrays
+
+  // 🛡 SAFE Multer wrapper to prevent HTML errors
+  (req, res, next) => {
+  upload.single('profile_photo')(req, res, (err) => {
+    if (err) {
+      console.error("❌ Multer error:", err);
+      return res.status(400).json({
+        error: "Upload failed: " + err.message
+      });
+    }
+    next();
+  });
+},
+
+  // 🧩 Middleware to flatten fields that arrive as arrays (Flatten arrays)
   (req, res, next) => {
     for (const key in req.body) {
       if (Array.isArray(req.body[key])) {
@@ -61,6 +74,7 @@ router.post(
     }
     next();
   },
+
   profileController.updateProfile
 );
 

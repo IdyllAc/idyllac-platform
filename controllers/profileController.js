@@ -187,6 +187,17 @@ exports.getSettings = async (req, res) => {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
 // exports.getSettings = async (req, res) => {
 //   // Render EJS
 //   try {
