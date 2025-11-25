@@ -44,11 +44,6 @@ form.addEventListener('submit', async (e) => {
    // ✅ Use FormData (works for files + text)
   const formData = new FormData(form);
 
-  // // Alternatively, append fields manually:
-  // formData.append('first_name', document.getElementById('first_name').value);
-  // formData.append('last_name', document.getElementById('last_name').value);
-  // formData.append('date_of_birth', document.getElementById('date_of_birth').value);
-
 
   try {
     const res = await fetch('/profile/api', { // <-- correct POST route
@@ -67,11 +62,7 @@ form.addEventListener('submit', async (e) => {
         const preview = document.getElementById('photo-preview');
         if (preview) preview.src = data.profile.profile_photo;
       }
-    // if (res.ok) {
-    //   alert('✅ Profile updated!');
-    //   if (data.profile?.profile_photo) {
-    //     document.getElementById('photo-preview').src = data.profile.profile_photo;
-    //   }
+    
     } else {
       alert('⚠️ ' + (data.error || 'Failed to update profile.'));
     }
@@ -82,37 +73,3 @@ form.addEventListener('submit', async (e) => {
 });
 });
 
-
-
-
-// document.getElementById("year").textContent = new Date().getFullYear();
-
-//     // Pre-fill existing profile
-//     fetch('/profile', { 
-//         headers: { Authorization: 'Bearer ' + localStorage.getItem('accessToken') }
-//      })
-//       .then(res => res.json())
-//       .then(data => {
-//         for (const key in data) {
-//           if (document.querySelector(`[name="${key}"]`)) {
-//             document.querySelector(`[name="${key}"]`).value = data[key];
-//           }
-//         }
-//       });
-
-//     document.querySelector('#profile-form').addEventListener('submit', async (e) => {
-//       e.preventDefault();
-//       const formData = Object.fromEntries(new FormData(e.target).entries());
-
-//       const res = await fetch('/profile', {
-//         method: 'POST',
-//         headers: {
-//           'Content-Type': 'application/json',
-//           Authorization: 'Bearer ' + localStorage.getItem('accessToken')
-//         },
-//         body: JSON.stringify(formData)
-//       });
-
-//       const msg = await res.json();
-//       alert(msg.message);
-//     });
