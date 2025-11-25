@@ -6,6 +6,7 @@
   console.log(`🌍 Running in ${process.env.NODE_ENV} mode using ${envFile}`);
 
 const express = require('express');
+const fs = require('fs');
 const path = require('path');
 const cors = require('cors');
 const methodOverride = require('method-override');
@@ -33,6 +34,30 @@ const protectRoutes = require('./routes/protect');      // Docs, selfie
 const profileRoutes = require('./routes/profile');
 const dashboardRoutes = require('./routes/dashboard');
 const socialAuthRoutes = require('./routes/authSocial');
+
+// Ensure upload directories exist
+const uploadDirs = [
+  path.join(__dirname, 'uploads'),
+  path.join(__dirname, 'uploads', 'profile_photos'),
+  // add other upload subfolders here if needed, e.g.
+  // path.join(__dirname, 'uploads', 'documents'),
+  // path.join(__dirname, 'uploads', 'selfies')
+];
+
+uploadDirs.forEach(dir => {
+  try {
+    if (!fs.existsSync(dir)) {
+fs.mkdirSync(dir, { recursive: true });
+console.log(`✔ Created upload folder: ${dir}`);
+} else {
+  console.log(`ℹ️ Upload folder exists: ${dir}`);
+}
+} catch (err) {
+console.error(`❌ Failed to ensure folder ${dir}:`, err);
+// optional: process.exit(1) if you want startup to fail hard
+}
+});
+
 
 /***********************
  *  APP INIT
