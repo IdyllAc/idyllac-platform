@@ -1,7 +1,12 @@
 # Node.js
 node_modules/
 .env
-uploads/
+uploads/*
+!uploads/.gitkeep
+!uploads/profile_photos/
+uploads/profile_photos/*
+!uploads/profile_photos/.gitkeep
+
 subscriber_emails.txt
 
 
