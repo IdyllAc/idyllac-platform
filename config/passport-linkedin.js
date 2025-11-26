@@ -1,5 +1,5 @@
 // config/passport-linkedin.js
-const LinkedInStrategy = require('passport-linkedin-oauth2').Strategy;
+const LinkedInStrategy = require('passport-linkedin-oauth2-v2').Strategy;
 const { SocialUser } = require('../models');
 
 module.exports = (passport) => {
