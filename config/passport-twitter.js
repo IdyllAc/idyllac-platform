@@ -11,8 +11,8 @@ module.exports = (passport) => {
   console.log('✅ Twitter OAuth strategy loaded');
 
   passport.use(new TwitterStrategy({
-    clientID: process.env.TWITTER_CLIENT_ID,
-    clientSecret: process.env.TWITTER_CLIENT_SECRET,
+    consumerKey: process.env.TWITTER_CLIENT_ID,
+    consumerSecret: process.env.TWITTER_CLIENT_SECRET,
     callbackURL: `${process.env.BASE_URL}/auth/twitter/callback`,
     scope: ['tweet.read', 'users.read', 'offline.access'],
   }, 
