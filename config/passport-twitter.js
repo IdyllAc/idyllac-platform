@@ -1,5 +1,5 @@
 // config/passport-twitter.js
-const TwitterStrategy = require('passport-twitter-oauth2').Strategy;
+const TwitterStrategy = require('passport-twitter').Strategy;
 const { SocialUser } = require('../models');
 
 module.exports = (passport) => {
@@ -10,9 +10,7 @@ module.exports = (passport) => {
 
   console.log('✅ Twitter OAuth strategy loaded');
 
-  passport.use(
-    new TwitterStrategy(
-      {
+  passport.use(new TwitterStrategy({
     clientID: process.env.TWITTER_CLIENT_ID,
     clientSecret: process.env.TWITTER_CLIENT_SECRET,
     callbackURL: `${process.env.BASE_URL}/auth/twitter/callback`,
