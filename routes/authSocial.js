@@ -59,4 +59,23 @@ router.get(
   (req, res) => res.redirect('/default')
 );
 
+// TikTok Login - redirect user
+router.get('/tiktok', (req, res) => {
+  const redirectUri = encodeURIComponent(process.env.TIKTOK_REDIRECT_URI);
+  const clientKey = process.env.TIKTOK_CLIENT_KEY;
+
+  const url =
+    `https://www.tiktok.com/auth/authorize/` +
+    `?client_key=${clientKey}` +
+    `&response_type=code` +
+    `&scope=user.info.basic` +
+    `&redirect_uri=${redirectUri}`;
+
+  res.redirect(url);
+});
+
+// // TikTok Callback
+// router.get('/tiktok/callback', socialController.tiktokCallback);
+
+
 module.exports = router;

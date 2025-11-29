@@ -41,7 +41,7 @@
     "passport-jwt": "4.0.1",
     "passport-linkedin-oauth2-v2": "^3.1.0",
     "passport-local": "1.0.0",
-    "passport-twitter": "^0.1.5",
+    "passport-twitter": "^1.0.4",
     "passport-wordpress": "^0.0.4",
     "pg": "8.16.3",
     "pg-hstore": "2.3.4",

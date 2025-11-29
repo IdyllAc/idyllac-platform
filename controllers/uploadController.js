@@ -7,12 +7,14 @@ const { Document, Selfie } = require('../models');
 // 📄 Upload Documents
 exports.uploadDocuments = async (req, res) => {
   try {
+    // after multer saved files into uploads/<userId>/
     const userId = req.user.id;
+    const baseUrlPath = '/uploads/' + String(userId) + '/';
 
     const docPaths = {
-      passport_path: req.files.passport_path?.[0]?.path || null,
-      id_card_path: req.files.id_card_path?.[0]?.path || null,
-      license_path: req.files.license_path?.[0]?.path || null,
+      passport_path: req.files.passport_path?.[0]?.filename ? baseUrlPath + req.files.passport_path[0].filename : null,
+      id_card_path:  req.files.id_card_path?.[0]?.filename  ? baseUrlPath + req.files.id_card_path[0].filename  : null,
+      license_path:  req.files.license_path?.[0]?.filename  ? baseUrlPath + req.files.license_path[0].filename  : null,
       userId,
     };
 
@@ -48,24 +50,24 @@ exports.uploadSelfie = async (req, res) => {
     const userDir = path.join(__dirname, '..', 'uploads', String(userId));
     fs.mkdirSync(userDir, { recursive: true });
 
-    const selfiePath = path.join(userDir, 'selfie.jpg');
-    console.log("📂 Saving selfie to:", selfiePath);
+    const filename = `selfie_${Date.now()}.jpg`;
+    const selfiePathAbs = path.join(userDir, filename);
 
-    await sharp(req.file.path)
-      .resize({ width: 600 })
-      .toFile(selfiePath);
-
+    await sharp(req.file.path).resize({ width: 600 }).toFile(selfiePathAbs);
     fs.unlinkSync(req.file.path);
+
+    // store relativePath for DB and frontend:
+    const selfieRel = `/uploads/${userId}/${filename}`;
 
     const existing = await Selfie.findOne({ where: { userId } });
     if (existing) {
-      existing.selfie_path = selfiePath;
+      existing.selfie_path = selfieRel;
       await existing.save();
     } else {
-      await Selfie.create({ selfie_path: selfiePath, userId });
+      await Selfie.create({ selfie_path: selfieRel, userId });
     }
 
-     return res.json({ message: '✅ Selfie uploaded successfully.' });
+     return res.json({ message: '✅ Selfie uploaded successfully.', selfie_path: selfieRel });
    
   } catch (err) {
     console.error('❌ uploadSelfie error:', err);

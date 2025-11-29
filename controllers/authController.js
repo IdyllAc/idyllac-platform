@@ -289,15 +289,39 @@ exports.refreshToken = async (req, res) => {
 };
 
 
+
+// // SAFETY PATCH for Passport <-> Passport-OAuth conflicts
+// if (!req.logout.length) {
+//   // If logout has no callback argument, wrap it
+//   const orig = req.logout;
+//   req.logout = (cb) => {
+//     try {
+//       orig.call(req);
+//       cb && cb();
+//     } catch (e) {
+//       cb && cb(e);
+//     }
+//   };
+// }
+
+
 // Unified logout - handles both session + JWT
 exports.unifiedLogout = async (req, res) => {
   try {
     // --- SESSION LOGOUT ---
     if (req.isAuthenticated && req.isAuthenticated()) {
       console.log("🔒 Logging out Session user...");
+
       await new Promise((resolve) => {
+        // Passport 0.6+ requires a callback
         req.logout((err) => {
-          if (err) console.error("Session logout error:", err);
+          if (err) {
+            console.error("Session logout error:", err);
+          }
+
+        // Defensive patch: ensure req.user is cleared even if an adapter uses old API
+      req.user = null;
+
           req.session.destroy(() => {
             res.clearCookie("connect.sid", {
               path: "/", // <= MUST match session cookie path
@@ -305,7 +329,9 @@ exports.unifiedLogout = async (req, res) => {
               httpOnly: true, // JS can’t touch cookies
               sameSite: process.env.NODE_ENV === "production" ? "None" : "lax", // 'None' for cross-site in prod (with HTTPS), 'lax' in dev
             });
+
             console.log("✅ Session destroyed & cookie cleared & user logged out");
+
             resolve();
           });
         });

@@ -4,11 +4,32 @@ const { User } = require('../models');
 
 module.exports = async function combinedAuth(req, res, next) {
 
-  // 1️⃣ First — check Passport session (EJS/session-based login)
+  console.log("🔥 combinedAuth full req.user:", req.user);
+
+  
+  // 1️⃣ Check Passport session first (EJS/session-based login)
     if (req.isAuthenticated && req.isAuthenticated()) {
-      console.log("🧭 combinedAuth → Session user:", req.user?.email || req.user?.id);
+
+      // 🛑 FIX: sometimes req.user becomes just the ID number after expiry
+    if (
+      typeof req.user !== "object" ||
+      !req.user.id ||
+      !req.user.email
+    ) {
+      console.warn("⚠️ combinedAuth → Session corrupted, forcing JWT instead:", req.user);
+
+      // destroy bad session
+      if (req.session) {
+        req.session.destroy(() => {});
+      }
+      req.logout?.();
+
+      // continue to JWT checks
+    } else {
+      console.log("🧭 combinedAuth → Valid Session user:", req.user.email);
       return next(); // ✅ user authenticated via session
     }
+  }
 
    
     // 2️⃣ Next — check JWT (API/fetch-based login)
@@ -29,10 +50,13 @@ module.exports = async function combinedAuth(req, res, next) {
     const user = await User.findByPk(decoded.id, {
       attributes: ['id', 'email', 'name', 'isConfirmed'] 
     });
+
     if (!user) throw new Error('User not found');
 
     req.user = user;
+
     console.log("🧭 combinedAuth → JWT user:", user.email);
+    
     return next();
 
   } catch (err) {

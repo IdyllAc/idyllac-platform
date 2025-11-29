@@ -21,6 +21,7 @@ const jwtMiddleware = require('./middleware/jwtMiddleware');
 const combinedAuth = require('./middleware/combinedAuth');
 const cookieParser = require('cookie-parser');
 const helmet = require('helmet');
+const inactivityMiddleware = require("./middleware/inactivityMiddleware");
 
 /***********************
  *  ROUTES
@@ -35,29 +36,6 @@ const profileRoutes = require('./routes/profile');
 const dashboardRoutes = require('./routes/dashboard');
 const socialAuthRoutes = require('./routes/authSocial');
 
-// Ensure upload directories exist
-const uploadDirs = [
-  path.join(__dirname, 'uploads'),
-  path.join(__dirname, 'uploads', 'profile_photos'),
-  // add other upload subfolders here if needed, e.g.
-  // path.join(__dirname, 'uploads', 'documents'),
-  // path.join(__dirname, 'uploads', 'selfies')
-];
-
-uploadDirs.forEach(dir => {
-  try {
-    if (!fs.existsSync(dir)) {
-fs.mkdirSync(dir, { recursive: true });
-console.log(`✔ Created upload folder: ${dir}`);
-} else {
-  console.log(`ℹ️ Upload folder exists: ${dir}`);
-}
-} catch (err) {
-console.error(`❌ Failed to ensure folder ${dir}:`, err);
-// optional: process.exit(1) if you want startup to fail hard
-}
-});
-
 
 /***********************
  *  APP INIT
@@ -69,6 +47,38 @@ const PORT = process.env.PORT || 3000;
 if (process.env.NODE_ENV === "production") {
   app.set("trust proxy", 1);
 }
+
+
+// // Ensure upload directories exist
+// const uploadDirs = [
+//   path.join(__dirname, 'uploads'),
+//   path.join(__dirname, 'uploads', 'profile_photos'),
+//   // add other upload subfolders here if needed, e.g.
+//   // path.join(__dirname, 'uploads', 'documents'),
+//   // path.join(__dirname, 'uploads', 'selfies')
+// ];
+
+// uploadDirs.forEach(dir => {
+//   try {
+//     if (!fs.existsSync(dir)) {
+// fs.mkdirSync(dir, { recursive: true });
+// console.log(`✔ Created upload folder: ${dir}`);
+// } else {
+//   console.log(`ℹ️ Upload folder exists: ${dir}`);
+// }
+// } catch (err) {
+// console.error(`❌ Failed to ensure folder ${dir}:`, err);
+// // optional: process.exit(1) if you want startup to fail hard
+// }
+// });
+
+
+// ensure and serve
+['uploads', path.join('uploads','profile_photos')].forEach(dir => {
+  const full = path.join(__dirname, dir);
+  if (!fs.existsSync(full)) fs.mkdirSync(full, { recursive: true });
+});
+
 
 /***********************
  *  PASSPORT INIT
@@ -163,6 +173,9 @@ app.use(passport.initialize());
 app.use(passport.session());
 app.use(flash());
 app.use(methodOverride('_method'));
+
+// Apply before your protected routes
+app.use(inactivityMiddleware);
 
 /***********************
  *  GLOBAL LOCALS

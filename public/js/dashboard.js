@@ -100,10 +100,16 @@ async function loadDashboard() {
   // - If an accessToken exists in localStorage -> use JWT API (/api/auth/dashboard)
   // - Otherwise use session-protected JSON endpoint -> /api/auth/session
   const accessToken = localStorage.getItem('accessToken') || null;
-  const TIMEOUT_MS = 8000;
+  const TIMEOUT_MS = 2000;
 
   try {
     let res;
+
+    //
+    // ===========================================
+    // 1️⃣  JWT FLOW (Browser has accessToken)
+    // ===========================================
+    //
     if (accessToken) {
       console.log("📡 Using JWT flow:", `${API_BASE}/api/auth/dashboard`);
       const controller = new AbortController();
@@ -118,12 +124,21 @@ async function loadDashboard() {
 
       clearTimeout(timeout);
 
-      // retry with refresh if 401/403
+      //
+        // JWT expired → attempt refresh
+        //
       if (res.status === 401 || res.status === 403) {
         console.warn("🔁 Access token expired, attempting refresh...");
         const newToken = await refreshAccessToken();
-        if (!newToken) throw new Error('Session expired. Please log in again.');
 
+        if (!newToken) {
+            console.warn("❌ Refresh failed: session fully expired");
+            setTimeout(() => window.location.href = "/login", 2000);
+
+            return;
+          }
+
+        // retry request with new token
         const controller2 = new AbortController();
         const timeout2 = setTimeout(() => controller2.abort(), TIMEOUT_MS);
 
@@ -136,25 +151,57 @@ async function loadDashboard() {
 
         clearTimeout(timeout2);
       }
-    } else {
-      console.log("📡 No accessToken found — using session endpoint:", `${API_BASE}/api/auth/session`);
+    } 
+    
+    //
+    // ===========================================
+    // 2️⃣  SESSION FLOW (No accessToken stored)
+    // ===========================================
+    //
+    else {
+      console.log(
+        "📡 No accessToken found — using session endpoint:", 
+        `${API_BASE}/api/auth/session`
+      );
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), TIMEOUT_MS);
 
       res = await fetch(`${API_BASE}/api/auth/session`, {
         method: 'GET',
-        credentials: 'include'
+        credentials: 'include',
+        signal: controller.signal,
       });
 
       clearTimeout(timeout);
     }
 
+    //
+    // ===========================================
+    // 3️⃣  UNIFIED 401 HANDLER (Auto-logout included)
+    // ===========================================
+    //
+    if (res.status === 401) {
+      console.warn("⛔ 401 received — redirecting to login...");
+      setTimeout(() => window.location.href = "/login", 2000); // ⬅ THIS IS THE LINE YOU NEEDED
+      return;
+  }
+
+    //
+    // ===========================================
+    // 4️⃣  OTHER ERRORS
+    // ===========================================
+    //
     if (!res.ok) {
       const errBody = await res.json().catch(() => ({}));
       const msg = errBody.error || errBody.message || `HTTP ${res.status}`;
       throw new Error(msg);
     }
 
+    //
+    // ===========================================
+    // 5️⃣  SUCCESS — PARSE DASHBOARD DATA
+    // ===========================================
+    //
     const data = await res.json();
     console.log("✅ Dashboard data:", data);
 
@@ -193,7 +240,7 @@ async function loadDashboard() {
 
     // if expired, redirect after short delay
     if (/expired|session|log in/i.test((err.message || '').toLowerCase())) {
-      setTimeout(() => { window.location.href = '/login'; }, 1500);
+      setTimeout(() => { window.location.href = '/login'; }, 2000);
     }
   } finally {
     // ensure loading lock released so user can attempt again if desired
@@ -201,34 +248,295 @@ async function loadDashboard() {
   }
 }
 
-// Unified logout
+// // Unified logout
+// async function doLogout() {
+//   try {
+//     const res = await fetch(`${API_BASE}/logout`, {
+//       method: 'POST',
+//       credentials: 'include',
+//       headers: { Accept: 'application/json' },
+//     });
+
+//     localStorage.removeItem('accessToken');
+//     localStorage.removeItem('refreshToken');
+
+//     if (res.ok) {
+//       const data = await res.json().catch(() => ({}));
+//       if (data.redirect) {
+//         window.location.href = data.redirect;
+//         return;
+//       }
+//     }
+
+//     window.location.href = '/login';
+//   } catch (err) {
+//     console.error('Logout error:', err);
+//     localStorage.removeItem('accessToken');
+//     localStorage.removeItem('refreshToken');
+//     window.location.href = '/login';
+//   }
+// }
+
+
+// ----------------------------------------------------------
+// MANUAL LOGOUT (logout button)
+// ----------------------------------------------------------
 async function doLogout() {
-  try {
-    const res = await fetch(`${API_BASE}/logout`, {
-      method: 'POST',
-      credentials: 'include',
-      headers: { Accept: 'application/json' },
-    });
+  console.log("🚪 Manual logout triggered");
 
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
+  // STEP 1 — show spinner immediately (same as auto)
+  showLogoutSpinner();
 
-    if (res.ok) {
-      const data = await res.json().catch(() => ({}));
-      if (data.redirect) {
-        window.location.href = data.redirect;
-        return;
-      }
+  // STEP 2 — allow DOM to repaint (same 100ms as auto!)
+  setTimeout(async () => {
+
+    // STEP 3 — backend logout
+    try {
+      await fetch(`${API_BASE}/logout`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { Accept: 'application/json' }
+      });
+    } catch (err) {
+      console.error("Logout error (ignored):", err);
     }
 
-    window.location.href = '/login';
-  } catch (err) {
-    console.error('Logout error:', err);
+    // Always remove JWT tokens
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
-    window.location.href = '/login';
-  }
+
+    // STEP 4 — keep spinner visible for smooth UX
+    setTimeout(() => {
+
+      // STEP 5 — redirect to login
+      window.location.href = "/login";
+
+    }, 1000);
+
+  }, 100); // SAME repaint delay as auto logout
 }
+
+
+// async function doLogout() {
+//   console.log("🔒 Manual logout triggered");
+
+//   // 1️⃣ Instantly show spinner (same as auto-logout)
+//   const sp = document.getElementById('loading-spinner');
+//   const dash = document.getElementById('dashboard-content');
+
+//   if (sp) sp.style.display = 'flex';
+//   if (dash) dash.style.display = 'none';
+
+//   // 2️⃣ Force redirect after 2s (or longer for testing)
+//   //    This makes manual logout always work.
+//   setTimeout(() => {
+//     console.warn("⏳ Forced redirect to /login after timeout");
+//     window.location.href = "/login";
+//   }, 2000); // You can test with 5000–8000ms
+
+//   // 3️⃣ Backend logout in the background (non-blocking)
+//   try {
+//     fetch(`${API_BASE}/logout`, {
+//       method: 'POST',
+//       credentials: 'include',
+//       headers: { Accept: 'application/json' },
+//     })
+//       .then(r => r.json())
+//       .then(data => {
+//         if (data?.redirect) window.location.href = data.redirect;
+//       })
+//       .catch(() => {});
+//   } catch (err) {
+//     console.error("Logout error (ignored):", err);
+//   }
+
+//   // 4️⃣ Always remove JWT browser tokens
+//   localStorage.removeItem('accessToken');
+//   localStorage.removeItem('refreshToken');
+
+//    // 🔥 NEW — show same spinner as auto logout
+//    showLogoutSpinner();
+
+//    // 🔥 NEW — redirect after small delay
+//    setTimeout(() => {
+//      window.location.href = "/login";
+//    }, 800); // 0.8s same smooth feeling
+ 
+//    return;
+// }
+
+
+// // -------------------------------------------------
+// // 🚨 INACTIVITY LOGOUT (10 minutes)
+// // -------------------------------------------------
+// let inactivityTimer;
+
+// function resetInactivityTimer() {
+//     clearTimeout(inactivityTimer);
+
+//     inactivityTimer = setTimeout(() => {
+//       console.warn("⏳ User inactive — auto-logout triggered.");
+
+//         // Show spinner before logout
+//         const sp = document.getElementById('loading-spinner');
+//         const dash = document.getElementById('dashboard-content');
+//         if (sp) sp.style.display = 'flex';
+//         if (dash) dash.style.display = 'none';
+
+//         // Delay ensures spinner is visible
+//         setTimeout(() => { 
+//           window.location.href = "/login"; 
+//         }, 2000);
+
+//     }, 10 * 60 * 1000); // 10 minutes
+// }
+
+// // Reset timer on user activity
+// ['mousemove', 'keydown', 'touchstart', 'scroll'].forEach(evt => {
+//     document.addEventListener(evt, resetInactivityTimer);
+// });
+// resetInactivityTimer();
+
+
+// // ----------------------------------------------------------
+// // AUTO-LOGOUT ON INACTIVITY (15 minutes)
+// // ----------------------------------------------------------
+
+// let inactivityTimer;
+// const INACTIVITY_LIMIT = 15 * 60 * 1000; // 15 minutes
+
+// function showLogoutSpinner() {
+//   const sp = document.getElementById('loading-spinner');
+//   const dash = document.getElementById('dashboard-content');
+
+//   if (sp) {
+//     sp.style.display = 'flex';
+//     sp.querySelector('.spinner')?.classList.add('active');
+//   }
+
+//   if (dash) dash.style.display = 'none';
+// }
+
+// function resetInactivityTimer() {
+//   clearTimeout(inactivityTimer);
+
+//   inactivityTimer = setTimeout(() => {
+//     console.warn("⏳ User inactive — logging out...");
+
+//     // Step 1 — show spinner immediately
+//     showLogoutSpinner();
+
+//     // Step 2 — ensure spinner is visible before backend logout
+//     setTimeout(async () => {
+
+//       await doLogout();  // Step 3 — perform logout without redirect
+
+//       // Step 4 — wait so spinner stays visible
+//       setTimeout(() => {
+//         window.location.href = "/login";    
+//       }, 1000);
+
+//     }, 100); // small wait to allow DOM repaint
+//   }, INACTIVITY_LIMIT);
+// }
+
+// // Reset timer on any user activity
+// ["mousemove", "keydown", "click", "scroll", "touchstart"].forEach(evt => {
+//   window.addEventListener(evt, resetInactivityTimer);
+// });
+
+// resetInactivityTimer();
+
+
+// ----------------------------------------------------------
+// AUTO-LOGOUT ON INACTIVITY (15 minutes)
+// ----------------------------------------------------------
+
+let inactivityTimer;
+const INACTIVITY_LIMIT = 15 * 60 * 1000; // 15 minutes
+
+function showLogoutSpinner() {
+  const sp = document.getElementById('loading-spinner');
+  const dash = document.getElementById('dashboard-content');
+
+  if (sp) {
+    sp.style.display = 'flex';
+    sp.querySelector('.spinner')?.classList.add('active');
+  }
+
+  if (dash) dash.style.display = 'none';
+}
+
+function resetInactivityTimer() {
+  clearTimeout(inactivityTimer);
+
+  inactivityTimer = setTimeout(() => {
+    console.warn("⏳ User inactive — logging out...");
+
+    // STEP 1 — show spinner
+    showLogoutSpinner();
+
+    // STEP 2 — same repaint delay
+    setTimeout(async () => {
+
+      // STEP 3 — do backend logout (same function)
+      await doLogout();  // no redirect here (redirect is inside doLogout!)
+
+      // IMPORTANT: doLogout already handles redirect
+
+    }, 100);
+
+  }, INACTIVITY_LIMIT);
+}
+
+// Reset timer on any user activity
+["mousemove", "keydown", "click", "scroll", "touchstart"].forEach(evt => {
+  window.addEventListener(evt, resetInactivityTimer);
+});
+
+// Start timer on load
+resetInactivityTimer();
+
+
+// // ----------------------------------------------------------
+// // AUTO-LOGOUT ON INACTIVITY (15 minutes = 900000 ms)
+// // ----------------------------------------------------------
+
+// let inactivityTimer;
+// const INACTIVITY_LIMIT = 1 * 60 * 1000; // 15 minutes
+
+// function resetInactivityTimer() {
+//   clearTimeout(inactivityTimer);
+
+//   inactivityTimer = setTimeout(() => {
+//     console.warn("⏳ User inactive for 1 minutes — logging out...");
+
+//     // Show spinner if exists
+//     const sp = document.getElementById('loading-spinner');
+//     const dash = document.getElementById('dashboard-content');
+//     if (sp) sp.style.display = 'flex';
+//     if (dash) dash.style.display = 'none';
+
+//     // Show spinner  BEFORE logout trigger
+//     showLogoutSpinner();
+
+//     // Delay a bit to allow spinner to show
+//     setTimeout(() => {
+//     // Trigger unified logout (session + JWT)
+//     doLogout(); // your existing unified logout
+//   }, 30000); // <— THIS makes spinner stay visible long enough to see
+// }, INACTIVITY_LIMIT);
+// }
+
+// // User activity resets timer
+// ["mousemove", "keydown", "click", "scroll", "touchstart"].forEach(evt => {
+//   window.addEventListener(evt, resetInactivityTimer);
+// });
+
+// // Initialize inactivity timer immediately
+// resetInactivityTimer();
+
+
 
 // DOM ready wiring
 document.addEventListener('DOMContentLoaded', () => {
@@ -250,6 +558,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 });
+
  
     
     

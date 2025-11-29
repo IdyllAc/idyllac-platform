@@ -16,11 +16,14 @@ const { validateSettings } = require('../validators/settingsValidator');
 // 🗂️ Multer configuration for profile photo uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, path.join(__dirname, '../uploads/profile_photos'));
+    const userDir = path.join(__dirname, '..', 'uploads', String(req.user.id));
+    fs.mkdirSync(userDir, { recursive: true });
+    cb(null, userDir);
   },
   filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname);
-    cb(null, `user_${req.user.id}_${Date.now()}${ext}`);
+    const ext = path.extname(file.originalname) || '.png';
+    const filename = `profile_${req.user.id}_${Date.now()}${ext}`;
+    cb(null, filename);
   }
 });
 

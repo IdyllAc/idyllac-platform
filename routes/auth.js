@@ -4,6 +4,7 @@ const router = express.Router();
 const apiAuthController = require('../controllers/authController');
 const jwtMiddleware = require('../middleware/jwtMiddleware');
 const dashboardController = require('../controllers/dashboardController');
+const socialController = require('../controllers/socialController');
 const noCache = require('../middleware/noCache');
 
 // API: Register (JSON)
@@ -30,5 +31,9 @@ router.get('/session', dashboardController.getSessionApi);
 
 // API: Email confirmation
 router.get('/confirm-email/:token', apiAuthController.confirmEmail);
+
+// TikTok Callback
+router.get('/tiktok/callback', socialController.tiktokCallback);
+
 
 module.exports = router;

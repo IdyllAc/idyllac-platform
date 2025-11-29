@@ -23,14 +23,21 @@ const { selfieValidator } = require('../validators/selfieValidator');
 // Configure multer storage for file uploads
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    const userId = req.user.id;
-    const userDir = path.join(__dirname, '..', 'uploads', String(userId));
+    if (!req.user || !req.user.id) {
+      console.error("❌ Multer error: req.user.id missing", req.user);
+      return cb(new Error("User not authenticated"));
+    }
+    const userId = req.user.id.toString(); // make sure it is a string!
+    const userDir = path.join(__dirname, '..', 'uploads', userId);
     fs.mkdirSync(userDir, { recursive: true });
     cb(null, userDir);
   },
   filename: function (req, file, cb) {
-    cb(null, file.fieldname === 'selfie' ? 'selfie-temp.jpg' : file.originalname);
-  }
+   // create a sanitized timestamped filename
+   const ext = path.extname(file.originalname) || '';
+   const safeBase = file.fieldname.replace(/[^a-z0-9_-]/gi, '');
+   const filename = `${safeBase}_${Date.now()}${ext}`;
+   cb(null, filename); }
 });
 
 const upload = multer({
