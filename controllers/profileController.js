@@ -127,8 +127,11 @@ exports.updateProfile = async (req, res) => {
     });
 
     // Photo handling (multer)
-    if (req.file) payload.profile_photo = `/uploads/profile_photos/${req.file.filename}`;
-
+    if (req.file) {
+      // Save correct path that matches multer storage folder
+      payload.profile_photo = `/uploads/${req.user.id}/${req.file.filename}`;
+    }
+    
     // Resolve identity fields server-side (never trust client)
     const identity = await resolveIdentityFields(userId, req.user);
 

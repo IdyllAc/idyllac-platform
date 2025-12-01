@@ -111,7 +111,7 @@ app.use(
       defaultSrc: ["'self'"],
       scriptSrc: ["'self'"],
       styleSrc: ["'self'", "'unsafe-inline'"], // only if you have inline <style>
-      imgSrc: ["'self'", "data:"], // allow base64 images (e.g. selfie preview)
+      imgSrc: ["'self'", "data:", "blob"], // allow base64 images (e.g. selfie preview)
       connectSrc: ["'self'"], // allow fetch() to same origin
     },
   })

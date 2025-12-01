@@ -37,13 +37,15 @@ const storage = multer.diskStorage({
    const ext = path.extname(file.originalname) || '';
    const safeBase = file.fieldname.replace(/[^a-z0-9_-]/gi, '');
    const filename = `${safeBase}_${Date.now()}${ext}`;
-   cb(null, filename); }
+   cb(null, filename); 
+  }
 });
 
 const upload = multer({
   storage,
   limits: { fileSize: 10 * 1024 * 1024 } // 10MB
 });
+
 
 // ✅ Show Personal Info form
 router.get('/personal_info', combinedAuth, noCache, (req, res) => {
