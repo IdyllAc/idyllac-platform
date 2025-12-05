@@ -33,6 +33,13 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: true,
       field: 'confirmation_token', // ✅ important for consistency
     },
+    tiktok_id: {
+      type: DataTypes.STRING,
+      unique: true
+    },
+    registration_method: {
+      type: DataTypes.STRING
+    },    
   }, {
     tableName: 'users',
     underscored: true,   // ✅ same as other models
