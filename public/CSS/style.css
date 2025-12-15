@@ -286,7 +286,7 @@ gap:1rem;
         margin: 1em;
         padding-left: 20px;
         padding-right: 20px;
-		text-align-last: right;
+		text-align-last: left;
       }
 
       .contact__fieldset {
@@ -305,7 +305,7 @@ gap:1rem;
 
       .contact__label {
         display: block;
-        font-weight: bold;
+        font-weight:bold;
       }
 
       .contact__input,
@@ -313,7 +313,8 @@ gap:1rem;
         padding: 0.5em;
         border-radius: var(--BORDER-RADIUS);
         border-width: 2px;
-        width:100%;   
+        width:100%; 
+        text-align-last: left; 
 }
 
       .contact__button {

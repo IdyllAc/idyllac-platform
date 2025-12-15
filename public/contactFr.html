@@ -10,32 +10,6 @@
     <link rel="stylesheet" href="CSS/style.css">
     <script src="https://kit.fontawesome.com/cbdd759dc1.js" crossorigin="anonymous"></script>
     <script src="js/main.js defer"></script>
-    <style>
-      p {
-        line-height: 1.25rem;
-        text-align: center;
-        color:lime; 
-        text-align:justify;
-        margin: 1em;
-        padding-left: 20px;
-        padding-right: 20px;
-		text-align-last: right;
-      }
-      .contact__input {
-        padding: 0.5em;
-        border-radius: var(--BORDER-RADIUS);
-        border-width: 2px;
-        width:100%;
-        text-align-last:left;
-      }
-      .contact__textarea {
-        padding: 0.5em;
-        border-radius: var(--BORDER-RADIUS);
-        border-width: 2px;
-        width:100%; 
-        text-align-last: right;  
-}
-    </style>
 </head>
 <body>
     <header class="header">
@@ -68,12 +42,11 @@
           </section>
            <br>
 
-          
-               
-            
             <article class="main__article contact">
-                <h2 class="contact__h2"><legend class="offscreen"><i class="fa-regular fa-hand-point-down"></i> :اترك لنا  رسالتك هنا</legend></h2> 
+                <h2 class="contact__h2">Lessez nous une message: <i class="fa-regular fa-hand-point-down"></i> </h2> 
             <form id="messageForm">
+                <!-- <h2 class="contact__h2">leave us a message:<br> <legend class="offscreen"><i class="fa-regular fa-hand-point-down"></i> :دون رسالتك هنا</legend></h2> 
+            <form id="messageForm"> -->
             <fieldset class="contact__fieldset">
               <!-- <legend class="offscreen"><i class="fa-regular fa-hand-point-down"></i> :دون رسالتك هنا</legend> -->
               <!-- <p class="contact__p">
@@ -81,16 +54,16 @@
                 <input class="contact__input" type="text" name="name" id="name" placeholder="your name" required>
               </p> -->
               <p class="contact__p">
-                <label class="contact__label" for="email">Email / الإيميل</label>
-                <input  class="contact__input" type="email" name="email" id="email" autocomplete="on" placeholder="abc.123@example.com" required>
+                <label class="contact__label" for="email">Email:</label>
+                <input  class="contact__input" type="email" name="email" id="email" autocomplete="on" placeholder="votre email" required>
               </p>
               <p class="contact__p">
-                <label class="contact__label" for="message">Your message / الرسالة</label>
-                <textarea class="contact__textarea" name="message" id="message" cols="30" rows="10" placeholder="...... type here"></textarea>
+                <label class="contact__label" for="message">Votre message:</label>
+                <textarea class="contact__textarea" name="message" id="message" cols="30" rows="10" placeholder="saisiez ici ......"></textarea>
               </p>
             </fieldset>
-            <button class="contact__button"type="submit">إرسال</button>
-            <button class="contact__button"type="reset">إلغاء</button>
+            <button class="contact__button"type="submit">Send</button>
+            <button class="contact__button"type="reset">Reset</button>
            </form>
           </article>
         
