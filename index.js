@@ -296,7 +296,6 @@ app.use('/protect', combinedAuth, protectRoutes);
 app.use('/profile', combinedAuth, profileRoutes); // or app.use('/api', profileRoutes) depending on your structure
 
 
-
 /***********************
  *  ERROR HANDLER
  ***********************/
