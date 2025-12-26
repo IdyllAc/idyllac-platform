@@ -16,3 +16,9 @@ Thumbs.db
 *.log
 
 
+*.key
+*.pem
+*.crt
+*.p12
+*.jks
+
