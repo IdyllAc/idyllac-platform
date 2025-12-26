@@ -47,14 +47,38 @@ exports.postRegister = async (req, res) => {
 
     // 2️⃣ Check existing user
     const existingUser = await User.findOne({ where: { email } });
+
     if (existingUser) {
-      const msg = 'Email is already registered.';
-      if (req.headers.accept?.includes('application/json')) {
-        return res.status(409).json({ message: msg });
+      // 🔁 Unconfirmed → resend confirmation instead of creating new user
+      if (!existingUser.isConfirmed) {
+        existingUser.confirmationToken = uuidv4();
+        existingUser.confirmationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
+        await existingUser.save();
+    
+        await sendEmail(
+          existingUser.email,
+          'Confirm your email',
+          existingUser.confirmationToken
+        );
+    
+        if (req.headers.accept?.includes('application/json')) {
+        return res.status(200).json({ 
+          message: 'Confirmation email resent. Please check your inbox.',
+        });
       }
-      req.flash('error', msg);
-      return res.redirect('/register');
-    }
+
+      req.flash('info', 'Confirmation email resent. Please check your inbox.');
+    return res.redirect('/login');
+  }
+
+  // ❌ Already confirmed → block
+  const msg = 'Email is already registered.';
+  if (req.headers.accept?.includes('application/json')) {
+    return res.status(409).json({ message: msg });
+  }
+  req.flash('error', msg);
+  return res.redirect('/register');
+}
 
     // 3️⃣ Hash password & create user
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -65,6 +89,7 @@ exports.postRegister = async (req, res) => {
       email,
       password: hashedPassword,
       confirmationToken,  // Sequelize will save in DB as confirmation_token
+      confirmationExpires: new Date(Date.now() + 24 * 60 * 60 * 1000), // ⬅ 24h
       isConfirmed: false, // Sequelize will save in DB as is_confirmed
     });
 
@@ -397,7 +422,12 @@ exports.confirmEmail = async (req, res) => {
 
   
      // 1️⃣ Find the user by this confirmation token
-    const user = await User.findOne({ where: { confirmationToken: token } });
+    const user = await User.findOne({ 
+      where: { 
+        confirmationToken: token,
+        confirmationExpires: { [Op.gt]: new Date() }
+      } 
+    });
 
     if (!user) {
       console.log('❌ No user found with this token in DB');

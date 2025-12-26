@@ -33,6 +33,11 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: true,
       field: 'confirmation_token', // ✅ important for consistency
     },
+    confirmationExpires: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      field: 'confirmation_expires', // ⬅ important
+    },    
     tiktok_id: {
       type: DataTypes.STRING,
       unique: true

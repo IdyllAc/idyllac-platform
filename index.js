@@ -22,6 +22,7 @@ const combinedAuth = require('./middleware/combinedAuth');
 const cookieParser = require('cookie-parser');
 const helmet = require('helmet');
 const inactivityMiddleware = require("./middleware/inactivityMiddleware");
+const rateLimit = require('express-rate-limit').default;
 
 /***********************
  *  ROUTES
@@ -42,12 +43,31 @@ const socialAuthRoutes = require('./routes/authSocial');
  ***********************/
 const app = express();
 const PORT = process.env.PORT || 3000;
+/* ===============================
+   RATE LIMITERS (DEFINE FIRST)
+================================ */
+
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 min
+  max: 10,                 // 10 requests per IP
+  message: 'Too many auth attempts, please try again later',
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+ // app.use(limiter);
+
+
+app.use('/api/auth/register', authLimiter);
+app.use('/api/auth/login', authLimiter);
+app.use('/login', authLimiter);
+
 
 // Enable trust proxy ONLY in production (needed if you’re behind Nginx/Render/Heroku/Cloudflare)
 if (process.env.NODE_ENV === "production") {
   app.set("trust proxy", 1);
 }
-
 
 // // Ensure upload directories exist
 // const uploadDirs = [
