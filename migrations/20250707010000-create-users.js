@@ -25,10 +25,22 @@ module.exports = {
       is_confirmed: {
         type: Sequelize.BOOLEAN,
         defaultValue: false,
+        allowNull: false,
       },
       confirmation_token: {
         type: Sequelize.STRING(255),
         allowNull: true,
+      },
+      confirmation_expires: {
+        type: Sequelize.DATE,
+        allowNull: true,
+      },
+      tiktok_id: {
+        type: Sequelize.STRING,
+        unique: true,
+      },
+      registration_method: {
+        type: Sequelize.STRING,
       },
       created_at: {
         type: Sequelize.DATE,
@@ -43,7 +55,10 @@ module.exports = {
     });
   },
 
-  down: async (queryInterface, Sequelize) => {
+  down: async (queryInterface) => {
     await queryInterface.dropTable('users');
   },
 };
+
+
+
